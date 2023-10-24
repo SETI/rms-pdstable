@@ -35,10 +35,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/SETI/pds-pdstable"
-Repository = "https://github.com/SETI/pds-pdstable"
-Source = "https://github.com/SETI/pds-pdstable"
-Issues = "https://github.com/SETI/pds-pdstable/issues"
+Homepage = "https://github.com/SETI/rms-pdstable"
+Repository = "https://github.com/SETI/rms-pdstable"
+Source = "https://github.com/SETI/rms-pdstable"
+Issues = "https://github.com/SETI/rms-pdstable/issues"
 
 [tool.setuptools]
 packages = ["pdstable"]

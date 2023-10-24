@@ -1,2 +1,2 @@
-# pds-pdstable
+# rms-pdstable
 pdstable Python module
