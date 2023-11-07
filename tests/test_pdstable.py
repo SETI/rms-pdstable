@@ -70,8 +70,8 @@ class Test_PdsTable(unittest.TestCase):
     test_table_secs = PdsTable(INDEX_PATH, times=['START_TIME'])
 
     test_start_times = test_table_secs.column_values['START_TIME']
-    start_time_test_set = np.array([247807905.392, 247807907.372,
-                                    247807938.832, 247807939.132])
+    start_time_test_set = np.array([247764705.392, 247764707.372,
+                                    247764738.832, 247764739.132])
     self.assertTrue(np.all(start_time_test_set == test_start_times[0:4]))
     self.assertTrue(isinstance(start_time_test_set, np.ndarray))
 
