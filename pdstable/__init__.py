@@ -69,7 +69,7 @@ else:
     ENCODING = {}
 
 # This is an exhaustive tuple of string-like types
-STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_, np.unicode_)
+STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 
 # Needed because the default value of strip is False
 def tai_from_iso(string):
