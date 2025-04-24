@@ -55,8 +55,8 @@ import julian
 from .pds3table import Pds3TableInfo
 from .pds4table import (Pds4TableInfo,
                         PDS4_BUNDLE_COLNAME,
-                        PDS4_EXTENSIONS,
-                        PDS4_FILE_SPEC_NAME_COLNAME)
+                        PDS4_FILE_SPEC_NAME_COLNAME,
+                        PDS4_LBL_EXTENSIONS)
 
 try:
     from ._version import __version__
@@ -1006,7 +1006,7 @@ def lowercase_value(value):
 def is_pds4_label(label_name):
     """Check if the given label is a PDS4 label."""
 
-    for ext in PDS4_EXTENSIONS:
+    for ext in PDS4_LBL_EXTENSIONS:
         if label_name.endswith(ext):
             return True
 
