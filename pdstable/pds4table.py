@@ -9,6 +9,8 @@ import os
 
 from pds4_tools.reader.label_objects import Label
 
+PDS4_EXTENSIONS = ('.xml', '.lblx')
+
 PDS4_FILE_SPEC_NAME_COLNAME = (
     'File Name'
     'File Specification',

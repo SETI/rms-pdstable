@@ -53,7 +53,10 @@ import pdsparser
 import julian
 
 from .pds3table import Pds3TableInfo
-from .pds4table import Pds4TableInfo, PDS4_FILE_SPEC_NAME_COLNAME, PDS4_BUNDLE_COLNAME
+from .pds4table import (Pds4TableInfo,
+                        PDS4_BUNDLE_COLNAME,
+                        PDS4_EXTENSIONS,
+                        PDS4_FILE_SPEC_NAME_COLNAME)
 
 try:
     from ._version import __version__
@@ -61,9 +64,8 @@ except ImportError as err:
     __version__ = 'Version unspecified'
 
 
-# STR_DTYPE is 'S' for Python 2; 'U' for Python 3
+# STR_DTYPE is 'U'
 STR_DTYPE = np.array(['x']).dtype.kind
-PYTHON2 = (sys.version_info[0] == 2)
 
 ENCODING = {'encoding': 'latin-1'}  # For open() of ASCII files in Python 3
 
@@ -187,14 +189,14 @@ class PdsTable(object):
         self.label_file_name = label_file
         # Parse the label
         if label_contents is not None:
-            if label_file.endswith(".xml"):
+            if is_pds4_label(label_file):
                 self.info = Pds4TableInfo(label_file, label_list=label_contents,
                                         invalid=invalid, valid_ranges=valid_ranges)
             else:
                 self.info = Pds3TableInfo(label_file, label_list=label_contents,
                                         invalid=invalid, valid_ranges=valid_ranges)
         else:
-            if label_file.endswith(".xml"):
+            if is_pds4_label(label_file):
                 self.info = Pds4TableInfo(label_file,
                                         invalid=invalid, valid_ranges=valid_ranges)
             else:
@@ -221,7 +223,7 @@ class PdsTable(object):
 
             # Check line count
             # In PDS4, skip the header
-            if label_file.endswith(".xml"):
+            if is_pds4_label(label_file):
                 lines = lines[1:]
 
             if len(lines) != self.info.rows:
@@ -235,7 +237,7 @@ class PdsTable(object):
             header_bytes = 0
 
             # For PDS4 table, we need to consider the header
-            if label_file.endswith(".xml"):
+            if is_pds4_label(label_file):
                 # record_bytes is stored in row_bytes for PDS4
                 record_bytes = self.info.row_bytes
                 header_bytes = self.info.header_bytes
@@ -546,7 +548,7 @@ class PdsTable(object):
             for (column_name, items) in self.column_values.items():
 
                 key_set = set([column_name])
-                if not self.label_file_name.endswith('.xml'):
+                if not is_pds4_label(self.label_file_name):
                     key_set = set([column_name, column_name.replace(' ', '_')])
 
                 for key in key_set:
@@ -1000,3 +1002,12 @@ def lowercase_value(value):
         value_lc = value
 
     return value_lc
+
+def is_pds4_label(label_name):
+    """Check if the given label is a PDS4 label."""
+
+    for ext in PDS4_EXTENSIONS:
+        if label_name.endswith(ext):
+            return True
+
+    return False
