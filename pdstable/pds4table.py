@@ -18,7 +18,7 @@ PDS4_BUNDLE_COLNAME = (
     'Bundle Name',
 )
 
-# STR_DTYPE is 'S' for Python 2; 'U' for Python 3
+# STR_DTYPE is 'U'
 STR_DTYPE = np.array(['x']).dtype.kind
 
 # This is an exhaustive tuple of string-like types

@@ -64,12 +64,8 @@ except ImportError as err:
 # STR_DTYPE is 'S' for Python 2; 'U' for Python 3
 STR_DTYPE = np.array(['x']).dtype.kind
 PYTHON2 = (sys.version_info[0] == 2)
-PYTHON3 = not PYTHON2
 
-if PYTHON3:
-    ENCODING = {'encoding': 'latin-1'}  # For open() of ASCII files in Python 3
-else:
-    ENCODING = {}
+ENCODING = {'encoding': 'latin-1'}  # For open() of ASCII files in Python 3
 
 # This is an exhaustive tuple of string-like types
 STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
@@ -338,7 +334,7 @@ class PdsTable(object):
                 if callback:
 
                     # Convert string to input format for callback
-                    if PYTHON3 and not ascii:
+                    if not ascii:
                        items = items.astype(STR_DTYPE)
 
                     # Apply the callback row by row
@@ -357,10 +353,10 @@ class PdsTable(object):
                     # The file is read as binary, so the replacements have
                     # to be applied as ASCII byte strings
 
-                    if PYTHON3 and isinstance(before, (str, np.str_)):
+                    if isinstance(before, (str, np.str_)):
                         before = before.encode(**ENCODING)
 
-                    if PYTHON3 and isinstance(after, (str, np.str_)):
+                    if isinstance(after, (str, np.str_)):
                         after  = after.encode(**ENCODING)
 
                     # Replace values (suppressing FutureWarning)
