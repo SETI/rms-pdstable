@@ -9,7 +9,7 @@ import os
 
 from pds4_tools.reader.label_objects import Label
 
-PDS4_FILE_SEPC_NAME_COLNAME = (
+PDS4_FILE_SPEC_NAME_COLNAME = (
     'File Name'
     'File Specification',
 )

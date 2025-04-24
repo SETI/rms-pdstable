@@ -53,7 +53,7 @@ import pdsparser
 import julian
 
 from .pds3table import Pds3TableInfo
-from .pds4table import Pds4TableInfo, PDS4_FILE_SEPC_NAME_COLNAME, PDS4_BUNDLE_COLNAME
+from .pds4table import Pds4TableInfo, PDS4_FILE_SPEC_NAME_COLNAME, PDS4_BUNDLE_COLNAME
 
 try:
     from ._version import __version__
@@ -87,7 +87,7 @@ FILE_SPECIFICATION_COLUMN_NAMES = (
     'PRODUCT_ID',
     'PRODUCT ID',
     'STSCI_GROUP_ID'
-) + PDS4_FILE_SEPC_NAME_COLNAME
+) + PDS4_FILE_SPEC_NAME_COLNAME
 
 FILE_SPECIFICATION_COLUMN_NAMES_lc = [x.lower() for x in
                                       FILE_SPECIFICATION_COLUMN_NAMES]
