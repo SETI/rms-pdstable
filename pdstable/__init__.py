@@ -52,8 +52,8 @@ import numbers
 import pdsparser
 import julian
 
-from .pds4table import Pds4TableInfo
 from .pds3table import Pds3TableInfo
+from .pds4table import Pds4TableInfo, PDS4_FILE_SEPC_NAME_COLNAME, PDS4_BUNDLE_COLNAME
 
 try:
     from ._version import __version__
@@ -82,13 +82,12 @@ FILE_SPECIFICATION_COLUMN_NAMES = (
     'FILE_SPECIFICATION_NAME',
     'FILE SPECIFICATION NAME',
     'FILE_NAME',
-    'File Name'
     'FILE NAME',
     'FILENAME',
     'PRODUCT_ID',
     'PRODUCT ID',
     'STSCI_GROUP_ID'
-)
+) + PDS4_FILE_SEPC_NAME_COLNAME
 
 FILE_SPECIFICATION_COLUMN_NAMES_lc = [x.lower() for x in
                                       FILE_SPECIFICATION_COLUMN_NAMES]
@@ -98,7 +97,7 @@ VOLUME_ID_COLUMN_NAMES = (
     'VOLUME ID',
     'VOLUME_NAME',
     'VOLUME NAME'
-)
+) + PDS4_BUNDLE_COLNAME
 
 VOLUME_ID_COLUMN_NAMES_lc = [x.lower() for x in VOLUME_ID_COLUMN_NAMES]
 
@@ -189,6 +188,7 @@ class PdsTable(object):
         ascii=True.
         """
 
+        self.label_file_name = label_file
         # Parse the label
         if label_contents is not None:
             if label_file.endswith(".xml"):
@@ -224,7 +224,7 @@ class PdsTable(object):
                 lines = f.readlines()
 
             # Check line count
-            # In PDS4, skip the first line because it's the column names
+            # In PDS4, skip the header
             if label_file.endswith(".xml"):
                 lines = lines[1:]
 
@@ -236,16 +236,19 @@ class PdsTable(object):
         else:
             self.first = row_range[0]
             self.rows = row_range[1] - row_range[0]
+            header_bytes = 0
 
+            # For PDS4 table, we need to consider the header
             if label_file.endswith(".xml"):
                 # record_bytes is stored in row_bytes for PDS4
                 record_bytes = self.info.row_bytes
+                header_bytes = self.info.header_bytes
             else:
                 record_bytes = self.info.label['RECORD_BYTES'].value
 
             with open(self.info.table_file_path, "rb") as f:
-                f.seek(row_range[0] * record_bytes)
-                lines = f.readlines(self.rows * record_bytes - 1)
+                f.seek(header_bytes + row_range[0] * record_bytes)
+                lines = f.readlines(header_bytes + self.rows * record_bytes - 1)
 
             if len(lines) > self.rows:
                 lines = lines[:self.rows]
@@ -328,6 +331,7 @@ class PdsTable(object):
             new_column_items = []
             new_column_masks = []
             for items in column_items:
+
                 invalid_mask = np.zeros(len(items), dtype='bool')
 
                 # Apply the callback if any
@@ -396,7 +400,9 @@ class PdsTable(object):
                     # If something went wrong, array processing won't work.
                     # Convert to list and process row by row
                     except Exception:
-
+                        if column_info.name == 'Data Quality Index':
+                            print('xxxxxxx')
+                            print(items)
                         # Process row by row
                         new_items = []
                         for k in range(len(items)):
@@ -545,27 +551,32 @@ class PdsTable(object):
             # Create and append the dictionary
             row_dict = {}
             for (column_name, items) in self.column_values.items():
-              for key in set([column_name, column_name.replace(' ', '_')]):
-                value = items[row]
-                mask  = self.column_masks[key][row]
 
-                # Key and value unchanged
-                row_dict[key] = value
-                row_dict[key + "_mask"] = mask
+                key_set = set([column_name])
+                if not self.label_file_name.endswith('.xml'):
+                    key_set = set([column_name, column_name.replace(' ', '_')])
 
-                # Key in lower case; value unchanged
-                if lowercase[0]:
-                    key_lc = key.lower()
-                    row_dict[key_lc] = value
-                    row_dict[key_lc + "_mask"] = mask
+                for key in key_set:
+                    value = items[row]
+                    mask  = self.column_masks[key][row]
 
-                # Value in lower case
-                if lowercase[1]:
-                    value_lc = lowercase_value(value)
+                    # Key and value unchanged
+                    row_dict[key] = value
+                    row_dict[key + "_mask"] = mask
 
-                    row_dict[key + '_lower'] = value_lc
+                    # Key in lower case; value unchanged
                     if lowercase[0]:
-                        row_dict[key_lc + '_lower'] = value_lc
+                        key_lc = key.lower()
+                        row_dict[key_lc] = value
+                        row_dict[key_lc + "_mask"] = mask
+
+                    # Value in lower case
+                    if lowercase[1]:
+                        value_lc = lowercase_value(value)
+
+                        row_dict[key + '_lower'] = value_lc
+                        if lowercase[0]:
+                            row_dict[key_lc + '_lower'] = value_lc
 
             row_dicts.append(row_dict)
 

@@ -9,6 +9,15 @@ import os
 
 from pds4_tools.reader.label_objects import Label
 
+PDS4_FILE_SEPC_NAME_COLNAME = (
+    'File Name'
+    'File Specification',
+)
+
+PDS4_BUNDLE_COLNAME = (
+    'Bundle Name',
+)
+
 # STR_DTYPE is 'S' for Python 2; 'U' for Python 3
 STR_DTYPE = np.array(['x']).dtype.kind
 
@@ -62,16 +71,18 @@ class Pds4TableInfo(object):
         self.label = lbl_dict
 
         # Get the table info from the label dictionary
-        file_area = lbl_dict["Product_Ancillary"]["File_Area_Ancillary"]
+        file_area = lbl_dict['Product_Ancillary']['File_Area_Ancillary']
         try:
-            self.table_file_name = file_area["File"]["file_name"]
+            self.table_file_name = file_area['File']['file_name']
         except:
-            raise IOError("Table file name was not found in PDS4 label")
+            raise IOError('Table file name was not found in PDS4 label')
 
-        table_char = file_area["Table_Character"]
-        self.rows = int(table_char["records"])
-        self.columns = int(table_char["Record_Character"]["fields"])
-        self.row_bytes = int(table_char["Record_Character"]["record_length"])
+
+        self.header_bytes = int(file_area['Header']['object_length'])
+        table_char = file_area['Table_Character']
+        self.rows = int(table_char['records'])
+        self.columns = int(table_char['Record_Character']['fields'])
+        self.row_bytes = int(table_char['Record_Character']['record_length'])
 
         # Save the key info about each column in a list and a dictionary
         self.column_info_list = []
@@ -80,31 +91,31 @@ class Pds4TableInfo(object):
         # Construct the dtype0 dictionary
         self.dtype0 = {'crlf': ('|S2', self.row_bytes-2)}
 
-        default_invalid = set(invalid.get("default", []))
-        # Get all the columns info from the "Field_Character" tags in the xml file
-        columns = lbl.findall(".//Field_Character")
+        default_invalid = set(invalid.get('default', []))
+        # Get all the columns info from the 'Field_Character' tags in the xml file
+        columns = lbl.findall('.//Field_Character')
         for col in columns:
-            node_dict = col.to_dict()["Field_Character"]
-            name = node_dict["name"]
-            field_num = int(node_dict["field_number"])
+            node_dict = col.to_dict()['Field_Character']
+            name = node_dict['name']
+            field_num = int(node_dict['field_number'])
 
             pdscol = Pds4ColumnInfo(node_dict, field_num,
                         invalid = invalid.get(name, default_invalid),
                         valid_range = valid_ranges.get(name, None))
 
-            # PDS4 TODO: Do we have more duplicated column names, except the "Target"?
-            # Handle duplicated column name "Target"
-            if name in self.column_info_dict and name != "Target":
+            # PDS4 TODO: Do we have more duplicated column names, except the 'Target'?
+            # Handle duplicated column name 'Target'
+            if name in self.column_info_dict and name != 'Target':
             # if name in self.column_info_dict:
                 raise ValueError('duplicated column name: ' + name)
 
             self.column_info_list.append(pdscol)
-            # Add "_Specific" for specific target column to avoid multiple pdscol
+            # Add '_Specific' for specific target column to avoid multiple pdscol
             # instances having the same name and riase the error np.stack is called
             # in pdstable/__init__.py. We don't need to do this if all column names
             # are unique.
-            if pdscol.name in self.column_info_dict and pdscol.name == "Target":
-                pdscol.name += "_Specific"
+            if pdscol.name in self.column_info_dict and pdscol.name == 'Target':
+                pdscol.name += '_Specific'
             self.column_info_dict[pdscol.name] = pdscol
             self.dtype0[pdscol.name] = pdscol.dtype0
 
@@ -134,18 +145,18 @@ class Pds4ColumnInfo(object):
                         upper limits of the valid range for a numeric column.
         """
 
-        self.name = node_dict["name"]
+        self.name = node_dict['name']
         self.colno = column_no
 
-        self.start_byte = int(node_dict["field_location"])
-        self.bytes      = int(node_dict["field_length"])
+        self.start_byte = int(node_dict['field_location'])
+        self.bytes      = int(node_dict['field_length'])
 
-        self.items = node_dict.get("ITEMS", 1)
-        self.item_bytes = node_dict.get("ITEM_BYTES", self.bytes)
-        self.item_offset = node_dict.get("ITEM_OFFSET", self.bytes)
+        self.items = node_dict.get('ITEMS', 1)
+        self.item_bytes = node_dict.get('ITEM_BYTES', self.bytes)
+        self.item_offset = node_dict.get('ITEM_OFFSET', self.bytes)
 
         # Define dtype0 to isolate each column in a record
-        self.dtype0 = ("S" + str(self.bytes), self.start_byte - 1)
+        self.dtype0 = ('S' + str(self.bytes), self.start_byte - 1)
 
         # Define dtype1 as a list of dtypes needed to isolate each item
         if self.items == 1:
@@ -154,60 +165,61 @@ class Pds4ColumnInfo(object):
             self.dtype1 = {}
             byte0 = 0
             for i in range(self.items):
-                self.dtype1["item_" + str(i)] = ("S" + str(self.item_bytes),
+                self.dtype1['item_' + str(i)] = ('S' + str(self.item_bytes),
                                                  byte0)
                 byte0 += self.item_offset
 
+        # PDS4 TODO: review the data type conversion
         # Define dtype2 as the intended dtype of the values in the column
-        self.data_type = node_dict["data_type"]
+        self.data_type = node_dict['data_type']
         # convert PDS4 data_type
         # ASCII_Integer, ASCII_NonNegative_Integer
-        if "Integer" in self.data_type:
-            self.data_type = "int"
-            self.dtype2 = "int"
+        if 'Integer' in self.data_type:
+            self.data_type = 'int'
+            self.dtype2 = 'int'
             self.scalar_func = int
         # ASCII_Real
-        elif "Real" in self.data_type:
-            self.data_type = "float"
-            self.dtype2 = "float"
+        elif 'Real' in self.data_type:
+            self.data_type = 'float'
+            self.dtype2 = 'float'
             self.scalar_func = float
         # ASCII_Time, ASCII_Date_DOY, ASCII_Date_Time_DOY, ASCII_Date_Time_DOY_UTC,
         # ASCII_Date_Time_YMD, ASCII_Date_Time_YMD_UTC, ASCII_Date_YMD
-        elif ("Time" in self.data_type or "Date" in self.data_type or
-            self.name.endswith("_Time") or self.name.endswith("_Date")):
-            self.data_type = "time"
+        elif ('Time' in self.data_type or 'Date' in self.data_type or
+            self.name.endswith('_Time') or self.name.endswith('_Date')):
+            self.data_type = 'time'
             self.dtype2 = 'S'
             self.scalar_func = tai_from_iso
         # ASCII_String, ASCII_Directory_Path_Name, ASCII_DOI, ASCII_File_Name,
         # ASCII_File_Specification_Name, ASCII_LID, ASCII_LIDVID, ASCII_LIDVID_LID,
         # ASCII_MD5_Checksum, ASCII_VID, ASCII_AnyURI, UTF8_String
-        elif ("String" in self.data_type or "Name" in self.data_type or
-              "DOI" in self.data_type or "LID" in self.data_type or
-              "VID" in self.data_type or "Checksum" in self.data_type or
-              "AnyURI" in self.data_type):
-            self.data_type = "string"
+        elif ('String' in self.data_type or 'Name' in self.data_type or
+              'DOI' in self.data_type or 'LID' in self.data_type or
+              'VID' in self.data_type or 'Checksum' in self.data_type or
+              'AnyURI' in self.data_type):
+            self.data_type = 'string'
             self.dtype2 = STR_DTYPE
             self.scalar_func = None
         # ASCII_Boolean
-        elif "Boolean" in self.data_type:
-            self.data_type = "boolean"
-            self.dtype2 = "bool"
+        elif 'Boolean' in self.data_type:
+            self.data_type = 'boolean'
+            self.dtype2 = 'bool'
             self.scalar_func = None
         # ASCII_Numeric_Base16, ASCII_Numeric_Base2, ASCII_Numeric_Base8
-        elif "Numeric" in self.data_type:
-            self.data_type = "int"
-            self.dtype2 = "int"
-            if self.data_type.endswith("Base2"):
+        elif 'Numeric' in self.data_type:
+            self.data_type = 'int'
+            self.dtype2 = 'int'
+            if self.data_type.endswith('Base2'):
                 self.scalar_func = int_from_base2
-            elif self.data_type.endswith("Base8"):
+            elif self.data_type.endswith('Base8'):
                 self.scalar_func = int_from_base8
-            elif self.data_type.endswith("Base16"):
+            elif self.data_type.endswith('Base16'):
                 self.scalar_func = int_from_base16
         else:
-            raise IOError("unsupported data type: " + self.data_type)
+            raise IOError('unsupported data type: ' + self.data_type)
 
         # Identify validity criteria
-        self.valid_range = valid_range or node_dict.get("VALID_RANGE", None)
+        self.valid_range = valid_range or node_dict.get('VALID_RANGE', None)
 
         if isinstance(invalid, (numbers.Real,) + STRING_TYPES):
             invalid = set([invalid])
@@ -215,14 +227,14 @@ class Pds4ColumnInfo(object):
         self.invalid_values = set(invalid)
 
         # PDS4 TODO: update these with PDS4 invalid values
-        self.invalid_values.add(node_dict.get("INVALID_CONSTANT"       , None))
-        self.invalid_values.add(node_dict.get("MISSING_CONSTANT"       , None))
-        self.invalid_values.add(node_dict.get("UNKNOWN_CONSTANT"       , None))
-        self.invalid_values.add(node_dict.get("NOT_APPLICABLE_CONSTANT", None))
-        self.invalid_values.add(node_dict.get("NULL_CONSTANT"          , None))
-        self.invalid_values.add(node_dict.get("INVALID"                , None))
-        self.invalid_values.add(node_dict.get("MISSING"                , None))
-        self.invalid_values.add(node_dict.get("UNKNOWN"                , None))
-        self.invalid_values.add(node_dict.get("NOT_APPLICABLE"         , None))
-        self.invalid_values.add(node_dict.get("NULL"                   , None))
+        self.invalid_values.add(node_dict.get('INVALID_CONSTANT'       , None))
+        self.invalid_values.add(node_dict.get('MISSING_CONSTANT'       , None))
+        self.invalid_values.add(node_dict.get('UNKNOWN_CONSTANT'       , None))
+        self.invalid_values.add(node_dict.get('NOT_APPLICABLE_CONSTANT', None))
+        self.invalid_values.add(node_dict.get('NULL_CONSTANT'          , None))
+        self.invalid_values.add(node_dict.get('INVALID'                , None))
+        self.invalid_values.add(node_dict.get('MISSING'                , None))
+        self.invalid_values.add(node_dict.get('UNKNOWN'                , None))
+        self.invalid_values.add(node_dict.get('NOT_APPLICABLE'         , None))
+        self.invalid_values.add(node_dict.get('NULL'                   , None))
         self.invalid_values -= {None}
