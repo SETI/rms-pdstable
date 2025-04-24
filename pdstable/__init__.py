@@ -400,9 +400,6 @@ class PdsTable(object):
                     # If something went wrong, array processing won't work.
                     # Convert to list and process row by row
                     except Exception:
-                        if column_info.name == 'Data Quality Index':
-                            print('xxxxxxx')
-                            print(items)
                         # Process row by row
                         new_items = []
                         for k in range(len(items)):
