@@ -256,8 +256,8 @@ class PdsTable(object):
                     'row count mismatch: ' +
                     '%d row%s read; ' % (len(lines),
                                         '' if len(lines) == 1 else 's') +
-                    '%d row%s requested' % (count,
-                                            '' if count == 1 else 's'))
+                    '%d row%s requested' % (self.rows,
+                                            '' if self.rows == 1 else 's'))
 
         if table_callback is not None:
             lines = table_callback(lines)

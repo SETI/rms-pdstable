@@ -39,6 +39,36 @@ def int_from_base8(string):
 def int_from_base16(string):
     return int(string, 16)
 
+# key: PDS4 data type
+# value: a tuple of (self.data_type, self.dtype2, self.scalar_func)
+PDS4_CHR_DATA_TYPE_MAPPING = {
+    'ASCII_Date_DOY': ('time', 'S', tai_from_iso),
+    'ASCII_Date_Time_DOY': ('time', 'S', tai_from_iso),
+    'ASCII_Date_Time_DOY_UTC': ('time', 'S', tai_from_iso),
+    'ASCII_Date_Time_YMD': ('time', 'S', tai_from_iso),
+    'ASCII_Date_Time_YMD_UTC': ('time', 'S', tai_from_iso),
+    'ASCII_Date_YMD': ('time', 'S', tai_from_iso),
+    'ASCII_Time': ('time', 'S', tai_from_iso),
+    'ASCII_Integer': ('int', 'int', int),
+    'ASCII_NonNegative_Integer': ('int', 'int', int),
+    'ASCII_Real': ('float', 'float', float),
+    'ASCII_AnyURI': ('string', STR_DTYPE, None),
+    'ASCII_Directory_Path_Name': ('string', STR_DTYPE, None),
+    'ASCII_DOI': ('string', STR_DTYPE, None),
+    'ASCII_File_Name': ('string', STR_DTYPE, None),
+    'ASCII_File_Specification_Name': ('string', STR_DTYPE, None),
+    'ASCII_LID': ('string', STR_DTYPE, None),
+    'ASCII_LIDVID': ('string', STR_DTYPE, None),
+    'ASCII_LIDVID_LID': ('string', STR_DTYPE, None),
+    'ASCII_MD5_Checksum': ('string', STR_DTYPE, None),
+    'ASCII_String': ('string', STR_DTYPE, None),
+    'ASCII_VID': ('string', STR_DTYPE, None),
+    'UTF8_String': ('string', STR_DTYPE, None),
+    'ASCII_Boolean': ('boolean', 'bool', None),
+    'ASCII_Numeric_Base2': ('int', 'int', int_from_base2),
+    'ASCII_Numeric_Base8': ('int', 'int', int_from_base8),
+    'ASCII_Numeric_Base16': ('int', 'int', int_from_base16),
+}
 
 ################################################################################
 # Class Pds4TableInfo
@@ -174,50 +204,12 @@ class Pds4ColumnInfo(object):
         # PDS4 TODO: review the data type conversion
         # Define dtype2 as the intended dtype of the values in the column
         self.data_type = node_dict['data_type']
-        # convert PDS4 data_type
-        # ASCII_Integer, ASCII_NonNegative_Integer
-        if 'Integer' in self.data_type:
-            self.data_type = 'int'
-            self.dtype2 = 'int'
-            self.scalar_func = int
-        # ASCII_Real
-        elif 'Real' in self.data_type:
-            self.data_type = 'float'
-            self.dtype2 = 'float'
-            self.scalar_func = float
-        # ASCII_Time, ASCII_Date_DOY, ASCII_Date_Time_DOY, ASCII_Date_Time_DOY_UTC,
-        # ASCII_Date_Time_YMD, ASCII_Date_Time_YMD_UTC, ASCII_Date_YMD
-        elif ('Time' in self.data_type or 'Date' in self.data_type or
-            self.name.endswith('_Time') or self.name.endswith('_Date')):
-            self.data_type = 'time'
-            self.dtype2 = 'S'
-            self.scalar_func = tai_from_iso
-        # ASCII_String, ASCII_Directory_Path_Name, ASCII_DOI, ASCII_File_Name,
-        # ASCII_File_Specification_Name, ASCII_LID, ASCII_LIDVID, ASCII_LIDVID_LID,
-        # ASCII_MD5_Checksum, ASCII_VID, ASCII_AnyURI, UTF8_String
-        elif ('String' in self.data_type or 'Name' in self.data_type or
-              'DOI' in self.data_type or 'LID' in self.data_type or
-              'VID' in self.data_type or 'Checksum' in self.data_type or
-              'AnyURI' in self.data_type):
-            self.data_type = 'string'
-            self.dtype2 = STR_DTYPE
-            self.scalar_func = None
-        # ASCII_Boolean
-        elif 'Boolean' in self.data_type:
-            self.data_type = 'boolean'
-            self.dtype2 = 'bool'
-            self.scalar_func = None
-        # ASCII_Numeric_Base16, ASCII_Numeric_Base2, ASCII_Numeric_Base8
-        elif 'Numeric' in self.data_type:
-            self.data_type = 'int'
-            self.dtype2 = 'int'
-            if self.data_type.endswith('Base2'):
-                self.scalar_func = int_from_base2
-            elif self.data_type.endswith('Base8'):
-                self.scalar_func = int_from_base8
-            elif self.data_type.endswith('Base16'):
-                self.scalar_func = int_from_base16
-        else:
+        # Convert PDS4 data_type
+        try:
+            (self.data_type,
+             self.dtype2,
+             self.scalar_func) = PDS4_CHR_DATA_TYPE_MAPPING[self.data_type]
+        except:
             raise IOError('unsupported data type: ' + self.data_type)
 
         # Identify validity criteria
