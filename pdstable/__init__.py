@@ -854,7 +854,8 @@ class PdsTable(object):
             filespec = '[' + '.'.join(parts[:-1]) + ']' + parts[-1]
 
         # Strip away the directory path if not present
-        elif '/' not in example:
+        # Check backslash here since some filespec paths have backslash
+        elif '/' not in example and '\\' not in example:
             filespec = os.path.basename(filespec)
 
         # Copy the extension of the example
