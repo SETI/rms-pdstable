@@ -55,7 +55,6 @@ import julian
 from .pds3table import Pds3TableInfo
 from .pds4table import (Pds4TableInfo,
                         PDS4_BUNDLE_COLNAME,
-                        PDS4_FILE_SPEC_NAME_COLNAME,
                         PDS4_LBL_EXTENSIONS)
 
 try:
@@ -77,6 +76,8 @@ def tai_from_iso(string):
     return julian.tai_from_iso(string, strip=True)
 
 FILE_SPECIFICATION_COLUMN_NAMES = (
+    'FILE_SPECIFICATION',
+    'FILE SPECIFICATION',
     'FILE_SPECIFICATION_NAME',
     'FILE SPECIFICATION NAME',
     'FILE_NAME',
@@ -85,7 +86,7 @@ FILE_SPECIFICATION_COLUMN_NAMES = (
     'PRODUCT_ID',
     'PRODUCT ID',
     'STSCI_GROUP_ID'
-) + PDS4_FILE_SPEC_NAME_COLNAME
+)
 
 FILE_SPECIFICATION_COLUMN_NAMES_lc = [x.lower() for x in
                                       FILE_SPECIFICATION_COLUMN_NAMES]
@@ -223,7 +224,7 @@ class PdsTable(object):
 
             # Check line count
             # In PDS4, skip the header
-            if is_pds4_label(label_file):
+            if is_pds4_label(label_file) and self.info.header_bytes != 0:
                 lines = lines[1:]
 
             if len(lines) != self.info.rows:
@@ -297,7 +298,32 @@ class PdsTable(object):
                 # this column.
 
                 self.column_values[key] = items
+            # PDS4 TODO: Work on one column with multiple values, put the intelligence
+            # herer if we dont' parse the items in Pds4ColumnInfo (line 190-204,
+            # pds4table.py)
+            # elif (column_info.items == 1 and
+            #       column_info.data_type != 'string' and
+            #       '-valued' in column_info.description):
+            #     items = []
+            #     masks = []
 
+            #     col_li = None
+            #     for col in column:
+            #         unstripped_items = col.decode(**ENCODING).replace('"', '').split(',')
+            #         stripped_items = [item.strip().encode(**ENCODING)
+            #                           for item in unstripped_items]
+
+            #         if col_li is None:
+            #             col_li = [[] for _ in range(len(stripped_items))]
+
+            #         for idx, el in enumerate(stripped_items):
+            #             col_li[idx].append(el)
+
+
+            #     for item in col_li:
+            #         items.append(item)
+            #         masks.append(False)
+            #     self.column_values[key] = items
             else:
                 self.column_values[key] = [column]
 

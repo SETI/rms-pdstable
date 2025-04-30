@@ -2,15 +2,21 @@
 # UNIT TESTS
 ################################################################################
 
+import os
 from pdstable import *
 
 import unittest
+
+try:
+    PDS4TABLE_TEST_DIR = os.environ['PDS4TABLE_TEST_DIR']
+except KeyError: # pragma: no cover
+    raise KeyError("'PDS4TABLE_TEST_DIR' environment variable not set")
 
 class Test_Pds4Table(unittest.TestCase):
 
   def runTest(self):
 
-    INDEX_PATH = 'test_files/uranus_occultations_index.xml'
+    INDEX_PATH = PDS4TABLE_TEST_DIR + '/uranus_occultations/uranus_occultations_index.xml'
 
     test_table_basic = PdsTable(INDEX_PATH)
 
@@ -84,25 +90,35 @@ class Test_Pds4Table(unittest.TestCase):
     # Row lookups
     ####################################
     # File Name
-    self.assertEqual(test_table_basic.filespec_column_index(), 1)
+    self.assertEqual(test_table_basic.filespec_column_index(), 2)
     # Bundle Name
     self.assertEqual(test_table_basic.volume_column_index(), 4)
     # File Name
     self.assertEqual(test_table_basic.find_row_index_by_volume_filespec(
-            '', 'u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), 2)
+            '',
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), 2)
     self.assertEqual(test_table_basic.find_row_indices_by_volume_filespec(
-            '', 'u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), [2])
+            '',
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), [2])
     self.assertEqual(test_table_basic.find_row_index_by_volume_filespec(
-            '', 'u0201_palomar_508cm_2200nm_radius_equator_ingress_1000m.xml'), 3)
+            '',
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_ingress_1000m.xml'), 3)
     self.assertEqual(test_table_basic.find_row_indices_by_volume_filespec(
-            '', 'u0201_palomar_508cm_2200nm_radius_equator_ingress_1000m.xml'), [3])
+            '',
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_ingress_1000m.xml'), [3])
     # Bundle Name & File Name
     self.assertEqual(test_table_basic.find_row_index_by_volume_filespec(
             'uranus_occ_u0_kao_91cm',
-            'u0_kao_91cm_734nm_radius_equator_egress_1000m.xml'), 21)
+            r'2021-04-uranus-redelivery\uranus_occ_u0_kao_91cm\data\global' +
+            r'\u0_kao_91cm_734nm_radius_equator_egress_1000m.xml'), 21)
     self.assertEqual(test_table_basic.find_row_indices_by_volume_filespec(
             'uranus_occ_u0_kao_91cm',
-            'u0_kao_91cm_734nm_radius_equator_egress_1000m.xml'), [21])
+            r'2021-04-uranus-redelivery\uranus_occ_u0_kao_91cm\data\global' +
+            r'\u0_kao_91cm_734nm_radius_equator_egress_1000m.xml'), [21])
 
     ####################################
     # Row ranges
@@ -111,25 +127,35 @@ class Test_Pds4Table(unittest.TestCase):
     partial_table = PdsTable(INDEX_PATH, row_range=(2,4))
     self.assertEqual(partial_table.rows, 2)
 
-    self.assertEqual(partial_table.filespec_column_index(), 1)
+    self.assertEqual(partial_table.filespec_column_index(), 2)
     self.assertEqual(partial_table.volume_column_index(), 4)
 
     self.assertEqual(partial_table.find_row_index_by_volume_filespec(
-            '', 'u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), 0)
+            '',
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), 0)
     self.assertEqual(partial_table.find_row_indices_by_volume_filespec(
-            '', 'u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), [0])
+            '',
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), [0])
 
     self.assertEqual(partial_table.find_row_index_by_volume_filespec(
-            '', 'u0201_palomar_508cm_2200nm_radius_equator_ingress_1000m.xml'), 1)
+            '',
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_ingress_1000m.xml'), 1)
     self.assertEqual(partial_table.find_row_indices_by_volume_filespec(
-            '', 'u0201_palomar_508cm_2200nm_radius_equator_ingress_1000m.xml'), [1])
+            '',
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_ingress_1000m.xml'), [1])
 
     self.assertEqual(partial_table.find_row_index_by_volume_filespec(
             'uranus_occ_u0201_palomar_508cm',
-            'u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), 0)
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), 0)
     self.assertEqual(partial_table.find_row_indices_by_volume_filespec(
             'uranus_occ_u0201_palomar_508cm',
-            'u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), [0])
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), [0])
 
     ####################################
     # PdsLabel input option

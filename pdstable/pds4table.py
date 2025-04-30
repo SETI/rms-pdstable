@@ -6,15 +6,11 @@ import julian
 import numbers
 import numpy as np
 import os
+import re
 
 from pds4_tools.reader.label_objects import Label
 
 PDS4_LBL_EXTENSIONS = ('.xml', '.lblx')
-
-PDS4_FILE_SPEC_NAME_COLNAME = (
-    'File Name'
-    'File Specification',
-)
 
 PDS4_BUNDLE_COLNAME = (
     'Bundle Name',
@@ -103,14 +99,22 @@ class Pds4TableInfo(object):
         self.label = lbl_dict
 
         # Get the table info from the label dictionary
-        file_area = lbl_dict['Product_Ancillary']['File_Area_Ancillary']
+        try:
+            file_area = lbl_dict['Product_Ancillary']['File_Area_Ancillary']
+        except KeyError:
+            file_area = lbl_dict['Product_Metadata_Supplemental']['File_Area_Metadata']
+
         try:
             self.table_file_name = file_area['File']['file_name']
         except:
             raise IOError('Table file name was not found in PDS4 label')
 
+        try:
+            self.header_bytes = int(file_area['Header']['object_length'])
+        except KeyError:
+            # Some tables don't have header
+            self.header_bytes = 0
 
-        self.header_bytes = int(file_area['Header']['object_length'])
         table_char = file_area['Table_Character']
         self.rows = int(table_char['records'])
         self.columns = int(table_char['Record_Character']['fields'])
@@ -183,9 +187,21 @@ class Pds4ColumnInfo(object):
         self.start_byte = int(node_dict['field_location'])
         self.bytes      = int(node_dict['field_length'])
 
-        self.items = node_dict.get('ITEMS', 1)
-        self.item_bytes = node_dict.get('ITEM_BYTES', self.bytes)
-        self.item_offset = node_dict.get('ITEM_OFFSET', self.bytes)
+        # Handle the case where one column stores multiple items, like EXPECTED_MAXIMUM
+        # in casssini iss cruise
+        self.description = node_dict.get('description', '')
+        items = 1
+        if '-valued' in self.description:
+            try:
+                items = int(re.match(r'.*(\d)-valued.*', self.description.strip())[1])
+            except:
+                items = 1
+
+        self.items = node_dict.get('ITEMS', items)
+        item_bytes = int((self.bytes-items+1)/items)
+
+        self.item_bytes = node_dict.get('ITEM_BYTES', item_bytes)
+        self.item_offset = node_dict.get('ITEM_OFFSET', item_bytes+1)
 
         # Define dtype0 to isolate each column in a record
         self.dtype0 = ('S' + str(self.bytes), self.start_byte - 1)
@@ -211,6 +227,13 @@ class Pds4ColumnInfo(object):
              self.scalar_func) = PDS4_CHR_DATA_TYPE_MAPPING[self.data_type]
         except:
             raise IOError('unsupported data type: ' + self.data_type)
+
+        # Handle the case like "START_TIME" with ASCII_String instead of ASCII_Time as
+        # the data type
+        if self.name.endswith("_TIME") or self.name.endswith("_DATE"):
+            self.data_type = "time"
+            self.dtype2 = 'S'
+            self.scalar_func = tai_from_iso
 
         # Identify validity criteria
         self.valid_range = valid_range or node_dict.get('VALID_RANGE', None)
