@@ -646,6 +646,10 @@ class PdsTable(object):
         # Make a list (key, value, test_substring, mask_key)
         test_info = []
         for (key, match_value) in params.items():
+            if 'uranus_occultations_index' in self.info.table_file_name:
+                print('key match_value pair #######')
+                print(f'key: {key}')
+                print(f'match_value: {match_value}')
             if key.endswith('_lower'):
                 mask_key = key[:-6] + '_mask'
                 match_value = lowercase_value(match_value)
@@ -675,6 +679,13 @@ class PdsTable(object):
 
                 # Test column value(s)
                 column_values = row_dict[key]
+                if r'_palomar_508cm_2200nm_radius_equator_egress_500m.xml' in column_values:
+                    print("***********DEBUG find_row_indices")
+                    print(f'column_values: {column_values}')
+                    print(type(column_values))
+                    print(f'match_value: {match_value}')
+                    print(f'match_value == column_values: {match_value == column_values}')
+                    print(type(match_value))
                 if test_substring:
                     if isinstance(column_values, str):
                         failures = [match_value not in column_values]
@@ -859,7 +870,11 @@ class PdsTable(object):
             substrings = [filespec_colname]
         else:
             substrings = []
-
+        if volume_id == '' and r'_palomar_508cm_2200nm_radius_equator_egress_500m.xml' in filespec:
+            print("***********DEBUG find_row_indices_by_volume_filespec")
+            print(f'volume_colname: {volume_colname}')
+            print(f'volume_id: {volume_id}')
+            print(f'filespec: {filespec}')
         if volume_colname and volume_id:
             return self.find_row_indices(lowercase=(True,True),
                                          substrings=substrings, limit=limit,
