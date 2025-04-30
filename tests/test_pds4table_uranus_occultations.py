@@ -90,8 +90,8 @@ class Test_Pds4Table(unittest.TestCase):
     # File Specification
     self.assertEqual(test_table_basic.find_row_index_by_volume_filespec(
             '',
-            '2021-04-uranus-redelivery\\uranus_occ_u0201_palomar_508cm\\data\\global' +
-            '\\u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), 2)
+            r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
+            r'\u0201_palomar_508cm_2200nm_radius_equator_egress_500m.xml'), 2)
     self.assertEqual(test_table_basic.find_row_indices_by_volume_filespec(
             '',
             r'2021-04-uranus-redelivery\uranus_occ_u0201_palomar_508cm\data\global' +
