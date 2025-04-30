@@ -298,9 +298,9 @@ class PdsTable(object):
                 # this column.
 
                 self.column_values[key] = items
-            # PDS4 TODO: Work on one column with multiple values, put the intelligence
-            # herer if we dont' parse the items in Pds4ColumnInfo (line 190-204,
-            # pds4table.py)
+            # PDS4 TODO: Work on one column with multiple values, uncomment the following
+            # block if we prefer not to parse the items from the description in
+            # Pds4ColumnInfo (line 190-204, pds4table.py)
             # elif (column_info.items == 1 and
             #       column_info.data_type != 'string' and
             #       '-valued' in column_info.description):
