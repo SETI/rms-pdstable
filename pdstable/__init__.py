@@ -842,12 +842,6 @@ class PdsTable(object):
             parts = filespec.split('/')
             filespec = '[' + '.'.join(parts[:-1]) + ']' + parts[-1]
 
-        # Strip away the directory path if not present
-        # Check backslash here since some filespec paths have backslash, like the one
-        # in uranus_occultations_index.tab
-        elif '/' not in example and '\\' not in example:
-            filespec = os.path.basename(filespec)
-
         # Copy the extension of the example
         filespec = os.path.splitext(filespec)[0]
         if not substring:
