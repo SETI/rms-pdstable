@@ -117,7 +117,8 @@ class PdsTable(object):
     def __init__(self, label_file, label_contents=None, times=[], columns=[],
                        nostrip=[], callbacks={}, ascii=False, replacements={},
                        invalid={}, valid_ranges={}, table_callback=None,
-                       merge_masks=False, filename_keylen=0, row_range=None):
+                       merge_masks=False, filename_keylen=0, row_range=None,
+                       table_file=None):
         """Constructor for a PdsTable object.
 
         Input:

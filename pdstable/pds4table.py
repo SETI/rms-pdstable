@@ -16,6 +16,13 @@ PDS4_BUNDLE_COLNAME = (
     'Bundle Name',
 )
 
+# Label tags with the table file info
+PDS4_FILE_AREA_TAGS = (
+    'File_Area_Ancillary',
+    'File_Area_Observational',
+    'File_Area_Observational_Supplmental'
+)
+
 # STR_DTYPE is 'U'
 STR_DTYPE = np.array(['x']).dtype.kind
 
@@ -100,8 +107,14 @@ class Pds4TableInfo(object):
 
         # Get the table info from the label dictionary
         try:
-            file_area = lbl_dict['Product_Ancillary']['File_Area_Ancillary']
+            prod_ancillary = lbl_dict['Product_Ancillary']
+            # Search all possible label tags with the table info
+            for tag in PDS4_FILE_AREA_TAGS:
+                if tag in prod_ancillary.keys():
+                    file_area = prod_ancillary[tag]
+                    break
         except KeyError:
+            # Cassini
             file_area = lbl_dict['Product_Metadata_Supplemental']['File_Area_Metadata']
 
         try:
