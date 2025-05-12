@@ -80,7 +80,7 @@ class Pds4TableInfo(object):
     """The Pds4TableInfo class holds the attributes of a PDS4-labeled table."""
 
     def __init__(self, label_file_path, label_list=None, invalid={},
-                                                         valid_ranges={}):
+                 valid_ranges={}, table_file=None):
         """Loads a PDS4 table based on its associated label file.
 
         Input:
@@ -98,6 +98,8 @@ class Pds4TableInfo(object):
                             returned value must be a tuple or list containing
                             the minimum and maximum numeric values in that
                             column.
+            table_file      specify a table file to be read, if the provided table
+                            doesn't exist in the label, an error will be raised.
         """
 
         # Parse PDS4 label, store the label dictionary from the pds4_tools Label object
@@ -117,10 +119,37 @@ class Pds4TableInfo(object):
             # Cassini
             file_area = lbl_dict['Product_Metadata_Supplemental']['File_Area_Metadata']
 
-        try:
-            self.table_file_name = file_area['File']['file_name']
-        except:
-            raise IOError('Table file name was not found in PDS4 label')
+        self.table_file_name = None
+
+        # The label file points to one table file
+        if isinstance(file_area, dict):
+            try:
+                self.table_file_name = file_area['File']['file_name']
+                self.table_file_li = [self.table_file_name]
+            except:
+                raise IOError('Table file name was not found in PDS4 label')
+
+            if table_file is not None and table_file not in self.table_file_li:
+                raise ValueError("The provided table file name doesn't match the one" +
+                                 'in the label. The label contains one table file ' +
+                                 f'{self.table_file_name}')
+        # The label file points to multiple table files
+        elif isinstance(file_area, list):
+            try:
+                table_name_li = [f['File']['file_name'] for f in file_area]
+            except:
+                raise IOError('Table file name was not found in PDS4 label')
+
+            if table_file is None or table_file not in table_name_li:
+                raise ValueError("The table file name doesn't exist. The label " +
+                                 f'contains {len(table_name_li)} table ' +
+                                 f'files: {table_name_li}')
+            else:
+                self.table_file_name = table_file
+                self.table_file_li = table_name_li
+        # The label file has no table file info
+        else:
+            raise ValueError(f'{label_file_path} does not contain any table file info.' )
 
         try:
             self.header_bytes = int(file_area['Header']['object_length'])

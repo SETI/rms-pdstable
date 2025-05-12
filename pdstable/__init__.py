@@ -115,10 +115,10 @@ class PdsTable(object):
     """
 
     def __init__(self, label_file, label_contents=None, times=[], columns=[],
-                       nostrip=[], callbacks={}, ascii=False, replacements={},
-                       invalid={}, valid_ranges={}, table_callback=None,
-                       merge_masks=False, filename_keylen=0, row_range=None,
-                       table_file=None):
+                 nostrip=[], callbacks={}, ascii=False, replacements={},
+                 invalid={}, valid_ranges={}, table_callback=None,
+                 merge_masks=False, filename_keylen=0, row_range=None,
+                 table_file=None):
         """Constructor for a PdsTable object.
 
         Input:
@@ -179,6 +179,8 @@ class PdsTable(object):
             row_range       a tuple or list integers containing the index of the
                             first row to read and the first row to omit. If not
                             specified, then all the rows are read.
+            table_file      specify a table file to be read, if the provided table
+                            doesn't exist in the label, an error will be raised.
 
         Notes: If both a replacement and a callback are provided for the same
         column, the callback is applied first. The invalid and valid_ranges
@@ -193,17 +195,19 @@ class PdsTable(object):
         if label_contents is not None:
             if is_pds4_label(label_file):
                 self.info = Pds4TableInfo(label_file, label_list=label_contents,
-                                        invalid=invalid, valid_ranges=valid_ranges)
+                                          invalid=invalid, valid_ranges=valid_ranges,
+                                          table_file=table_file)
             else:
                 self.info = Pds3TableInfo(label_file, label_list=label_contents,
-                                        invalid=invalid, valid_ranges=valid_ranges)
+                                          invalid=invalid, valid_ranges=valid_ranges)
         else:
             if is_pds4_label(label_file):
                 self.info = Pds4TableInfo(label_file,
-                                        invalid=invalid, valid_ranges=valid_ranges)
+                                          invalid=invalid, valid_ranges=valid_ranges,
+                                          table_file=table_file)
             else:
                 self.info = Pds3TableInfo(label_file,
-                                        invalid=invalid, valid_ranges=valid_ranges)
+                                          invalid=invalid, valid_ranges=valid_ranges)
 
         # Select the columns
         if len(columns) == 0:
