@@ -49,7 +49,7 @@ import warnings
 import numpy as np
 import numbers
 
-import pdsparser
+from pdsparser import Pds3Label
 import julian
 
 try:
@@ -123,7 +123,7 @@ class PdsTable(object):
                             supplied to get proper relative path resolution.
             label_contents  The contents of the label as a list of strings if
                             we shouldn't read it from the file. Alternatively, a
-                            PdsLabel object to avoid label parsing entirely.
+                            Pds3Label object to avoid label parsing entirely.
             columns         an optional list of the names of the columns to
                             return. If the list is empty, then every column is
                             returned.
@@ -186,12 +186,8 @@ class PdsTable(object):
         """
 
         # Parse the label
-        if label_contents is not None:
-            self.info = PdsTableInfo(label_file, label_list=label_contents,
-                                     invalid=invalid, valid_ranges=valid_ranges)
-        else:
-            self.info = PdsTableInfo(label_file,
-                                     invalid=invalid, valid_ranges=valid_ranges)
+        self.info = PdsTableInfo(label_file, label_list=label_contents,
+                                 invalid=invalid, valid_ranges=valid_ranges)
 
         # Select the columns
         if len(columns) == 0:
@@ -221,7 +217,7 @@ class PdsTable(object):
             self.first = row_range[0]
             self.rows = row_range[1] - row_range[0]
 
-            record_bytes = self.info.label['RECORD_BYTES'].value
+            record_bytes = self.info.label['RECORD_BYTES']
             with open(self.info.table_file_path, "rb") as f:
                 f.seek(row_range[0] * record_bytes)
                 lines = f.readlines(self.rows * record_bytes - 1)
@@ -486,7 +482,7 @@ class PdsTable(object):
 
     @property
     def pdslabel(self):
-        """Property to return the PdsLabel object, so that it can be used as a
+        """Property to return the Pds3Label object, so that it can be used as a
         label_contents input parameter in subsequent calls."""
 
         return self.info.label
@@ -994,7 +990,7 @@ class PdsTableInfo(object):
                             If this is a list, it is interpreted as containing
                             all the records of the PDS label, in which case the
                             overrides the contents of the label file.
-                            Alternatively, this can be a PdsLabel object that
+                            Alternatively, this can be a Pds3Label object that
                             was already parsed.
             invalid         an optional dictionary keyed by column name. The
                             returned value must be a list or set of values that
@@ -1006,46 +1002,45 @@ class PdsTableInfo(object):
         """
 
         # Parse the label
-        if label_list is None:
-            self.label = pdsparser.PdsLabel.from_file(label_file_path)
-        elif isinstance(label_list, pdsparser.PdsLabel):
+        if isinstance(label_list, (Pds3Label, dict)):
             self.label = label_list
+        elif label_list:
+            self.label = Pds3Label(label_list)
         else:
-            self.label = pdsparser.PdsLabel.from_string(label_list)
+            self.label = Pds3Label(label_file_path)
 
         # Get the basic file info...
-        if self.label["RECORD_TYPE"].value != "FIXED_LENGTH":
+        if self.label["RECORD_TYPE"] != "FIXED_LENGTH":
             raise IOError('PDS table does not contain fixed-length records')
 
         # Find the pointer to the table file
         # Confirm that the value is a PdsSimplePointer
         self.table_file_name = None
-        for node in self.label:
-            if node.name[0] == "^":
-                pointer_name = node.name[1:]
-                if isinstance(node.pdsvalue, pdsparser.PdsOffsetPointer):
-                    self.table_file_name = node.pdsvalue.value
-                    msg = ("Table file pointer '" + str(node.pdsvalue) +
+        for key, value in self.label.items():
+            if key[0] == "^" and key.endswith('TABLE'):
+                self.table_file_name = value
+                if key + '_offset' in self.label:
+                    msg = ("Table file pointer " + self.label[key + '_fmt'] +
                            " is not a Simple Pointer and isn't fully "+
                            "supported")
                     warnings.warn(msg)
                 else:
-                    assert isinstance(node.pdsvalue, pdsparser.PdsSimplePointer)
-                    self.table_file_name = node.pdsvalue.value
+                    self.table_file_name = value
+                break
 
         if self.table_file_name is None:
             raise IOError("Pointer to a data file was not found in PDS label")
 
         # Locate the root of the table object
-        table_node = self.label[pointer_name]
+        table_dict = self.label[key[1:]]
 
         # Save key info about the table
-        if table_node["INTERCHANGE_FORMAT"].value != "ASCII":
+        if table_dict["INTERCHANGE_FORMAT"] != "ASCII":
             raise IOError('PDS table is not in ASCII format')
 
-        self.rows = table_node["ROWS"].value
-        self.columns = table_node["COLUMNS"].value
-        self.row_bytes = table_node["ROW_BYTES"].value
+        self.rows = table_dict["ROWS"]
+        self.columns = table_dict["COLUMNS"]
+        self.row_bytes = table_dict["ROW_BYTES"]
 
         # Save the key info about each column in a list and a dictionary
         self.column_info_list = []
@@ -1056,11 +1051,12 @@ class PdsTableInfo(object):
 
         default_invalid = set(invalid.get("default", []))
         counter = 0
-        for node in table_node:
-            if node.pdsvalue.value == "COLUMN":
-                node_dict = node.as_python_value()
-                name = node_dict["NAME"]
-                pdscol = PdsColumnInfo(node_dict, counter,
+        for key, column_dict in table_dict.items():
+            if not isinstance(column_dict, dict):
+                continue
+            if column_dict['OBJECT'] == "COLUMN":
+                name = column_dict["NAME"]
+                pdscol = PdsColumnInfo(column_dict, counter,
                             invalid = invalid.get(name, default_invalid),
                             valid_range = valid_ranges.get(name, None))
                 counter += 1
