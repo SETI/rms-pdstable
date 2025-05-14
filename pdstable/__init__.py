@@ -52,21 +52,21 @@ import numbers
 from pdsparser import Pds3Label
 import julian
 
+from .pds3table import Pds3TableInfo
+from .pds4table import (Pds4TableInfo,
+                        PDS4_BUNDLE_COLNAME,
+                        PDS4_LBL_EXTENSIONS)
+
 try:
     from ._version import __version__
 except ImportError as err:
     __version__ = 'Version unspecified'
 
 
-# STR_DTYPE is 'S' for Python 2; 'U' for Python 3
+# STR_DTYPE is 'U'
 STR_DTYPE = np.array(['x']).dtype.kind
-PYTHON2 = (sys.version_info[0] == 2)
-PYTHON3 = not PYTHON2
 
-if PYTHON3:
-    ENCODING = {'encoding': 'latin-1'}  # For open() of ASCII files in Python 3
-else:
-    ENCODING = {}
+ENCODING = {'encoding': 'latin-1'}  # For open() of ASCII files in Python 3
 
 # This is an exhaustive tuple of string-like types
 STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
@@ -76,6 +76,8 @@ def tai_from_iso(string):
     return julian.tai_from_iso(string, strip=True)
 
 FILE_SPECIFICATION_COLUMN_NAMES = (
+    'FILE_SPECIFICATION',
+    'FILE SPECIFICATION',
     'FILE_SPECIFICATION_NAME',
     'FILE SPECIFICATION NAME',
     'FILE_NAME',
@@ -94,7 +96,7 @@ VOLUME_ID_COLUMN_NAMES = (
     'VOLUME ID',
     'VOLUME_NAME',
     'VOLUME NAME'
-)
+) + PDS4_BUNDLE_COLNAME
 
 VOLUME_ID_COLUMN_NAMES_lc = [x.lower() for x in VOLUME_ID_COLUMN_NAMES]
 
@@ -113,9 +115,10 @@ class PdsTable(object):
     """
 
     def __init__(self, label_file, label_contents=None, times=[], columns=[],
-                       nostrip=[], callbacks={}, ascii=False, replacements={},
-                       invalid={}, valid_ranges={}, table_callback=None,
-                       merge_masks=False, filename_keylen=0, row_range=None):
+                 nostrip=[], callbacks={}, ascii=False, replacements={},
+                 invalid={}, valid_ranges={}, table_callback=None,
+                 merge_masks=False, filename_keylen=0, row_range=None,
+                 table_file=None):
         """Constructor for a PdsTable object.
 
         Input:
@@ -176,6 +179,8 @@ class PdsTable(object):
             row_range       a tuple or list integers containing the index of the
                             first row to read and the first row to omit. If not
                             specified, then all the rows are read.
+            table_file      specify a table file to be read, if the provided table
+                            doesn't exist in the label, an error will be raised.
 
         Notes: If both a replacement and a callback are provided for the same
         column, the callback is applied first. The invalid and valid_ranges
@@ -185,9 +190,24 @@ class PdsTable(object):
         ascii=True.
         """
 
+        self.label_file_name = label_file
         # Parse the label
-        self.info = PdsTableInfo(label_file, label_list=label_contents,
-                                 invalid=invalid, valid_ranges=valid_ranges)
+        if label_contents is not None:
+            if is_pds4_label(label_file):
+                self.info = Pds4TableInfo(label_file, label_list=label_contents,
+                                          invalid=invalid, valid_ranges=valid_ranges,
+                                          table_file=table_file)
+            else:
+                self.info = Pds3TableInfo(label_file, label_list=label_contents,
+                                          invalid=invalid, valid_ranges=valid_ranges)
+        else:
+            if is_pds4_label(label_file):
+                self.info = Pds4TableInfo(label_file,
+                                          invalid=invalid, valid_ranges=valid_ranges,
+                                          table_file=table_file)
+            else:
+                self.info = Pds3TableInfo(label_file,
+                                          invalid=invalid, valid_ranges=valid_ranges)
 
         # Select the columns
         if len(columns) == 0:
@@ -205,9 +225,12 @@ class PdsTable(object):
             self.rows = self.info.rows
 
             with open(self.info.table_file_path, "rb") as f:
+                # Check line count
+                # In PDS4, skip the header
+                if is_pds4_label(label_file) and self.info.header_bytes != 0:
+                    f.seek(self.info.header_bytes)
                 lines = f.readlines()
 
-            # Check line count
             if len(lines) != self.info.rows:
                 raise ValueError('row count mismatch in %s: ' % label_file +
                                  '%d rows in file; ' % len(lines) +
@@ -216,13 +239,20 @@ class PdsTable(object):
         else:
             self.first = row_range[0]
             self.rows = row_range[1] - row_range[0]
+            header_bytes = 0
 
-            record_bytes = self.info.label['RECORD_BYTES']
+            # For PDS4 table, we need to consider the header
+            if is_pds4_label(label_file):
+                # record_bytes is stored in row_bytes for PDS4
+                record_bytes = self.info.row_bytes
+                header_bytes = self.info.header_bytes
+            else:
+                record_bytes = self.info.label['RECORD_BYTES']
+
             with open(self.info.table_file_path, "rb") as f:
-                f.seek(row_range[0] * record_bytes)
-                lines = f.readlines(self.rows * record_bytes - 1)
+                f.seek(header_bytes + row_range[0] * record_bytes)
+                lines = f.readlines(header_bytes + self.rows * record_bytes - 1)
 
-            # Check line count
             if len(lines) > self.rows:
                 lines = lines[:self.rows]
 
@@ -231,8 +261,8 @@ class PdsTable(object):
                     'row count mismatch: ' +
                     '%d row%s read; ' % (len(lines),
                                         '' if len(lines) == 1 else 's') +
-                    '%d row%s requested' % (count,
-                                            '' if count == 1 else 's'))
+                    '%d row%s requested' % (self.rows,
+                                            '' if self.rows == 1 else 's'))
 
         if table_callback is not None:
             lines = table_callback(lines)
@@ -272,7 +302,32 @@ class PdsTable(object):
                 # this column.
 
                 self.column_values[key] = items
+            # PDS4 TODO: Work on one column with multiple values, uncomment the following
+            # block if we prefer not to parse the items from the description in
+            # Pds4ColumnInfo (line 190-204, pds4table.py)
+            # elif (column_info.items == 1 and
+            #       column_info.data_type != 'string' and
+            #       '-valued' in column_info.description):
+            #     items = []
+            #     masks = []
 
+            #     col_li = None
+            #     for col in column:
+            #         unstripped_items = col.decode(**ENCODING).replace('"', '').split(',')
+            #         stripped_items = [item.strip().encode(**ENCODING)
+            #                           for item in unstripped_items]
+
+            #         if col_li is None:
+            #             col_li = [[] for _ in range(len(stripped_items))]
+
+            #         for idx, el in enumerate(stripped_items):
+            #             col_li[idx].append(el)
+
+
+            #     for item in col_li:
+            #         items.append(item)
+            #         masks.append(False)
+            #     self.column_values[key] = items
             else:
                 self.column_values[key] = [column]
 
@@ -304,13 +359,14 @@ class PdsTable(object):
             new_column_items = []
             new_column_masks = []
             for items in column_items:
+
                 invalid_mask = np.zeros(len(items), dtype='bool')
 
                 # Apply the callback if any
                 if callback:
 
                     # Convert string to input format for callback
-                    if PYTHON3 and not ascii:
+                    if not ascii:
                        items = items.astype(STR_DTYPE)
 
                     # Apply the callback row by row
@@ -329,10 +385,10 @@ class PdsTable(object):
                     # The file is read as binary, so the replacements have
                     # to be applied as ASCII byte strings
 
-                    if PYTHON3 and isinstance(before, (str, np.str_)):
+                    if isinstance(before, (str, np.str_)):
                         before = before.encode(**ENCODING)
 
-                    if PYTHON3 and isinstance(after, (str, np.str_)):
+                    if isinstance(after, (str, np.str_)):
                         after  = after.encode(**ENCODING)
 
                     # Replace values (suppressing FutureWarning)
@@ -372,7 +428,6 @@ class PdsTable(object):
                     # If something went wrong, array processing won't work.
                     # Convert to list and process row by row
                     except Exception:
-
                         # Process row by row
                         new_items = []
                         for k in range(len(items)):
@@ -521,27 +576,32 @@ class PdsTable(object):
             # Create and append the dictionary
             row_dict = {}
             for (column_name, items) in self.column_values.items():
-              for key in set([column_name, column_name.replace(' ', '_')]):
-                value = items[row]
-                mask  = self.column_masks[key][row]
 
-                # Key and value unchanged
-                row_dict[key] = value
-                row_dict[key + "_mask"] = mask
+                key_set = set([column_name])
+                if not is_pds4_label(self.label_file_name):
+                    key_set = set([column_name, column_name.replace(' ', '_')])
 
-                # Key in lower case; value unchanged
-                if lowercase[0]:
-                    key_lc = key.lower()
-                    row_dict[key_lc] = value
-                    row_dict[key_lc + "_mask"] = mask
+                for key in key_set:
+                    value = items[row]
+                    mask  = self.column_masks[key][row]
 
-                # Value in lower case
-                if lowercase[1]:
-                    value_lc = lowercase_value(value)
+                    # Key and value unchanged
+                    row_dict[key] = value
+                    row_dict[key + "_mask"] = mask
 
-                    row_dict[key + '_lower'] = value_lc
+                    # Key in lower case; value unchanged
                     if lowercase[0]:
-                        row_dict[key_lc + '_lower'] = value_lc
+                        key_lc = key.lower()
+                        row_dict[key_lc] = value
+                        row_dict[key_lc + "_mask"] = mask
+
+                    # Value in lower case
+                    if lowercase[1]:
+                        value_lc = lowercase_value(value)
+
+                        row_dict[key + '_lower'] = value_lc
+                        if lowercase[0]:
+                            row_dict[key_lc + '_lower'] = value_lc
 
             row_dicts.append(row_dict)
 
@@ -786,10 +846,6 @@ class PdsTable(object):
             parts = filespec.split('/')
             filespec = '[' + '.'.join(parts[:-1]) + ']' + parts[-1]
 
-        # Strip away the directory path if not present
-        elif '/' not in example:
-            filespec = os.path.basename(filespec)
-
         # Copy the extension of the example
         filespec = os.path.splitext(filespec)[0]
         if not substring:
@@ -803,7 +859,6 @@ class PdsTable(object):
             substrings = [filespec_colname]
         else:
             substrings = []
-
         if volume_colname and volume_id:
             return self.find_row_indices(lowercase=(True,True),
                                          substrings=substrings, limit=limit,
@@ -973,188 +1028,9 @@ def lowercase_value(value):
 
     return value_lc
 
-################################################################################
-# Class PdsTableInfo
-################################################################################
+def is_pds4_label(label_name):
+    """Check if the given label is a PDS4 label."""
 
-class PdsTableInfo(object):
-    """The PdsTableInfo class holds the attributes of a PDS-labeled table."""
-
-    def __init__(self, label_file_path, label_list=None, invalid={},
-                                                         valid_ranges={}):
-        """Loads a PDS table based on its associated label file.
-
-        Input:
-            label_file_path path to the label file
-            label_list      an option to override the parsing of the label.
-                            If this is a list, it is interpreted as containing
-                            all the records of the PDS label, in which case the
-                            overrides the contents of the label file.
-                            Alternatively, this can be a Pds3Label object that
-                            was already parsed.
-            invalid         an optional dictionary keyed by column name. The
-                            returned value must be a list or set of values that
-                            are to be treated as invalid, missing or unknown.
-            valid_ranges    an optional dictionary keyed by column name. The
-                            returned value must be a tuple or list containing
-                            the minimum and maximum numeric values in that
-                            column.
-        """
-
-        # Parse the label
-        if isinstance(label_list, (Pds3Label, dict)):
-            self.label = label_list
-        elif label_list:
-            self.label = Pds3Label(label_list)
-        else:
-            self.label = Pds3Label(label_file_path)
-
-        # Get the basic file info...
-        if self.label["RECORD_TYPE"] != "FIXED_LENGTH":
-            raise IOError('PDS table does not contain fixed-length records')
-
-        # Find the pointer to the table file
-        # Confirm that the value is a PdsSimplePointer
-        self.table_file_name = None
-        for key, value in self.label.items():
-            if key[0] == "^" and key.endswith('TABLE'):
-                self.table_file_name = value
-                if key + '_offset' in self.label:
-                    msg = ("Table file pointer " + self.label[key + '_fmt'] +
-                           " is not a Simple Pointer and isn't fully "+
-                           "supported")
-                    warnings.warn(msg)
-                else:
-                    self.table_file_name = value
-                break
-
-        if self.table_file_name is None:
-            raise IOError("Pointer to a data file was not found in PDS label")
-
-        # Locate the root of the table object
-        table_dict = self.label[key[1:]]
-
-        # Save key info about the table
-        if table_dict["INTERCHANGE_FORMAT"] != "ASCII":
-            raise IOError('PDS table is not in ASCII format')
-
-        self.rows = table_dict["ROWS"]
-        self.columns = table_dict["COLUMNS"]
-        self.row_bytes = table_dict["ROW_BYTES"]
-
-        # Save the key info about each column in a list and a dictionary
-        self.column_info_list = []
-        self.column_info_dict = {}
-
-        # Construct the dtype0 dictionary
-        self.dtype0 = {'crlf': ('|S2', self.row_bytes-2)}
-
-        default_invalid = set(invalid.get("default", []))
-        counter = 0
-        for key, column_dict in table_dict.items():
-            if not isinstance(column_dict, dict):
-                continue
-            if column_dict['OBJECT'] == "COLUMN":
-                name = column_dict["NAME"]
-                pdscol = PdsColumnInfo(column_dict, counter,
-                            invalid = invalid.get(name, default_invalid),
-                            valid_range = valid_ranges.get(name, None))
-                counter += 1
-
-                if name in self.column_info_dict:
-                    raise ValueError('duplicated column name: ' + name)
-
-                self.column_info_list.append(pdscol)
-                self.column_info_dict[pdscol.name] = pdscol
-                self.dtype0[pdscol.name] = pdscol.dtype0
-
-        # Fill in the complete table file name
-        self.table_file_path = os.path.join(os.path.dirname(label_file_path),
-                                            self.table_file_name)
-
-################################################################################
-# class PdsColumnInfo
-################################################################################
-
-class PdsColumnInfo(object):
-    """The PdsColumnInfo class holds the attributes of one column in a PDS
-    label."""
-
-    def __init__(self, node_dict, column_no, invalid=set(), valid_range=None):
-        """Constructor for a PdsColumn.
-
-        Input:
-            node_dict   the dictionary associated with the pdsparser.PdsNode
-                        object defining the column.
-            column_no   the index number of this column, starting at zero.
-            invalid     an optional set of discrete values that are to be
-                        treated as invalid, missing or unknown.
-            valid_range an optional tuple or list identifying the lower and
-                        upper limits of the valid range for a numeric column.
-        """
-
-        self.name = node_dict["NAME"]
-        self.colno = column_no
-
-        self.start_byte = node_dict["START_BYTE"]
-        self.bytes      = node_dict["BYTES"]
-
-        self.items = node_dict.get("ITEMS", 1)
-        self.item_bytes = node_dict.get("ITEM_BYTES", self.bytes)
-        self.item_offset = node_dict.get("ITEM_OFFSET", self.bytes)
-
-        # Define dtype0 to isolate each column in a record
-        self.dtype0 = ("S" + str(self.bytes), self.start_byte - 1)
-
-        # Define dtype1 as a list of dtypes needed to isolate each item
-        if self.items == 1:
-            self.dtype1 = None
-        else:
-            self.dtype1 = {}
-            byte0 = 0
-            for i in range(self.items):
-                self.dtype1["item_" + str(i)] = ("S" + str(self.item_bytes),
-                                                 byte0)
-                byte0 += self.item_offset
-
-        # Define dtype2 as the intended dtype of the values in the column
-        self.data_type = node_dict["DATA_TYPE"]
-        if "INTEGER" in self.data_type:
-            self.data_type = "int"
-            self.dtype2 = "int"
-            self.scalar_func = int
-        elif "REAL" in self.data_type:
-            self.data_type = "float"
-            self.dtype2 = "float"
-            self.scalar_func = float
-        elif ("TIME" in self.data_type or "DATE" in self.data_type or
-              self.name.endswith("_TIME") or self.name.endswith("_DATE")):
-            self.data_type = "time"
-            self.dtype2 = 'S'
-            self.scalar_func = tai_from_iso
-        elif "CHAR" in self.data_type:
-            self.data_type = "string"
-            self.dtype2 = STR_DTYPE
-            self.scalar_func = None
-        else:
-            raise IOError("unsupported data type: " + data_type)
-
-        # Identify validity criteria
-        self.valid_range = valid_range or node_dict.get("VALID_RANGE", None)
-
-        if isinstance(invalid, (numbers.Real,) + STRING_TYPES):
-            invalid = set([invalid])
-
-        self.invalid_values = set(invalid)
-
-        self.invalid_values.add(node_dict.get("INVALID_CONSTANT"       , None))
-        self.invalid_values.add(node_dict.get("MISSING_CONSTANT"       , None))
-        self.invalid_values.add(node_dict.get("UNKNOWN_CONSTANT"       , None))
-        self.invalid_values.add(node_dict.get("NOT_APPLICABLE_CONSTANT", None))
-        self.invalid_values.add(node_dict.get("NULL_CONSTANT"          , None))
-        self.invalid_values.add(node_dict.get("INVALID"                , None))
-        self.invalid_values.add(node_dict.get("MISSING"                , None))
-        self.invalid_values.add(node_dict.get("UNKNOWN"                , None))
-        self.invalid_values.add(node_dict.get("NOT_APPLICABLE"         , None))
-        self.invalid_values.add(node_dict.get("NULL"                   , None))
-        self.invalid_values -= {None}
+    for ext in PDS4_LBL_EXTENSIONS:
+        if label_name.endswith(ext):
+            return True
