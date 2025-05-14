@@ -242,6 +242,8 @@ class Pds4ColumnInfo(object):
             self.start_byte = int(node_dict['field_location'])
             self.bytes      = int(node_dict['field_length'])
         except:
+            # For .csv table, each column length is not fixed (row is not fixed), so
+            # we don't have these info.
             self.start_byte = None
             self.bytes = None
 
