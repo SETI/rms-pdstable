@@ -49,7 +49,7 @@ import warnings
 import numpy as np
 import numbers
 
-import pdsparser
+from pdsparser import Pds3Label
 import julian
 
 from .pds3table import Pds3TableInfo
@@ -126,7 +126,7 @@ class PdsTable(object):
                             supplied to get proper relative path resolution.
             label_contents  The contents of the label as a list of strings if
                             we shouldn't read it from the file. Alternatively, a
-                            PdsLabel object to avoid label parsing entirely.
+                            Pds3Label object to avoid label parsing entirely.
             columns         an optional list of the names of the columns to
                             return. If the list is empty, then every column is
                             returned.
@@ -247,7 +247,7 @@ class PdsTable(object):
                 record_bytes = self.info.row_bytes
                 header_bytes = self.info.header_bytes
             else:
-                record_bytes = self.info.label['RECORD_BYTES'].value
+                record_bytes = self.info.label['RECORD_BYTES']
 
             with open(self.info.table_file_path, "rb") as f:
                 f.seek(header_bytes + row_range[0] * record_bytes)
@@ -537,7 +537,7 @@ class PdsTable(object):
 
     @property
     def pdslabel(self):
-        """Property to return the PdsLabel object, so that it can be used as a
+        """Property to return the Pds3Label object, so that it can be used as a
         label_contents input parameter in subsequent calls."""
 
         return self.info.label
@@ -1034,5 +1034,3 @@ def is_pds4_label(label_name):
     for ext in PDS4_LBL_EXTENSIONS:
         if label_name.endswith(ext):
             return True
-
-    return False

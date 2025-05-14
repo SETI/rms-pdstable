@@ -6,7 +6,7 @@ import julian
 import numbers
 import numpy as np
 import os
-import pdsparser
+from pdsparser import Pds3Label
 import warnings
 
 
@@ -29,15 +29,15 @@ class Pds3TableInfo(object):
 
     def __init__(self, label_file_path, label_list=None, invalid={},
                                                          valid_ranges={}):
-        """Loads a PDS3 table based on its associated label file.
+        """Loads a PDS table based on its associated label file.
 
         Input:
             label_file_path path to the label file
             label_list      an option to override the parsing of the label.
                             If this is a list, it is interpreted as containing
-                            all the records of the PDS3 label, in which case the
+                            all the records of the PDS label, in which case the
                             overrides the contents of the label file.
-                            Alternatively, this can be a PdsLabel object that
+                            Alternatively, this can be a Pds3Label object that
                             was already parsed.
             invalid         an optional dictionary keyed by column name. The
                             returned value must be a list or set of values that
@@ -49,46 +49,45 @@ class Pds3TableInfo(object):
         """
 
         # Parse the label
-        if label_list is None:
-            self.label = pdsparser.PdsLabel.from_file(label_file_path)
-        elif isinstance(label_list, pdsparser.PdsLabel):
+        if isinstance(label_list, (Pds3Label, dict)):
             self.label = label_list
+        elif label_list:
+            self.label = Pds3Label(label_list)
         else:
-            self.label = pdsparser.PdsLabel.from_string(label_list)
+            self.label = Pds3Label(label_file_path)
 
         # Get the basic file info...
-        if self.label["RECORD_TYPE"].value != "FIXED_LENGTH":
+        if self.label["RECORD_TYPE"] != "FIXED_LENGTH":
             raise IOError('PDS table does not contain fixed-length records')
 
         # Find the pointer to the table file
         # Confirm that the value is a PdsSimplePointer
         self.table_file_name = None
-        for node in self.label:
-            if node.name[0] == "^":
-                pointer_name = node.name[1:]
-                if isinstance(node.pdsvalue, pdsparser.PdsOffsetPointer):
-                    self.table_file_name = node.pdsvalue.value
-                    msg = ("Table file pointer '" + str(node.pdsvalue) +
-                        " is not a Simple Pointer and isn't fully "+
-                        "supported")
+        for key, value in self.label.items():
+            if key[0] == "^" and key.endswith('TABLE'):
+                self.table_file_name = value
+                if key + '_offset' in self.label:
+                    msg = ("Table file pointer " + self.label[key + '_fmt'] +
+                           " is not a Simple Pointer and isn't fully "+
+                           "supported")
                     warnings.warn(msg)
                 else:
-                    assert isinstance(node.pdsvalue, pdsparser.PdsSimplePointer)
-                    self.table_file_name = node.pdsvalue.value
+                    self.table_file_name = value
+                break
 
         if self.table_file_name is None:
             raise IOError("Pointer to a data file was not found in PDS label")
 
         # Locate the root of the table object
-        table_node = self.label[pointer_name]
+        table_dict = self.label[key[1:]]
 
         # Save key info about the table
-        if table_node["INTERCHANGE_FORMAT"].value != "ASCII":
+        if table_dict["INTERCHANGE_FORMAT"] != "ASCII":
             raise IOError('PDS table is not in ASCII format')
 
-        self.rows = table_node["ROWS"].value
-        self.columns = table_node["COLUMNS"].value
-        self.row_bytes = table_node["ROW_BYTES"].value
+        self.rows = table_dict["ROWS"]
+        self.columns = table_dict["COLUMNS"]
+        self.row_bytes = table_dict["ROW_BYTES"]
 
         # Save the key info about each column in a list and a dictionary
         self.column_info_list = []
@@ -99,12 +98,12 @@ class Pds3TableInfo(object):
 
         default_invalid = set(invalid.get("default", []))
         counter = 0
-        for node in table_node:
-            if node.pdsvalue.value == "COLUMN":
-                node_dict = node.as_python_value()
-                name = node_dict["NAME"]
-
-                pdscol = Pds3ColumnInfo(node_dict, counter,
+        for key, column_dict in table_dict.items():
+            if not isinstance(column_dict, dict):
+                continue
+            if column_dict['OBJECT'] == "COLUMN":
+                name = column_dict["NAME"]
+                pdscol = Pds3ColumnInfo(column_dict, counter,
                             invalid = invalid.get(name, default_invalid),
                             valid_range = valid_ranges.get(name, None))
                 counter += 1
@@ -120,17 +119,16 @@ class Pds3TableInfo(object):
         self.table_file_path = os.path.join(os.path.dirname(label_file_path),
                                             self.table_file_name)
 
-
 ################################################################################
 # class Pds3ColumnInfo
 ################################################################################
 
 class Pds3ColumnInfo(object):
-    """The Pds3ColumnInfo class holds the attributes of one column in a PDS3
+    """The PdsColumnInfo class holds the attributes of one column in a PDS
     label."""
 
     def __init__(self, node_dict, column_no, invalid=set(), valid_range=None):
-        """Constructor for a Pds3Column.
+        """Constructor for a PdsColumn.
 
         Input:
             node_dict   the dictionary associated with the pdsparser.PdsNode
@@ -177,7 +175,7 @@ class Pds3ColumnInfo(object):
             self.dtype2 = "float"
             self.scalar_func = float
         elif ("TIME" in self.data_type or "DATE" in self.data_type or
-            self.name.endswith("_TIME") or self.name.endswith("_DATE")):
+              self.name.endswith("_TIME") or self.name.endswith("_DATE")):
             self.data_type = "time"
             self.dtype2 = 'S'
             self.scalar_func = tai_from_iso
