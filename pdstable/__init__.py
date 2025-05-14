@@ -225,12 +225,11 @@ class PdsTable(object):
             self.rows = self.info.rows
 
             with open(self.info.table_file_path, "rb") as f:
+                # Check line count
+                # In PDS4, skip the header
+                if is_pds4_label(label_file) and self.info.header_bytes != 0:
+                    f.seek(self.info.header_bytes)
                 lines = f.readlines()
-
-            # Check line count
-            # In PDS4, skip the header
-            if is_pds4_label(label_file) and self.info.header_bytes != 0:
-                lines = lines[1:]
 
             if len(lines) != self.info.rows:
                 raise ValueError('row count mismatch in %s: ' % label_file +

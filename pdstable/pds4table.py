@@ -141,12 +141,15 @@ class Pds4TableInfo(object):
                 raise IOError('Table file name was not found in PDS4 label')
 
             if table_file is None or table_file not in table_name_li:
-                raise ValueError("The table file name doesn't exist. The label " +
-                                 f'contains {len(table_name_li)} table ' +
+                raise ValueError(f"The table file name '{table_file}' doesn't exist. " +
+                                 f'The label contains {len(table_name_li)} table ' +
                                  f'files: {table_name_li}')
             else:
                 self.table_file_name = table_file
                 self.table_file_li = table_name_li
+                # specify the table file that we want to read
+                idx = table_name_li.index(table_file)
+                file_area = file_area[idx]
         # The label file has no table file info
         else:
             raise ValueError(f'{label_file_path} does not contain any table file info.' )
@@ -157,10 +160,18 @@ class Pds4TableInfo(object):
             # Some tables don't have header
             self.header_bytes = 0
 
-        table_char = file_area['Table_Character']
-        self.rows = int(table_char['records'])
-        self.columns = int(table_char['Record_Character']['fields'])
-        self.row_bytes = int(table_char['Record_Character']['record_length'])
+        # table info is the last child tag of the file area
+        table_area = file_area[list(file_area.keys())[-1]]
+        self.rows = int(table_area['records'])
+        # record info is the last child tag of the table info area
+        record_area = table_area[list(table_area.keys())[-1]]
+        self.columns = int(record_area['fields'])
+        try:
+            # for the table with fixed row length
+            self.row_bytes = int(record_area['record_length'])
+        except:
+            # for the case like .csv table, row length is not used
+            self.row_bytes = int(record_area['maximum_record_length'])
 
         # Save the key info about each column in a list and a dictionary
         self.column_info_list = []
@@ -170,14 +181,15 @@ class Pds4TableInfo(object):
         self.dtype0 = {'crlf': ('|S2', self.row_bytes-2)}
 
         default_invalid = set(invalid.get('default', []))
-        # Get all the columns info from the 'Field_Character' tags in the xml file
-        columns = lbl.findall('.//Field_Character')
-        for col in columns:
-            node_dict = col.to_dict()['Field_Character']
-            name = node_dict['name']
-            field_num = int(node_dict['field_number'])
 
-            pdscol = Pds4ColumnInfo(node_dict, field_num,
+        # Get all the columns info from the record tags in the xml file
+        # columns info is the last child tag of the record info area
+        columns = record_area[list(record_area.keys())[-1]]
+        for col in columns:
+            name = col['name']
+            field_num = int(col['field_number'])
+
+            pdscol = Pds4ColumnInfo(col, field_num,
                         invalid = invalid.get(name, default_invalid),
                         valid_range = valid_ranges.get(name, None))
 
@@ -226,8 +238,12 @@ class Pds4ColumnInfo(object):
         self.name = node_dict['name']
         self.colno = column_no
 
-        self.start_byte = int(node_dict['field_location'])
-        self.bytes      = int(node_dict['field_length'])
+        try:
+            self.start_byte = int(node_dict['field_location'])
+            self.bytes      = int(node_dict['field_length'])
+        except:
+            self.start_byte = None
+            self.bytes = None
 
         # Handle the case where one column stores multiple items, like EXPECTED_MAXIMUM
         # in casssini iss cruise
@@ -239,25 +255,29 @@ class Pds4ColumnInfo(object):
             except:
                 items = 1
 
-        self.items = node_dict.get('ITEMS', items)
-        item_bytes = int((self.bytes-items+1)/items)
+        if self.start_byte is not None and self.bytes is not None:
+            self.items = node_dict.get('ITEMS', items)
+            item_bytes = int((self.bytes-items+1)/items)
 
-        self.item_bytes = node_dict.get('ITEM_BYTES', item_bytes)
-        self.item_offset = node_dict.get('ITEM_OFFSET', item_bytes+1)
+            self.item_bytes = node_dict.get('ITEM_BYTES', item_bytes)
+            self.item_offset = node_dict.get('ITEM_OFFSET', item_bytes+1)
 
-        # Define dtype0 to isolate each column in a record
-        self.dtype0 = ('S' + str(self.bytes), self.start_byte - 1)
+            # Define dtype0 to isolate each column in a record
+            self.dtype0 = ('S' + str(self.bytes), self.start_byte - 1)
 
-        # Define dtype1 as a list of dtypes needed to isolate each item
-        if self.items == 1:
-            self.dtype1 = None
+            # Define dtype1 as a list of dtypes needed to isolate each item
+            if self.items == 1:
+                self.dtype1 = None
+            else:
+                self.dtype1 = {}
+                byte0 = 0
+                for i in range(self.items):
+                    self.dtype1['item_' + str(i)] = ('S' + str(self.item_bytes),
+                                                    byte0)
+                    byte0 += self.item_offset
         else:
-            self.dtype1 = {}
-            byte0 = 0
-            for i in range(self.items):
-                self.dtype1['item_' + str(i)] = ('S' + str(self.item_bytes),
-                                                 byte0)
-                byte0 += self.item_offset
+            self.dtype0 = None
+            self.dtype1 = None
 
         # PDS4 TODO: review the data type conversion
         # Define dtype2 as the intended dtype of the values in the column
