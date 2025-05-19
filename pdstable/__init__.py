@@ -243,9 +243,13 @@ class PdsTable(object):
 
             # For PDS4 table, we need to consider the header
             if is_pds4_label(label_file):
-                # record_bytes is stored in row_bytes for PDS4
-                record_bytes = self.info.row_bytes
-                header_bytes = self.info.header_bytes
+                if self.info.fixed_length_row:
+                    # record_bytes is stored in row_bytes for PDS4
+                    record_bytes = self.info.row_bytes
+                    header_bytes = self.info.header_bytes
+                else:
+                    raise ValueError('We cannot specify row range for the table ' +
+                                     'without fixed length rows.')
             else:
                 record_bytes = self.info.label['RECORD_BYTES']
 
@@ -267,27 +271,44 @@ class PdsTable(object):
         if table_callback is not None:
             lines = table_callback(lines)
 
-        table = np.array(lines, dtype='S')
-        try:
-            table.dtype = np.dtype(self.info.dtype0)
-        except ValueError:
-            raise ValueError('Error in PDS3 row description:\n' +
-                             'old dtype = ' + str(table.dtype) +
-                             ';\nnew dtype = ' + str(np.dtype(self.info.dtype0)))
+        # For table file with fixed length row:
         # table is now a 1-D array in which the ASCII content of each column
         # can be accessed by name. In Python 3, these are bytes, not strings
+        if self.info.fixed_length_row:
+            table = np.array(lines, dtype='S')
+
+            try:
+                table.dtype = np.dtype(self.info.dtype0)
+            except ValueError:
+                raise ValueError('Error in PDS3 row description:\n' +
+                                'old dtype = ' + str(table.dtype) +
+                                ';\nnew dtype = ' + str(np.dtype(self.info.dtype0)))
+        # For table file that doesn't have fixed length row, like .csv file:
+        # table is a 2-D array, each row is an array of the column values for the row.
+        else:
+            table = np.array([np.array(line.split(self.info.field_delimiter))
+                              for line in lines])
+
+
 
         # Extract the substring arrays and save in a dictionary...
         self.column_values = {}
         self.column_masks = {}
-        for key in self.keys:
+
+        for idx, key in enumerate(self.keys):
             column_info = self.info.column_info_dict[key]
-            column = table[key]
+            if self.info.fixed_length_row:
+                column = table[key]
+            else:
+                # Use indexing to access the values of a column for all the rows if the
+                # table rows are not fixed length
+                column = table[:, idx]
+
             # column is now a 1-D array containing the ASCII content of this
             # column within each row.
 
             # For multiple items...
-            if column_info.items > 1:
+            if self.info.fixed_length_row and column_info.items > 1:
 
                 # Replace the column substring with a list of sub-substrings
                 column.dtype = np.dtype(column_info.dtype1)
@@ -783,7 +804,7 @@ class PdsTable(object):
         none."""
 
         if self._filespec_colname_index is None:
-            self.filespec_colname_index = -1
+            self._filespec_colname_index = -1
             self.filespec_colname = ''
             self.filespec_colname_lc = ''
 

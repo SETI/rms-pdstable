@@ -59,6 +59,9 @@ class Pds3TableInfo(object):
         # Get the basic file info...
         if self.label["RECORD_TYPE"] != "FIXED_LENGTH":
             raise IOError('PDS table does not contain fixed-length records')
+        else:
+            # PDS3 table has fixed length rows
+            self.fixed_length_row = True
 
         # Find the pointer to the table file
         # Confirm that the value is a PdsSimplePointer

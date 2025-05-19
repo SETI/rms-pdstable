@@ -42,6 +42,11 @@ def int_from_base8(string):
 def int_from_base16(string):
     return int(string, 16)
 
+# Delimiter used to separate column values in the same row
+PDS4_FIELD_DELIMITER = {
+    'Comma': b',',
+}
+
 # key: PDS4 data type
 # value: a tuple of (self.data_type, self.dtype2, self.scalar_func)
 PDS4_CHR_DATA_TYPE_MAPPING = {
@@ -166,12 +171,17 @@ class Pds4TableInfo(object):
         # record info is the last child tag of the table info area
         record_area = table_area[list(table_area.keys())[-1]]
         self.columns = int(record_area['fields'])
+
         try:
             # for the table with fixed row length
             self.row_bytes = int(record_area['record_length'])
+            self.fixed_length_row = True
+            self.field_delimiter = None
         except:
             # for the case like .csv table, row length is not used
             self.row_bytes = int(record_area['maximum_record_length'])
+            self.fixed_length_row = False
+            self.field_delimiter = PDS4_FIELD_DELIMITER[table_area['field_delimiter']]
 
         # Save the key info about each column in a list and a dictionary
         self.column_info_list = []
