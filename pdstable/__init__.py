@@ -192,22 +192,13 @@ class PdsTable(object):
 
         self.label_file_name = label_file
         # Parse the label
-        if label_contents is not None:
-            if is_pds4_label(label_file):
-                self.info = Pds4TableInfo(label_file, label_list=label_contents,
-                                          invalid=invalid, valid_ranges=valid_ranges,
-                                          table_file=table_file)
-            else:
-                self.info = Pds3TableInfo(label_file, label_list=label_contents,
-                                          invalid=invalid, valid_ranges=valid_ranges)
+        if is_pds4_label(label_file):
+            self.info = Pds4TableInfo(label_file, label_list=label_contents,
+                                      invalid=invalid, valid_ranges=valid_ranges,
+                                      table_file=table_file)
         else:
-            if is_pds4_label(label_file):
-                self.info = Pds4TableInfo(label_file,
-                                          invalid=invalid, valid_ranges=valid_ranges,
-                                          table_file=table_file)
-            else:
-                self.info = Pds3TableInfo(label_file,
-                                          invalid=invalid, valid_ranges=valid_ranges)
+            self.info = Pds3TableInfo(label_file, label_list=label_contents,
+                                      invalid=invalid, valid_ranges=valid_ranges)
 
         # Select the columns
         if len(columns) == 0:
