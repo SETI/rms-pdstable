@@ -37,22 +37,22 @@
        <Primary_Result_Summary>
            <purpose>Science</purpose>
            <processing_level>Derived</processing_level>
-           <description>This is the Uranus ring orbit model uranus_occultation_ring_fit_rfrench_20201201, 
-               based on a non-linear least squares fit to ring occultation data. 
-               Internally the run which produced this file is identified as ringfit_v1.8.Ur017L-RF-V0204, 
+           <description>This is the Uranus ring orbit model uranus_occultation_ring_fit_rfrench_20201201,
+               based on a non-linear least squares fit to ring occultation data.
+               Internally the run which produced this file is identified as ringfit_v1.8.Ur017L-RF-V0204,
                on 12/01/2020.
 
-               The algorithm for the non-linear least squares fit to earthbased and spacecraft stellar 
-               occultations, and radio science occultations, is documented in the following publication: 
-               French, R. G. et al. (1993) "Geometry of the Saturn System from the 3 July 1989 
-               Occultation of 28 Sgr and Voyager Observations" Icarus 103, 163-214. 
-               The calculations generally follow the solar system barycenter vector approach described in 
-               Appendix A.1.1. See also Appendix B for details of the calculations, 
-               including a sample barycentric calculation for Saturn. 
-               
-               Note that the ring orbit model presented here differs from the French et al. (1993) 
-               in several respects, as discussed in French, R. G. et al. (2010) 
-               "Occultation Observations of Saturn's B Ring and Cassini Division", Astron. J. 
+               The algorithm for the non-linear least squares fit to earthbased and spacecraft stellar
+               occultations, and radio science occultations, is documented in the following publication:
+               French, R. G. et al. (1993) "Geometry of the Saturn System from the 3 July 1989
+               Occultation of 28 Sgr and Voyager Observations" Icarus 103, 163-214.
+               The calculations generally follow the solar system barycenter vector approach described in
+               Appendix A.1.1. See also Appendix B for details of the calculations,
+               including a sample barycentric calculation for Saturn.
+
+               Note that the ring orbit model presented here differs from the French et al. (1993)
+               in several respects, as discussed in French, R. G. et al. (2010)
+               "Occultation Observations of Saturn's B Ring and Cassini Division", Astron. J.
                 139:1649-1667 - see pp. 1650-1651 for details.
            </description>
            <Science_Facets>
@@ -195,22 +195,22 @@
             <creation_date_time>2020-12-01T03:40:40</creation_date_time>
             <md5_checksum>50899397330c53d04b7c8138574944a9</md5_checksum>
             <comment>
-            	This file contains the Uranus ring orbit model uranus_occultation_ring_fit_rfrench_20201201, 
-                based on a non-linear least squares fit to ring occultation data. 
-                Internally the run which produced this file is identified as ringfit_v1.8.Ur017L-RF-V0204, 
+            	This file contains the Uranus ring orbit model uranus_occultation_ring_fit_rfrench_20201201,
+                based on a non-linear least squares fit to ring occultation data.
+                Internally the run which produced this file is identified as ringfit_v1.8.Ur017L-RF-V0204,
                 on 12/1/2020.
 
-                The algorithm for the non-linear least squares fit to earthbased and spacecraft stellar 
-                occultations, and radio science occultations, is documented in the following publication: 
-                French, R. G. et al. (1993) "Geometry of the Saturn System from the 3 July 1989 
-                Occultation of 28 Sgr and Voyager Observations" Icarus 103, 163-214. 
-                The calculations generally follow the solar system barycenter vector approach described in 
-                Appendix A.1.1. See also Appendix B for details of the calculations, 
-                including a sample barycentric calculation for Saturn. 
-                
-                Note that the ring orbit model presented here differs from the French et al. (1993) 
-                in several respects, as discussed in French, R. G. et al. (2010) 
-                "Occultation Observations of Saturn's B Ring and Cassini Division", Astron. J. 
+                The algorithm for the non-linear least squares fit to earthbased and spacecraft stellar
+                occultations, and radio science occultations, is documented in the following publication:
+                French, R. G. et al. (1993) "Geometry of the Saturn System from the 3 July 1989
+                Occultation of 28 Sgr and Voyager Observations" Icarus 103, 163-214.
+                The calculations generally follow the solar system barycenter vector approach described in
+                Appendix A.1.1. See also Appendix B for details of the calculations,
+                including a sample barycentric calculation for Saturn.
+
+                Note that the ring orbit model presented here differs from the French et al. (1993)
+                in several respects, as discussed in French, R. G. et al. (2010)
+                "Occultation Observations of Saturn's B Ring and Cassini Division", Astron. J.
                  139:1649-1667 - see pp. 1650-1651 for details.
             </comment>
         </File>
@@ -342,8 +342,8 @@
                     <data_type>ASCII_Integer</data_type>
                     <field_length unit="byte">6</field_length>
                     <description>The method used to calculate the periapse regression rate. Options are:
-                    	           0 = fitted value 
-                    	           1 = computed from Jn 
+                    	           0 = fitted value
+                    	           1 = computed from Jn
                     	           2 = computed from Jn, and five major Uranian satellites.
                     </description>
                 </Field_Character>
@@ -429,8 +429,8 @@
                     <data_type>ASCII_Integer</data_type>
                     <field_length unit="byte">6</field_length>
                     <description>The method used to calculate the nodal regression rate. Options are:
-                    	           0 = fitted value 
-                    	           1 = computed from Jn 
+                    	           0 = fitted value
+                    	           1 = computed from Jn
                     	           2 = computed from Jn, and five major Uranian satellites.
                     </description>
                 </Field_Character>
@@ -588,12 +588,12 @@
                The calculations generally follow the solar system barycenter vector approach described in
                Appendix A.1.1. See also Appendix B for details of the calculations,
                including a sample barycentric calculation for Saturn.
-               
+
                Note that the geometrical model presented here differs from the French et al. (1993)
                in several respects, as discussed in French, R. G. et al. (2010)
                "Occultation Observations of Saturn's B Ring and Cassini Division", Astron. J.
                 139:1649-1667 - see pp. 1650-1651 for details.
-               
+
                Detailed intermediate calculations are included for a representative Earth-based ring occultation observation
                Detailed intermediate calculations are included for a representative spacecraft-based stellar occultation observation
                Detailed intermediate calculations are included for a representative radio science occultation observation
@@ -614,31 +614,31 @@
             <local_identifier>input-data</local_identifier>
             <creation_date_time>2020-12-01T23:44:27</creation_date_time>
             <md5_checksum>9f2d7e9907d6d462d34ee814b32a36e8</md5_checksum>
-            <comment>This table provides information to identify the specific ring occultation 
-            	 observations used as inputs for the Uranus ring orbit model 
-            	 uranus_occultation_ring_fit_rfrench_20201201. 
-            	 
-            	 This is an input file for the ring fit program. It identifies individual fragments of 
+            <comment>This table provides information to identify the specific ring occultation
+            	 observations used as inputs for the Uranus ring orbit model
+            	 uranus_occultation_ring_fit_rfrench_20201201.
+
+            	 This is an input file for the ring fit program. It identifies individual fragments of
             	 the occultation events used. Each fragment is identified by:
-            	   - the occulted star (as an index number [0,114]) 
+            	   - the occulted star (as an index number [0,114])
             	   - occultation event (as an index number [0,40])
             	   - observatory codes (as an abbreviation or index number)
             	   - the specific ring (as an index number [1,10])
-                 - the direction of the occultation track (-1 ingress, 1 egress)             	 
+                 - the direction of the occultation track (-1 ingress, 1 egress)
 
-            	 The key to the star index numbers is given in the file 
-            	 uranus_occultation_ring_fit_rfrench_input_stars_20201201.tab described in another section 
+            	 The key to the star index numbers is given in the file
+            	 uranus_occultation_ring_fit_rfrench_input_stars_20201201.tab described in another section
             	 of this label file.
 
-            	 The key to the occultation event index numbers is given in the file 
-            	 uranus_occultation_ring_fit_rfrench_input_events_20201201.tab described in another section 
+            	 The key to the occultation event index numbers is given in the file
+            	 uranus_occultation_ring_fit_rfrench_input_events_20201201.tab described in another section
             	 of this label file.
 
-            	 The key to the observatory codes is given in the file 
-            	 uranus_occultation_ring_fit_rfrench_input_observatories_20201201.tab describe in another section 
+            	 The key to the observatory codes is given in the file
+            	 uranus_occultation_ring_fit_rfrench_input_observatories_20201201.tab describe in another section
             	 of this label file.
-            	 
-            	 The resulting ring orbit model is given in the file uranus_occultation_ring_fit_rfrench_20201201.tab 
+
+            	 The resulting ring orbit model is given in the file uranus_occultation_ring_fit_rfrench_20201201.tab
             	 described above.
             </comment>
         </File>
@@ -718,12 +718,12 @@
             <creation_date_time>2020-12-01T23:44:27</creation_date_time>
             <md5_checksum>83fcb6fdb992a7fc48ed4a429e854b67</md5_checksum>
             <comment>
-            	 The input files for the ring fit program identify individual fragments of 
-            	 the occultation events used. These are referenced in those files by occultation event (as an 
+            	 The input files for the ring fit program identify individual fragments of
+            	 the occultation events used. These are referenced in those files by occultation event (as an
             	 index number [0,42]) and the specific ring (as an index number [1,10]).
-            	
+
             	 This file provides the key to the occultation event index numbers.
-            	
+
             </comment>
         </File>
         <Header>
@@ -783,7 +783,7 @@
                and altitude), and the observatory and telescope names for those sites
                used in the data files of ring occultation times used for the ring
                ring orbit model uranus_occultation_ring_fit_rfrench_data_20201201.tab.
-               Not included are observatory codes KAO and HST, each of which have 
+               Not included are observatory codes KAO and HST, each of which have
                SPICE kernels describing their motion relative to the center of the
                earth over the course of the corresponding occultations.
         </comment>
@@ -798,13 +798,13 @@
             <offset unit="byte">83</offset>
             <records>14</records>
             <description>
-            	This file provides additional details for the observatories referenced by Earth-based observatory codes 
-            	listed in the uranus_occultation_ring_fit_rfrench_input_data_20201201.tab file described 
-            	above. This file provides the corresponding topocentric locations, and the observatory and 
+            	This file provides additional details for the observatories referenced by Earth-based observatory codes
+            	listed in the uranus_occultation_ring_fit_rfrench_input_data_20201201.tab file described
+            	above. This file provides the corresponding topocentric locations, and the observatory and
             	telescope names.
-            	
-            	Note: Two entries, TEN and TEE have identical parameters. TEN and TEE are used to keep track of 
-            	the fact that the timing for this event was different on egress than on ingress, which is handled 
+
+            	Note: Two entries, TEN and TEE have identical parameters. TEN and TEE are used to keep track of
+            	the fact that the timing for this event was different on egress than on ingress, which is handled
             	by assigning a different observatory code and fitting separately for offset times for TEN and TEE.
             </description>
             <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
@@ -879,9 +879,9 @@
             <creation_date_time>2020-12-01T23:44:27</creation_date_time>
             <md5_checksum>b2885f2a8e599081f4a97e82a72c9e49</md5_checksum>
             <comment>
-            	This file associates the star indices used in the 
-            	uranus_occultation_ring_fit_rfrench_input_data_20201201.tab file (described above) 
-            	with the "star names" used through the Uranus occultation archives, star catalog IDs, 
+            	This file associates the star indices used in the
+            	uranus_occultation_ring_fit_rfrench_input_data_20201201.tab file (described above)
+            	with the "star names" used through the Uranus occultation archives, star catalog IDs,
             	and star positions for the occultation stars used in the generation of the ring orbit model.</comment>
         </File>
         <Header>
