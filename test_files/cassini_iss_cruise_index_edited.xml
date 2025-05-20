@@ -1,0 +1,1759 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Metadata_Supplemental
+    xmlns="http://pds.nasa.gov/pds4/pds/v1"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1B00.xsd">
+    <Identification_Area>
+        <logical_identifier>urn:nasa:pds:cassini_iss_cruise:data_raw:index</logical_identifier>
+        <version_id>1.0</version_id>
+        <title>Cassini ISS Image Index Table for the Cruise to Saturn</title>
+        <information_model_version>1.11.0.0</information_model_version>
+        <product_class>Product_Metadata_Supplemental</product_class>
+        <Citation_Information>
+            <author_list>M. R. Showalter, R. S. French, M. W. Evans, M. K. Gordon, and M. S. Tiscareno</author_list>
+            <publication_year>2021</publication_year>
+            <keyword>metadata</keyword>
+            <description>
+                This table describes the general properties of each Cassini ISS image.
+            </description>
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>2021-02-18</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial delivery</description>
+            </Modification_Detail>
+        </Modification_History>
+    </Identification_Area>
+    <File_Area_Metadata>
+        <File>
+            <file_name>cassini_iss_cruise_index_edited.tab</file_name>
+            <creation_date_time>2021-02-18T19:35:25</creation_date_time>
+            <file_size unit="byte">112979822</file_size>
+            <records>100</records>
+            <md5_checksum>92e2b24d36bf27443145c0aedd295601</md5_checksum>
+            <comment>
+                This table describes the general properties of each Cassini ISS image.
+            </comment>
+        </File>
+        <Table_Character>
+            <offset unit="byte">0</offset>
+            <records>100</records>
+            <description>
+                This version of the Cassini ISS image index for PDS3
+                volumes COISS_1001 to COISS_1009 has been edited by the PDS Ring-Moon Systems
+                Node for compliance with PDS3 standards. Invalid rows have been edited so they
+                obey the specified DATA_TYPE and can therefore be read more easily by
+                software. For example, where a numeric column contained 'NULL', that value has
+                been replaced by '-1.e32' and, in the label, a numeric value of -1.e32 has
+                been identified as the NULL_CONSTANT or NOT_APPLICABLE_CONSTANT.
+
+                Note that NULL_CONSTANT identifies values that could be known but are not,
+                whereas NOT_APPLICABLE_CONSTANT refers to values that are undefined. An
+                example of the former would be a missing value of SC_SUN_POSITION_VECTOR; an
+                example of the latter would be a value of LOWER_LEFT_LATITUDE in an image
+                where the lower left corner does not intercept the target body.
+
+                Note: This file was obtained from the PDS Ring-Moon Systems Node at this
+                URL:
+                    https://pds-rings.seti.org/viewmaster/metadata/COISS_1xxx/COISS_1999/COISS_1999_index.tab
+                It was downloaded on July 30, 2019. Two additional, leading columns,
+                containing the image LID and PDS4 raw image file path, have been pre-pended
+                to each record; the remainder of each record is unchanged.
+            </description>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>121</fields>
+                <groups>0</groups>
+                <record_length unit="byte">3149</record_length>
+                <Field_Character>
+                    <name>Image LID</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_LID</data_type>
+                    <field_length unit="byte">52</field_length>
+                    <description>
+                        The LID for this image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>File Name</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">54</field_location>
+                    <data_type>ASCII_File_Name</data_type>
+                    <field_length unit="byte">26</field_length>
+                    <description>
+                        The name of the associated raw image file.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>PDS3_FILE_NAME</name>
+                    <field_number>3</field_number>
+                    <field_location unit="byte">82</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">22</field_length>
+                    <description>
+                        The PDS3 name of the associated raw image file.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>FILE_SPECIFICATION_NAME</name>
+                    <field_number>4</field_number>
+                    <field_location unit="byte">107</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">48</field_length>
+                    <description>
+                        Path name locating images in DATA directory on PDS3 data
+                        set volumes.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>VOLUME_ID</name>
+                    <field_number>5</field_number>
+                    <field_location unit="byte">158</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        The PDS3 volume on which the product is stored.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>ANTIBLOOMING_STATE_FLAG</name>
+                    <field_number>6</field_number>
+                    <field_location unit="byte">172</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Indicator of whether antiblooming was used for this
+                        image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>BIAS_STRIP_MEAN</name>
+                    <field_number>7</field_number>
+                    <field_location unit="byte">178</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        Mean value of the overclocked pixel values from all
+                        lines except the first and last. Not affected
+                        by light or dark current.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>0.</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>CALIBRATION_LAMP_STATE_FLAG</name>
+                    <field_number>8</field_number>
+                    <field_location unit="byte">191</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Indicates whether calibration lamp was used for this
+                        image. (ISSNA has none, so it's always 'N/A')
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>COMMAND_FILE_NAME</name>
+                    <field_number>9</field_number>
+                    <field_location unit="byte">198</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">64</field_length>
+                    <description>
+                        The name of the IOI file containing the observation
+                        description for this product - sent from the ISS
+                        Team Lead to IO.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>COMMAND_SEQUENCE_NUMBER</name>
+                    <field_number>10</field_number>
+                    <field_location unit="byte">264</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        Numeric identifier for a sequence of commands sent to
+                        the spacecraft. Also known as 'trigger number'. (Comes
+                        from the TRIGGER_NUMBER keyword in the IOI file.) Note
+                        that 1-12 are reserved for IO use and 8 is reserved for
+                        OpNav.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>65534</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>DARK_STRIP_MEAN</name>
+                    <field_number>11</field_number>
+                    <field_location unit="byte">276</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        Mean value of the extended pixel values from all lines
+                        except the first and last. Not affected by light, but
+                        by dark current and Dark Band problem.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>0.</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>DATA_CONVERSION_TYPE</name>
+                    <field_number>12</field_number>
+                    <field_location unit="byte">289</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <description>
+                        The method of conversion used to convert image from
+                        12 to 8 bits selected for this image. '12BIT' = no
+                        conversion 'TABLE' = conversion by look-up table '8LSB'
+                        = keep only the 8 least significant bits
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>DATA_SET_ID</name>
+                    <field_number>13</field_number>
+                    <field_location unit="byte">297</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">40</field_length>
+                    <description>
+                        PDS/Cassini-supplied name for this data set.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>DELAYED_READOUT_FLAG</name>
+                    <field_number>14</field_number>
+                    <field_location unit="byte">340</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Indicator of whether the image may have waited on the
+                        CCD while the other camera was performing a readout.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>DESCRIPTION</name>
+                    <field_number>15</field_number>
+                    <field_location unit="byte">347</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">255</field_length>
+                    <description>
+                        Descriptive comment up to 255 characters. Populated
+                        by IO telemetry processing, validation and
+                        reconciliation software to describe known limitations
+                        of this product.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>DETECTOR_TEMPERATURE</name>
+                    <field_number>16</field_number>
+                    <field_location unit="byte">604</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>degC</unit>
+                    <description>
+                        Temperature of CCD in Celsius degrees.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-999.</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>EARTH_RECEIVED_START_TIME</name>
+                    <field_number>17</field_number>
+                    <field_location unit="byte">616</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">22</field_length>
+                    <description>
+                        Earth Received time of the earliest record containing
+                        valid data for this image (UTC).
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>UNK</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>EARTH_RECEIVED_STOP_TIME</name>
+                    <field_number>18</field_number>
+                    <field_location unit="byte">639</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">22</field_length>
+                    <description>
+                        Earth Received time of the latest record containing
+                        valid data for this image (UTC).
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>UNK</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>ELECTRONICS_BIAS</name>
+                    <field_number>19</field_number>
+                    <field_location unit="byte">662</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        Commanded electronics bias to ensure that all DN
+                        values are greater than zero. (Comes from the
+                        VIDEO_OFFSET keyword in the IOI file.)
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>65534</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>EXPECTED_MAXIMUM</name>
+                    <field_number>20</field_number>
+                    <field_location unit="byte">674</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">23</field_length>
+                    <description>
+                        2-valued array. First, represents the ratio of the
+                        expected maximum DN in the image to the VALID_MAXIMUM
+                        (full well DN). Second, represents the ratio of the
+                        expected maximum DN in the image to the VALID_MAXIMUM
+                        (maxDN).
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>1e+32</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>EXPECTED_PACKETS</name>
+                    <field_number>21</field_number>
+                    <field_location unit="byte">698</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        This keyword provides the total number of packets
+                        expected to be stored on the SSR for this image.
+                        To convert to volume in bits, multiply this value
+                        by 7616 bits/packet. (Comes from the EXPECTED_PACKETS
+                        keyword in the IOI file.)
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>65534</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>EXPOSURE_DURATION</name>
+                    <field_number>22</field_number>
+                    <field_location unit="byte">710</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>ms</unit>
+                    <description>
+                        Exposure duration for the image in milliseconds.
+                        63 distinct values from 0 to 1200000. (See table in
+                        Appendix A.) -999.0 if extended header is unavailable
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>FILTER_NAME</name>
+                    <field_number>23</field_number>
+                    <field_location unit="byte">723</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">13</field_length>
+                    <description>
+                        2-valued array. First, filters used on filter wheel
+                        1. Second, filters used on filter wheel 2.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>FILTER_TEMPERATURE</name>
+                    <field_number>24</field_number>
+                    <field_location unit="byte">738</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>degC</unit>
+                    <description>
+                        Temperature of the filter wheels.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-999.</unknown_constant>
+                        <valid_minimum>0.</valid_minimum>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>FLIGHT_SOFTWARE_VERSION_ID</name>
+                    <field_number>25</field_number>
+                    <field_location unit="byte">751</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Indicates version of instrument flight software used
+                        to acquire image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>GAIN_MODE_ID</name>
+                    <field_number>26</field_number>
+                    <field_location unit="byte">758</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">20</field_length>
+                    <description>
+                        The electronics gain setting selected for this image,
+                        given in units of electrons per DN. (This is an
+                        approximate value so both cameras can use the same set
+                        of values.)
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>IMAGE_MID_TIME</name>
+                    <field_number>27</field_number>
+                    <field_location unit="byte">780</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">22</field_length>
+                    <description>
+                        Exposure mid-time calculated from spacecraft clock
+                        using both the coarse (seconds) and fine (subRTI)
+                        counters (UTC). (A subRTI is approximately 4 msec
+                        (1/256 second)). This value is calculated from the
+                        SPACECRAFT_CLOCK_STOP_COUNT - (EXPOSURE_DURATION/ 2)
+                        then converted to UTC. When the shutter was inhibited
+                        (ie SHUTTER_STATE_ID='DISABLED'), the IMAGE_MID_TIME =
+                        START_TIME = STOP_TIME, and all three represent the
+                        start of the exposure window
+                        during the prepare cycle of the image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>IMAGE_NUMBER</name>
+                    <field_number>28</field_number>
+                    <field_location unit="byte">804</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <unit>s</unit>
+                    <description>
+                        The seconds portion of the spacecraft clock at shutter
+                        close.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>IMAGE_OBSERVATION_TYPE</name>
+                    <field_number>29</field_number>
+                    <field_location unit="byte">817</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">48</field_length>
+                    <description>
+                        A multi-valued list describing the purpose(s) of this
+                        image, for example, OPNAV, science, calibration,
+                        engineering and/or support imaging. (Comes from the
+                        IMAGE_OBSERVATION_TYPE_* keywords in the IOI file
+                        parameter set description.) This list can contain up to
+                        five values where the purposes of the image are
+                        identified. More than one value may be specified.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>IMAGE_TIME</name>
+                    <field_number>30</field_number>
+                    <field_location unit="byte">867</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">22</field_length>
+                    <description>
+                        Time of shutter close calculated from spacecraft clock
+                        using both the coarse (seconds) and fine (subRTI)
+                        counters (UTC). (A subRTI is approximately 4 msec
+                        (1/256 second)). When the shutter was inhibited (ie
+                        SHUTTER_STATE_ID='DISABLED'), the IMAGE_TIME =
+                        START_TIME = STOP_TIME, and all three represent the
+                        start of the exposure window during the prepare cycle
+                        of the image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>INSTRUMENT_DATA_RATE</name>
+                    <field_number>31</field_number>
+                    <field_location unit="byte">890</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>kb/s</unit>
+                    <description>
+                        The rate at which data was transferred out of
+                        instrument. -999.0 if channelized data and extended
+                        header are unavailable.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-999.</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>INSTRUMENT_HOST_NAME</name>
+                    <field_number>32</field_number>
+                    <field_location unit="byte">903</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">15</field_length>
+                    <description>
+                        Name of the spacecraft upon which this instrument
+                        resides.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>INSTRUMENT_ID</name>
+                    <field_number>33</field_number>
+                    <field_location unit="byte">921</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <description>
+                        Indicator of which camera took this image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>INSTRUMENT_MODE_ID</name>
+                    <field_number>34</field_number>
+                    <field_location unit="byte">929</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        The summation mode used for this image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>INSTRUMENT_NAME</name>
+                    <field_number>35</field_number>
+                    <field_location unit="byte">936</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">38</field_length>
+                    <description>
+                        Name of the CASSINI Instrument which acquired the
+                        image data.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>INST_CMPRS_PARAM</name>
+                    <field_number>36</field_number>
+                    <field_location unit="byte">976</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">47</field_length>
+                    <description>
+                        4-valued array. First, the lossy compression MALGO
+                        (algorithm) parameter. MALGO. Second, the lossy
+                        compression TB (block type) parameter. TB. Third, the
+                        lossy compression group-of-blocks (number of blocks
+                        per group) parameter. GOB. Fouth, the lossy compression
+                        the compression rate parameter (quantization factor).
+                        QF.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-2147483648</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>INST_CMPRS_RATE</name>
+                    <field_number>37</field_number>
+                    <field_location unit="byte">1024</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">23</field_length>
+                    <unit>bits/pixel</unit>
+                    <description>
+                        2-valued array. First, the expected average number of
+                        bits and comes from the BITS_PER_PIXEL keyword in the
+                        IOI file. Second, the actual average number of bits
+                        and is calculated during telemetry processing.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>1e+32</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>INST_CMPRS_RATIO</name>
+                    <field_number>38</field_number>
+                    <field_location unit="byte">1048</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">9</field_length>
+                    <description>
+                        Ratio of expected image size to size of image
+                        received. (Calculation of this value does not include
+                        data outages due to truncated readouts or data lost in
+                        transmission.)
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-1e+32</unknown_constant>
+                        <valid_minimum>0.</valid_minimum>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>INST_CMPRS_TYPE</name>
+                    <field_number>39</field_number>
+                    <field_location unit="byte">1059</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <description>
+                        Compression type used for the image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>LIGHT_FLOOD_STATE_FLAG</name>
+                    <field_number>40</field_number>
+                    <field_location unit="byte">1070</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Indicator of whether Light Flood was used just prior
+                        to taking this image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>METHOD_DESC</name>
+                    <field_number>41</field_number>
+                    <field_location unit="byte">1077</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">75</field_length>
+                    <description>
+                        This keyword describes the information and/or
+                        algorithm used to calculate the I/F value used by the
+                        ISS team to determine the EXPOSURE_DURATION. (Limited
+                        to char(75)). (Comes from the METHOD_DESC keyword in
+                        the IOI file.)
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>MISSING_LINES</name>
+                    <field_number>42</field_number>
+                    <field_location unit="byte">1154</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        For non-lossy compressed data only, number of missing
+                        or incomplete image lines. For all data, including
+                        lossy compressed images, when data is missing, the
+                        missing pixel values are replaced by 0. 'N/A' for
+                        lossy compressed data.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-2147483648</unknown_constant>
+                        <valid_maximum>1024</valid_maximum>
+                        <valid_minimum>0</valid_minimum>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>MISSING_PACKET_FLAG</name>
+                    <field_number>43</field_number>
+                    <field_location unit="byte">1167</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Indicator of whether consecutive packets were
+                        received. If set to 'YES', this flag indicates that
+                        packets needed to construct a complete image were
+                        missing. If set to 'NO', all consecutive packets were
+                        received. However, data may be missing at the beginning
+                        or end of the image. In this case, missing data would
+                        be reflected in the MISSING_LINES keyword for non-lossy
+                        data, and through visual inspection for lossy
+                        compressed data.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>MISSION_NAME</name>
+                    <field_number>44</field_number>
+                    <field_location unit="byte">1174</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">15</field_length>
+                    <description>
+                        Mission name associated with this image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>MISSION_PHASE_NAME</name>
+                    <field_number>45</field_number>
+                    <field_location unit="byte">1192</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">32</field_length>
+                    <description>
+                        Mission phase of which this image is a part.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>OBSERVATION_ID</name>
+                    <field_number>46</field_number>
+                    <field_location unit="byte">1227</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">32</field_length>
+                    <description>
+                        Name of observation of which this image is a
+                        part.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>OPTICS_TEMPERATURE</name>
+                    <field_number>47</field_number>
+                    <field_location unit="byte">1261</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">23</field_length>
+                    <unit>degC</unit>
+                    <description>
+                        2-valued array. First, temperature of front optics in
+                        Celsius degrees. Note that there is no rear optics
+                        temperature for the WAC camera, so when INSTRUMENT_ID =
+                        ISSWA, the second element of the array will always be
+                        -999.0. (-999.0, -999.0) if the extended header is
+                        unavailable. Second, temperature of rear optics in
+                        Celsius degrees. Note that there is no rear optics
+                        temperature for the WAC camera, so when INSTRUMENT_ID =
+                        ISSWA, the second element of the array will always be
+                        -999.0. (-999.0, -999.0) if the extended header is
+                        unavailable.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-999.</unknown_constant>
+                        <valid_minimum>0.</valid_minimum>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>ORDER_NUMBER</name>
+                    <field_number>48</field_number>
+                    <field_location unit="byte">1285</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        Identifier provided by Team Lead for this image which
+                        is unique within the IOI file. This value will not be
+                        unique for parameter sets described in the IOI file
+                        with ITERATION_COUNT &gt; 1 or with LOOP_COUNT &gt; 1
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>65534</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>PARALLEL_CLOCK_VOLTAGE_INDEX</name>
+                    <field_number>49</field_number>
+                    <field_location unit="byte">1297</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        Commanded parallel clock voltage index. Controls
+                        clocking frequency. (Comes from the PC_VOLTAGE keyword
+                        in the IOI file.)
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>65534</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>PREPARE_CYCLE_INDEX</name>
+                    <field_number>50</field_number>
+                    <field_location unit="byte">1309</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        The element number within the Prepare Cycle table
+                        selected for this image. (see Appendix B tables)
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>PRODUCT_CREATION_TIME</name>
+                    <field_number>51</field_number>
+                    <field_location unit="byte">1321</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">22</field_length>
+                    <description>
+                        Time of creation of this image on the ground (Pacific
+                        local time).
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>PRODUCT_ID</name>
+                    <field_number>52</field_number>
+                    <field_location unit="byte">1345</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">18</field_length>
+                    <description>
+                        Unique identifier for each image commanded. Required
+                        by PDS/Cassini. The PRODUCT_ID will be constructed:
+                        SPACECRAFT_CLOCK_CNT_PARTITION'_'
+                        ISPACECRAFT_CLOCK_STOP_COUNT, where I is 'N' if the
+                        INSTRUMENT_ID is 'ISSNA', and I is 'W' if the
+                        INSTRUMENT_ID is 'ISSWA'.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>PRODUCT_VERSION_TYPE</name>
+                    <field_number>53</field_number>
+                    <field_location unit="byte">1366</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        Identifies the version of an individual data product.
+                        Always 'FINAL' for products archived with PDS/Cassini.
+                        'PRELIMINARY' indicates additional processing is
+                        underway at IO/MIPL, for instance, to recover
+                        additional telemetry if possible.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>READOUT_CYCLE_INDEX</name>
+                    <field_number>54</field_number>
+                    <field_location unit="byte">1379</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        The element number within the Readout Cycle table
+                        selected for this image. (see Appendix B tables)
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>RECEIVED_PACKETS</name>
+                    <field_number>55</field_number>
+                    <field_location unit="byte">1391</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        This keyword provides the actual number of packets
+                        received from the SSR for this image. To convert to
+                        volume in bits, multiply this value by 7616
+                        bits/packet. This value reflects data received. In the
+                        event the image is incomplete due to an outage in the
+                        transmission, this field will not be an accurate
+                        indicator of actual volume on the SSR.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>65534</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SENSOR_HEAD_ELEC_TEMPERATURE</name>
+                    <field_number>56</field_number>
+                    <field_location unit="byte">1403</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        Temperature of the sensor head electronics.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-999.</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SEQUENCE_ID</name>
+                    <field_number>57</field_number>
+                    <field_location unit="byte">1416</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Identifies the segment associated with this image.
+                        Note that this keyword does not come from the
+                        IOI file. Ex: 'C22', 'S19'
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>SEQUENCE_NUMBER</name>
+                    <field_number>58</field_number>
+                    <field_location unit="byte">1422</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>
+                        Indicates the order in which this image was expected
+                        to be taken within the given observation
+                        (OBSERVATION_ID).
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>65534</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SEQUENCE_TITLE</name>
+                    <field_number>59</field_number>
+                    <field_location unit="byte">1435</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">60</field_length>
+                    <description>
+                        The name assigned by the Team Lead for the activity of
+                        which this image is a part. Comes from the
+                        SEQUENCE_TITLE keyword in the IOI file. Limited to 30
+                        characters. Example = ???.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>SHUTTER_MODE_ID</name>
+                    <field_number>60</field_number>
+                    <field_location unit="byte">1498</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <description>
+                        Indicator of whether this exposure was part of a joint
+                        observation with the other ISS camera.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>SHUTTER_STATE_ID</name>
+                    <field_number>61</field_number>
+                    <field_location unit="byte">1508</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">8</field_length>
+                    <description>
+                        Indicator of whether the shutter was enabled during
+                        the exposure.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>SOFTWARE_VERSION_ID</name>
+                    <field_number>62</field_number>
+                    <field_location unit="byte">1519</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">20</field_length>
+                    <description>
+                        Ground software version used to generate this image.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>SPACECRAFT_CLOCK_CNT_PARTITION</name>
+                    <field_number>63</field_number>
+                    <field_location unit="byte">1541</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Indicates the clock partition active for the
+                        SPACECRAFT_CLOCK_START_COUNT and
+                        SPACECRAFT_CLOCK_STOP_COUNT elements. Remains at '1'
+                        unless the spacecraft clock rolls over or is reset.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>SPACECRAFT_CLOCK_START_COUNT</name>
+                    <field_number>64</field_number>
+                    <field_location unit="byte">1547</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">16</field_length>
+                    <description>
+                        The seconds and subRTI portions of the spacecraft
+                        clock at shutter open. Calculated from spacecraft clock
+                        of shutter close less the exposure duration. When the
+                        shutter was inhibited (ie SHUTTER_STATE_ID='DISABLED'),
+                        the SPACECRAFT_CLOCK_START_COUNT =
+                        SPACECRAFT_CLOCK_STOP_COUNT, and both represent the
+                        start of the exposure window during the prepare cycle
+                        of the image. EX: '832898283.123'
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>UNK</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SPACECRAFT_CLOCK_STOP_COUNT</name>
+                    <field_number>65</field_number>
+                    <field_location unit="byte">1566</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">16</field_length>
+                    <description>
+                        The seconds and subRTI portions of the spacecraft
+                        clock at shutter close. (A subRTI is approximately 4
+                        msec (1/256 second)). When the shutter was inhibited
+                        (ie SHUTTER_STATE_ID='DISABLED'), the
+                        SPACECRAFT_CLOCK_STA RT_COUNT =
+                        SPACECRAFT_CLOCK_STOP_COUNT, and both represent the
+                        start of the exposure window during the prepare cycle
+                        of the image. EX: '832898284.456'
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>UNK</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>START_TIME</name>
+                    <field_number>66</field_number>
+                    <field_location unit="byte">1584</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">22</field_length>
+                    <description>
+                        Time of shutter open. Calculated from spacecraft clock
+                        of shutter close less the exposure duration. Expressed
+                        in UTC format, and includes subRTI resolution. (A
+                        subRTI is approximately 4 msec (1/256 second)). When
+                        the shutter was inhibited (ie
+                        SHUTTER_STATE_ID='DISABLED'), the START_TIME =
+                        STOP_TIME, and both represent the start of the exposure
+                        window during the prepare cycle of the image. EX:
+                        1996-158T05:53:34.000Z
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>UNK</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>STOP_TIME</name>
+                    <field_number>67</field_number>
+                    <field_location unit="byte">1607</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">22</field_length>
+                    <description>
+                        Time of shutter close from spacecraft clock (UTC).
+                        Identical to IMAGE_TIME. Includes subRTI resolution. (A
+                        subRTI is approximately 4 msec (1/256 second)). When
+                        the shutter was inhibited (ie
+                        SHUTTER_STATE_ID='DISABLED'), the START_TIME =
+                        STOP_TIME, and both represent the start of the exposure
+                        window during the prepare cycle of the image. EX:
+                        1996-158T05:53:34.000Z
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>TARGET_DESC</name>
+                    <field_number>68</field_number>
+                    <field_location unit="byte">1631</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">75</field_length>
+                    <description>
+                        The name of the intended target for which the exposure
+                        was calculated/selected in the given image. May include
+                        calibration type information. Limited to 75 characters.
+                        (Comes from the TARGET_DESC keyword in the IOI file.)
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>TARGET_NAME</name>
+                    <field_number>69</field_number>
+                    <field_location unit="byte">1709</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">24</field_length>
+                    <description>
+                        Identifies a target. The target may be a planet,
+                        satellite, ring, region, feature, asteroid or comet.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>TELEMETRY_FORMAT_ID</name>
+                    <field_number>70</field_number>
+                    <field_location unit="byte">1736</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">16</field_length>
+                    <description>
+                        The telemetry mode in effect when sending data from the
+                        instrument to the spacecraft computer.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>VALID_MAXIMUM</name>
+                    <field_number>71</field_number>
+                    <field_location unit="byte">1754</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">23</field_length>
+                    <description>
+                        2-valued array. First, indicates the minimum full well
+                        saturation level of the instrument, which is a function
+                        of INSTRUMENT_MODE_ID, INSTRUMENT_ID, and GAIN_MODE_ID,
+                        expressed as a DN value. This may exceed 4095. Second,
+                        indicates the maximum DN saturation level for the
+                        signal returned by the A/D converter. Valid values are
+                        255 and 4095. See Appendix B tables
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>65534</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>CENTRAL_BODY_DISTANCE</name>
+                    <field_number>72</field_number>
+                    <field_location unit="byte">1778</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">14</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Distance from spacecraft to center of primary body.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>COORDINATE_SYSTEM_NAME</name>
+                    <field_number>73</field_number>
+                    <field_location unit="byte">1794</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">32</field_length>
+                    <description>
+                        The full name of the coordinate system to which the
+                        state vectors are referenced.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>DECLINATION</name>
+                    <field_number>74</field_number>
+                    <field_location unit="byte">1828</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Declination of camera optic axis.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-1e+32</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>EMISSION_ANGLE</name>
+                    <field_number>75</field_number>
+                    <field_location unit="byte">1840</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Emission angle at aimpoint on target.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>0.</unknown_constant>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                        <valid_maximum>90.</valid_maximum>
+                        <valid_minimum>1e-10</valid_minimum>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>INCIDENCE_ANGLE</name>
+                    <field_number>76</field_number>
+                    <field_location unit="byte">1852</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Incidence angle at aimpoint on target.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>0.</unknown_constant>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                        <valid_maximum>90.</valid_maximum>
+                        <valid_minimum>1e-06</valid_minimum>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>LOWER_LEFT_LATITUDE</name>
+                    <field_number>77</field_number>
+                    <field_location unit="byte">1864</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Planetocentric latitude of lower-left pixel.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>LOWER_LEFT_LONGITUDE</name>
+                    <field_number>78</field_number>
+                    <field_location unit="byte">1876</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        West longitude of lower-left pixel.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>LOWER_RIGHT_LATITUDE</name>
+                    <field_number>79</field_number>
+                    <field_location unit="byte">1888</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Planetocentric latitude of lower-right pixel.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>LOWER_RIGHT_LONGITUDE</name>
+                    <field_number>80</field_number>
+                    <field_location unit="byte">1900</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        West longitude of lower-right pixel.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>MAXIMUM_RING_RADIUS</name>
+                    <field_number>81</field_number>
+                    <field_location unit="byte">1912</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">14</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Maximum ringplane radius in image.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>MINIMUM_RING_RADIUS</name>
+                    <field_number>82</field_number>
+                    <field_location unit="byte">1927</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">14</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Minimum ringplane radius in image.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>NORTH_AZIMUTH_CLOCK_ANGLE</name>
+                    <field_number>83</field_number>
+                    <field_location unit="byte">1942</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Direction of the northward-pointing azimuth at the
+                        aimpoint on the target body, measured clockwise.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>TARGET_NORTH_CLOCK_ANGLE</name>
+                    <field_number>84</field_number>
+                    <field_location unit="byte">1954</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Angle, about optic axis, between 'up' image direction
+                        and target pole projected onto image plane, measured
+                        clockwise.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>PHASE_ANGLE</name>
+                    <field_number>85</field_number>
+                    <field_location unit="byte">1966</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Phase angle at subspacecraft point on target.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>PIXEL_SCALE</name>
+                    <field_number>86</field_number>
+                    <field_location unit="byte">1978</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Size of one pixel at subspacecraft point on target
+                        body.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>PLANET_CENTER</name>
+                    <field_number>87</field_number>
+                    <field_location unit="byte">1990</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">23</field_length>
+                    <description>
+                        2-valued array. First, Line of target body center.
+                        Second, Sample of target body center.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>RIGHT_ASCENSION</name>
+                    <field_number>88</field_number>
+                    <field_location unit="byte">2014</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Right ascension of camera optic axis.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-1e+32</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>RING_CENTER_LATITUDE</name>
+                    <field_number>89</field_number>
+                    <field_location unit="byte">2026</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Planetocentric latitude at aimpoint on ring
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>RING_CENTER_LONGITUDE</name>
+                    <field_number>90</field_number>
+                    <field_location unit="byte">2038</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        West longitude at aimpoint on ring
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>RING_EMISSION_ANGLE</name>
+                    <field_number>91</field_number>
+                    <field_location unit="byte">2050</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Emission angle relative to target ring northward-
+                        pointing normal at aimpoint.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>RING_INCIDENCE_ANGLE</name>
+                    <field_number>92</field_number>
+                    <field_location unit="byte">2062</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Incidence angle relative to target ring northward-
+                        pointing normal at aimpoint.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>RINGS_FLAG</name>
+                    <field_number>93</field_number>
+                    <field_location unit="byte">2075</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        If any part of the A, B, C, D, E, F, or G ring is
+                        visible in the image, this quantity is 'YES'; 'NO'
+                        otherwise.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>SC_PLANET_POSITION_VECTOR</name>
+                    <field_number>94</field_number>
+                    <field_location unit="byte">2081</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">44</field_length>
+                    <unit>km</unit>
+                    <description>
+                        3-valued array. X, Y, Z components of the position
+                        vector from spacecraft to primary planet center,
+                        corrected for light-travel time and stellar
+                        aberration.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-1e+32</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SC_PLANET_VELOCITY_VECTOR</name>
+                    <field_number>95</field_number>
+                    <field_location unit="byte">2126</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">44</field_length>
+                    <unit>km/s</unit>
+                    <description>
+                        3-valued array. X, Y, Z components of the velocity
+                        vector of primary planet relative to spacecraft,
+                        corrected for light-travel time.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-1e+32</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SC_SUN_POSITION_VECTOR</name>
+                    <field_number>96</field_number>
+                    <field_location unit="byte">2171</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">44</field_length>
+                    <unit>km</unit>
+                    <description>
+                        3-valued array. X, Y, Z components of the position
+                        vector from spacecraft to sun center, corrected
+                        for light-travel time and stellar aberration.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-1e+32</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SC_SUN_VELOCITY_VECTOR</name>
+                    <field_number>97</field_number>
+                    <field_location unit="byte">2216</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">44</field_length>
+                    <unit>km/s</unit>
+                    <description>
+                        3-valued array. X, Y, Z components of the velocity
+                        vector of sun relative to spacecraft, corrected for
+                        light-travel time.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-1e+32</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SC_TARGET_POSITION_VECTOR</name>
+                    <field_number>98</field_number>
+                    <field_location unit="byte">2261</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">44</field_length>
+                    <unit>km</unit>
+                    <description>
+                        3-valued array. X, Y, Z components of the position
+                        vector from spacecraft to target center, corrected for
+                        light-travel time and stellar aberration.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>SC_TARGET_VELOCITY_VECTOR</name>
+                    <field_number>99</field_number>
+                    <field_location unit="byte">2306</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">44</field_length>
+                    <unit>km/s</unit>
+                    <description>
+                        3-valued array. X, Y, Z components of the velocity
+                        vector of the target relative to spacecraft, corrected
+                        for light-travel time.
+                    </description>
+                    <Special_Constants>
+                        <unknown_constant>-1e+32</unknown_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SPICE_PRODUCT_ID</name>
+                    <field_number>100</field_number>
+                    <field_location unit="byte">2352</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">255</field_length>
+                    <description>
+                        The names of the SPICE files used in processing the
+                        data.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>SUB_SOLAR_LATITUDE</name>
+                    <field_number>101</field_number>
+                    <field_location unit="byte">2609</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Planetocentric latitude of subsolar point on target;
+                        Ring_Subsolar_Latitude if target is a ring.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SUB_SOLAR_LONGITUDE</name>
+                    <field_number>102</field_number>
+                    <field_location unit="byte">2621</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        West longitude of subsolar point on target;
+                        Ring_Subsolar_Longitude if target is a ring.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SUB_SPACECRAFT_LATITUDE</name>
+                    <field_number>103</field_number>
+                    <field_location unit="byte">2633</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Planetocentric latitude of subspacecraft point on
+                        target; Ring_Subspacecraft_Latitude if target is a
+                        ring.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>SUB_SPACECRAFT_LONGITUDE</name>
+                    <field_number>104</field_number>
+                    <field_location unit="byte">2645</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        West longitude of subspacecraft point on target;
+                        Ring_Subspacecraft_Longitude if target is a ring.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>CENTER_LATITUDE</name>
+                    <field_number>105</field_number>
+                    <field_location unit="byte">2657</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Planetocentric latitude at aimpoint on target
+                        (or Ring_Aimpoint_Latitude if target is a ring).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>CENTER_LONGITUDE</name>
+                    <field_number>106</field_number>
+                    <field_location unit="byte">2669</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        West longitude at aimpoint on target (or
+                        Ring_Aimpoint_Longitude if target is a ring).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>TARGET_DISTANCE</name>
+                    <field_number>107</field_number>
+                    <field_location unit="byte">2681</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">14</field_length>
+                    <unit>km</unit>
+                    <description>
+                        Distance from the spacecraft to the center of the
+                        target.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>TARGET_EASTERNMOST_LONGITUDE</name>
+                    <field_number>108</field_number>
+                    <field_location unit="byte">2696</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Easternmost longitude visible on target body.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>TARGET_NORTHERNMOST_LATITUDE</name>
+                    <field_number>109</field_number>
+                    <field_location unit="byte">2708</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Northernmost latitude visible on target body.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>TARGET_SOUTHERNMOST_LATITUDE</name>
+                    <field_number>110</field_number>
+                    <field_location unit="byte">2720</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Southernmost latitude visible on target body.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>TARGET_WESTERNMOST_LONGITUDE</name>
+                    <field_number>111</field_number>
+                    <field_location unit="byte">2732</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Westernmost longitude visible on target body.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>TWIST_ANGLE</name>
+                    <field_number>112</field_number>
+                    <field_location unit="byte">2744</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Twist angle of optic axis.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>TARGET_LIST</name>
+                    <field_number>113</field_number>
+                    <field_location unit="byte">2757</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">255</field_length>
+                    <description>
+                        Name of each body visible in the image. A body is
+                        included if any part of its limb is not hidden by
+                        another body. Bodies may be obscured by rings.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>UPPER_LEFT_LATITUDE</name>
+                    <field_number>114</field_number>
+                    <field_location unit="byte">3014</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Planetocentric latitude of upper-left pixel.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>UPPER_LEFT_LONGITUDE</name>
+                    <field_number>115</field_number>
+                    <field_location unit="byte">3026</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        West longitude of upper-left pixel.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>UPPER_RIGHT_LATITUDE</name>
+                    <field_number>116</field_number>
+                    <field_location unit="byte">3038</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        Planetocentric latitude of upper-right pixel.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>UPPER_RIGHT_LONGITUDE</name>
+                    <field_number>117</field_number>
+                    <field_location unit="byte">3050</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>deg</unit>
+                    <description>
+                        West longitude of upper-right pixel.
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-1e+32</not_applicable_constant>
+                    </Special_Constants>
+                </Field_Character>
+                <Field_Character>
+                    <name>DATA_SET_NAME</name>
+                    <field_number>118</field_number>
+                    <field_location unit="byte">3063</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">60</field_length>
+                    <description>
+                        The name given to the Cassini ISS EDR image data set.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>INSTRUMENT_HOST_ID</name>
+                    <field_number>119</field_number>
+                    <field_location unit="byte">3126</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Unique identifier for the host where the instrument
+                        is located.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>PRODUCT_TYPE</name>
+                    <field_number>120</field_number>
+                    <field_location unit="byte">3133</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">4</field_length>
+                    <description>
+                        Identifies the type of a data product within the data
+                        set.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>STANDARD_DATA_PRODUCT_ID</name>
+                    <field_number>121</field_number>
+                    <field_location unit="byte">3140</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">7</field_length>
+                    <description>
+                        Used to link a data product (file) to a standard data
+                        product (collection of similar files) described within
+                        software interface specification document for a
+                        particular data set.
+                    </description>
+                </Field_Character>
+            </Record_Character>
+        </Table_Character>
+    </File_Area_Metadata>
+</Product_Metadata_Supplemental>
