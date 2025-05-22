@@ -64,7 +64,7 @@ except ImportError as err:
 
 
 # STR_DTYPE is 'U'
-STR_DTYPE = np.array(['x']).dtype.kind
+STR_DTYPE = 'U'
 
 ENCODING = {'encoding': 'latin-1'}  # For open() of ASCII files in Python 3
 
@@ -75,21 +75,21 @@ STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 def tai_from_iso(string):
     return julian.tai_from_iso(string, strip=True)
 
-FILE_SPECIFICATION_COLUMN_NAMES = (
-    'FILE_SPECIFICATION',
-    'FILE SPECIFICATION',
-    'FILE_SPECIFICATION_NAME',
-    'FILE SPECIFICATION NAME',
-    'FILE_NAME',
-    'FILE NAME',
-    'FILENAME',
-    'PRODUCT_ID',
-    'PRODUCT ID',
-    'STSCI_GROUP_ID'
+# A list of possible table column names (unique) that store the path of the file spec or
+# the file name. This will be used to get the index of the column containing file
+# specification path or name.
+FILE_SPECIFICATION_COLUMN_NAMES_lc = (
+    'file_specification',
+    'file specification',
+    'file_specification_name',
+    'file specificaiton name',
+    'file_name',
+    'file name',
+    'filename',
+    'product_id',
+    'product id',
+    'stsci_group_id'
 )
-
-FILE_SPECIFICATION_COLUMN_NAMES_lc = [x.lower() for x in
-                                      FILE_SPECIFICATION_COLUMN_NAMES]
 
 VOLUME_ID_COLUMN_NAMES = (
     'VOLUME_ID',
