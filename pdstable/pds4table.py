@@ -84,18 +84,11 @@ PDS4_CHR_DATA_TYPE_MAPPING = {
 class Pds4TableInfo(object):
     """The Pds4TableInfo class holds the attributes of a PDS4-labeled table."""
 
-    def __init__(self, label_file_path, label_list=None, invalid={},
-                       valid_ranges={}, table_file=None):
+    def __init__(self, label_file_path, invalid={}, valid_ranges={}, table_file=None):
         """Loads a PDS4 table based on its associated label file.
 
         Input:
-            label_file_path path to the label file
-            label_list      an option to override the parsing of the label.
-                            If this is a list, it is interpreted as containing
-                            all the records of the PDS4 label, in which case the
-                            overrides the contents of the label file.
-                            Alternatively, this can be a PdsLabel object that
-                            was already parsed.
+            label_file_path path to the PDS4 label file
             invalid         an optional dictionary keyed by column name. The
                             returned value must be a list or set of values that
                             are to be treated as invalid, missing or unknown.

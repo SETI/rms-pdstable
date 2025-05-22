@@ -127,6 +127,8 @@ class PdsTable(object):
             label_contents  The contents of the label as a list of strings if
                             we shouldn't read it from the file. Alternatively, a
                             Pds3Label object to avoid label parsing entirely.
+                            Note: this param is for PDS3 label only, it's ignored
+                            in PDS4.
             columns         an optional list of the names of the columns to
                             return. If the list is empty, then every column is
                             returned.
@@ -144,8 +146,7 @@ class PdsTable(object):
             ascii           True to interpret the callbacks as translating
                             ASCII byte strings; False to interpret them as
                             translating the default str type, which is 1-byte
-                            ASCII in Python 2 but 4-byte Unicode in Python 3.
-                            This parameter is ignored in Python 2.
+                            4-byte Unicode in Python 3.
             replacements    an optional dictionary that returns a replacement
                             dictionary given the name of a column. If a
                             replacement dictionary is provided for any column,
@@ -193,9 +194,8 @@ class PdsTable(object):
         self.label_file_name = label_file
         # Parse the label
         if is_pds4_label(label_file):
-            self.info = Pds4TableInfo(label_file, label_list=label_contents,
-                                      invalid=invalid, valid_ranges=valid_ranges,
-                                      table_file=table_file)
+            self.info = Pds4TableInfo(label_file, invalid=invalid,
+                                      valid_ranges=valid_ranges, table_file=table_file)
         else:
             self.info = Pds3TableInfo(label_file, label_list=label_contents,
                                       invalid=invalid, valid_ranges=valid_ranges)
