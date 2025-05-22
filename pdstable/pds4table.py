@@ -12,7 +12,7 @@ from pds4_tools.reader.label_objects import Label
 
 PDS4_LBL_EXTENSIONS = ('.xml', '.lblx')
 
-PDS4_BUNDLE_COLNAME = (
+PDS4_BUNDLE_COLNAMES = (
     'Bundle Name',
 )
 
@@ -85,7 +85,7 @@ class Pds4TableInfo(object):
     """The Pds4TableInfo class holds the attributes of a PDS4-labeled table."""
 
     def __init__(self, label_file_path, label_list=None, invalid={},
-                 valid_ranges={}, table_file=None):
+                       valid_ranges={}, table_file=None):
         """Loads a PDS4 table based on its associated label file.
 
         Input:

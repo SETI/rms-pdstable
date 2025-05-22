@@ -27,8 +27,7 @@ def tai_from_iso(string):
 class Pds3TableInfo(object):
     """The Pds3TableInfo class holds the attributes of a PDS3-labeled table."""
 
-    def __init__(self, label_file_path, label_list=None, invalid={},
-                                                         valid_ranges={}):
+    def __init__(self, label_file_path, label_list=None, invalid={}, valid_ranges={}):
         """Loads a PDS table based on its associated label file.
 
         Input:

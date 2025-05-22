@@ -54,7 +54,7 @@ import julian
 
 from .pds3table import Pds3TableInfo
 from .pds4table import (Pds4TableInfo,
-                        PDS4_BUNDLE_COLNAME,
+                        PDS4_BUNDLE_COLNAMES,
                         PDS4_LBL_EXTENSIONS)
 
 try:
@@ -96,7 +96,7 @@ VOLUME_ID_COLUMN_NAMES = (
     'VOLUME ID',
     'VOLUME_NAME',
     'VOLUME NAME'
-) + PDS4_BUNDLE_COLNAME
+) + PDS4_BUNDLE_COLNAMES
 
 VOLUME_ID_COLUMN_NAMES_lc = [x.lower() for x in VOLUME_ID_COLUMN_NAMES]
 
@@ -115,10 +115,10 @@ class PdsTable(object):
     """
 
     def __init__(self, label_file, label_contents=None, times=[], columns=[],
-                 nostrip=[], callbacks={}, ascii=False, replacements={},
-                 invalid={}, valid_ranges={}, table_callback=None,
-                 merge_masks=False, filename_keylen=0, row_range=None,
-                 table_file=None):
+                       nostrip=[], callbacks={}, ascii=False, replacements={},
+                       invalid={}, valid_ranges={}, table_callback=None,
+                       merge_masks=False, filename_keylen=0, row_range=None,
+                       table_file=None):
         """Constructor for a PdsTable object.
 
         Input:
