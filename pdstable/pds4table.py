@@ -12,6 +12,13 @@ from pds4_tools.reader.label_objects import Label
 
 PDS4_LBL_EXTENSIONS = ('.xml', '.lblx')
 
+def is_pds4_label(label_name):
+    """Check if the given label is a PDS4 label."""
+
+    for ext in PDS4_LBL_EXTENSIONS:
+        if label_name.endswith(ext):
+            return True
+
 PDS4_BUNDLE_COLNAMES = (
     'Bundle Name',
 )

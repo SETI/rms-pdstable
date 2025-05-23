@@ -55,13 +55,13 @@ import julian
 from .pds3table import Pds3TableInfo
 from .pds4table import (Pds4TableInfo,
                         PDS4_BUNDLE_COLNAMES,
-                        PDS4_LBL_EXTENSIONS)
+                        PDS4_LBL_EXTENSIONS,
+                        is_pds4_label)
 
 try:
     from ._version import __version__
 except ImportError as err:
     __version__ = 'Version unspecified'
-
 
 # STR_DTYPE is 'U'
 STR_DTYPE = 'U'
@@ -192,8 +192,10 @@ class PdsTable(object):
         """
 
         self.label_file_name = label_file
+        is_pds4_lbl = is_pds4_label(label_file)
+
         # Parse the label
-        if is_pds4_label(label_file):
+        if is_pds4_lbl:
             self.info = Pds4TableInfo(label_file, invalid=invalid,
                                       valid_ranges=valid_ranges, table_file=table_file)
         else:
@@ -218,7 +220,7 @@ class PdsTable(object):
             with open(self.info.table_file_path, "rb") as f:
                 # Check line count
                 # In PDS4, skip the header
-                if is_pds4_label(label_file) and self.info.header_bytes != 0:
+                if is_pds4_lbl and self.info.header_bytes != 0:
                     f.seek(self.info.header_bytes)
                 lines = f.readlines()
 
@@ -233,7 +235,7 @@ class PdsTable(object):
             header_bytes = 0
 
             # For PDS4 table, we need to consider the header
-            if is_pds4_label(label_file):
+            if is_pds4_lbl:
                 if self.info.fixed_length_row:
                     # record_bytes is stored in row_bytes for PDS4
                     record_bytes = self.info.row_bytes
@@ -1039,10 +1041,3 @@ def lowercase_value(value):
         value_lc = value
 
     return value_lc
-
-def is_pds4_label(label_name):
-    """Check if the given label is a PDS4 label."""
-
-    for ext in PDS4_LBL_EXTENSIONS:
-        if label_name.endswith(ext):
-            return True
