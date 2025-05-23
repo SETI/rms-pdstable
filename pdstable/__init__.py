@@ -225,9 +225,9 @@ class PdsTable(object):
                 lines = f.readlines()
 
             if len(lines) != self.info.rows:
-                raise ValueError('row count mismatch in %s: ' % label_file +
-                                 '%d rows in file; ' % len(lines) +
-                                 'label says ROWS = %d' % self.info.rows)
+                raise ValueError(f'row count mismatch in {label_file}: ' +
+                                 f'{len(lines)} rows in file; ' +
+                                 f'label says ROWS = {self.info.rows}')
 
         else:
             self.first = row_range[0]
@@ -256,10 +256,8 @@ class PdsTable(object):
             if len(lines) != self.rows:
                 raise ValueError(
                     'row count mismatch: ' +
-                    '%d row%s read; ' % (len(lines),
-                                        '' if len(lines) == 1 else 's') +
-                    '%d row%s requested' % (self.rows,
-                                            '' if self.rows == 1 else 's'))
+                    f'{len(lines)} row(s) read; ' +
+                    f'{self.rows} row(s) requested')
 
         if table_callback is not None:
             lines = table_callback(lines)
@@ -524,15 +522,16 @@ class PdsTable(object):
             # Report errors as warnings
             if error_count:
                 if error_count == 1:
-                    template = 'Illegally formatted %s value in column %s: %s'
+                    template = (f'Illegally formatted {column_info.data_type} ' +
+                                f'value in column {column_info.name}: ' +
+                                f'{error_example.strip()}')
                 else:
-                    template = (str(error_count) +
-                                ' illegally formatted %s values in column ' +
-                                '%s; first example is "%s"')
+                    template = (f'{str(error_count)} illegally formatted ' +
+                                f'{column_info.data_type} values in column ' +
+                                f'{column_info.name}; first example is ' +
+                                f'"{error_example.strip()}"')
 
-                warnings.warn(template % (column_info.data_type,
-                                          column_info.name,
-                                          error_example.strip()))
+                warnings.warn(template)
 
         # Cache dicts_by_row and other info when first requested
         self.filename_keylen = filename_keylen
@@ -911,12 +910,11 @@ class PdsTable(object):
             return indices[0]
 
         if volume_id and not filespec:
-            raise ValueError('row not found: filespec=%s; ' % volume_id)
+            raise ValueError(f'row not found: filespec={volume_id}; ')
         elif volume_id:
-            raise ValueError('row not found: volume_id=%s; ' % volume_id +
-                                            'filespec=%s' % filespec)
+            raise ValueError(f'row not found: volume_id={volume_id}; filespec={filespec}')
         else:
-            raise ValueError('row not found: filespec=%s' % filespec)
+            raise ValueError(f'row not found: filespec={filespec}')
 
     def find_rows_by_volume_filespec(self, volume_id, filespec=None,
                                            limit=None, substring=False):
