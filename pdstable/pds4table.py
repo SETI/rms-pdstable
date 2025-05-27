@@ -50,8 +50,13 @@ def int_from_base16(string):
     return int(string, 16)
 
 # Delimiter used to separate column values in the same row
+# It's encoded by 'UTF-8'
 PDS4_FIELD_DELIMITER = {
+    'Carriage-Return Line-Feed': b'\r\n',
     'Comma': b',',
+    'Horizontal Tab': b'\t',
+    'Semicolon': b';',
+    'Vertical Bar': b'|'
 }
 
 # key: PDS4 data type
@@ -205,6 +210,7 @@ class Pds4TableInfo(object):
 
             # PDS4 TODO: Do we have more duplicated column names, except the 'Target'?
             # Handle duplicated column name 'Target'
+            # _1, _2, _3, ....
             if name in self.column_info_dict and name != 'Target':
             # if name in self.column_info_dict:
                 raise ValueError('duplicated column name: ' + name)
