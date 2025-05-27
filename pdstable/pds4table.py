@@ -137,7 +137,7 @@ class Pds4TableInfo(object):
                 self.table_file_name = file_area['File']['file_name']
                 self.table_file_li = [self.table_file_name]
             except:
-                raise IOError('Table file name was not found in PDS4 label')
+                raise ValueError('Table file name was not found in PDS4 label')
 
             if table_file is not None and table_file not in self.table_file_li:
                 raise ValueError("The provided table file name doesn't match the one" +
@@ -148,7 +148,7 @@ class Pds4TableInfo(object):
             try:
                 table_name_li = [f['File']['file_name'] for f in file_area]
             except:
-                raise IOError('Table file name was not found in PDS4 label')
+                raise ValueError('Table file name was not found in PDS4 label')
 
             if table_file is None or table_file not in table_name_li:
                 raise ValueError(f"The table file name '{table_file}' doesn't exist. " +
@@ -306,7 +306,7 @@ class Pds4ColumnInfo(object):
              self.dtype2,
              self.scalar_func) = PDS4_CHR_DATA_TYPE_MAPPING[self.data_type]
         except:
-            raise IOError('unsupported data type: ' + self.data_type)
+            raise ValueError('unsupported data type: ' + self.data_type)
 
         # Handle the case like "START_TIME" with ASCII_String instead of ASCII_Time as
         # the data type
