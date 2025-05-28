@@ -66,8 +66,6 @@ except ImportError as err:
 # STR_DTYPE is 'U'
 STR_DTYPE = 'U'
 
-ENCODING = {'encoding': 'latin-1'}  # For open() of ASCII files in Python 3
-
 # This is an exhaustive tuple of string-like types
 STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 
@@ -198,9 +196,11 @@ class PdsTable(object):
         if is_pds4_lbl:
             self.info = Pds4TableInfo(label_file, invalid=invalid,
                                       valid_ranges=valid_ranges, table_file=table_file)
+            ENCODING = {'encoding': 'utf-8'}
         else:
             self.info = Pds3TableInfo(label_file, label_list=label_contents,
                                       invalid=invalid, valid_ranges=valid_ranges)
+            ENCODING = {'encoding': 'latin-1'}  # For open() of ASCII files in Python 3
 
         # Select the columns
         if len(columns) == 0:
