@@ -22,13 +22,26 @@ def is_pds4_label(label_name):
 PDS4_BUNDLE_COLNAMES = (
     'Bundle Name',
 )
+# The mapping of a product tag to its corresponding file area tags
+# The key is a product component tag, and the value is its corresponding file area tag,
+# it could be just one (string) or multiple (tuple) file area tags
+PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING = {
+    'Product_Ancillary': 'File_Area_Ancillary',
+    'Product_Browse': 'File_Area_Browse',
+    'Product_Metadata_Supplemental': 'File_Area_Metadata',
+    'Product_Observational': ('File_Area_Observational',
+                              'File_Area_Observational_Supplemental'),
+}
 
-# Label tags with the table file info
-PDS4_FILE_AREA_TAGS = (
-    'File_Area_Ancillary',
-    'File_Area_Observational',
-    'File_Area_Observational_Supplmental'
-)
+# The mapping of a table tag to its corresponding record and field tags
+# The key is a table tag, and the value is a tuple of the record and field tags
+PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING = {
+    'Table_Binary': ('Record_Binary', 'Field_Binary'),
+    'Table_Character': ('Record_Character', 'Field_Character'),
+    'Table_Delimited': ('Record_Delimited', 'Field_Delimited'),
+    'Table_Delimited_Source_Product_External': ('Record_Delimited', 'Field_Delimited'),
+    'Table_Delimited_Source_Product_Internal': ('Record_Delimited', 'Field_Delimited'),
+}
 
 # STR_DTYPE is 'U'
 STR_DTYPE = np.array(['x']).dtype.kind
@@ -117,17 +130,20 @@ class Pds4TableInfo(object):
         lbl_dict = lbl.to_dict()
         self.label = lbl_dict
 
-        # Get the table info from the label dictionary
-        try:
-            prod_ancillary = lbl_dict['Product_Ancillary']
-            # Search all possible label tags with the table info
-            for tag in PDS4_FILE_AREA_TAGS:
-                if tag in prod_ancillary.keys():
-                    file_area = prod_ancillary[tag]
-                    break
-        except KeyError:
-            # Cassini
-            file_area = lbl_dict['Product_Metadata_Supplemental']['File_Area_Metadata']
+        # Get the file area (table file) info from the label dictionary
+        file_area = None
+        for prod_tag, file_area_tag in PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING.items():
+            if prod_tag in lbl_dict.keys():
+                prod_component = lbl_dict[prod_tag]
+                if isinstance(file_area_tag, str):
+                    file_area = prod_component[file_area_tag]
+                elif isinstance(file_area_tag, tuple):
+                    for tag in file_area_tag:
+                        if tag in prod_component.keys():
+                            file_area = prod_component[tag]
+                            break
+            if file_area:
+                break
 
         self.table_file_name = None
 
@@ -170,11 +186,22 @@ class Pds4TableInfo(object):
             # Some tables don't have header
             self.header_bytes = 0
 
-        # table info is the last child tag of the file area
-        table_area = file_area[list(file_area.keys())[-1]]
+        # Get the table/record/field info by searching the tags in the file area
+        table_area = None
+        record_area = None
+        columns = None
+        for table_tag, rec_field_tags in PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING.items():
+            if table_tag in file_area.keys():
+                record_tag, field_tag = rec_field_tags
+                table_area = file_area[table_tag]
+                record_area = table_area[record_tag]
+                columns = record_area[field_tag]
+                break
+
+        if table_area is None or record_area is None or columns is None:
+            raise ValueError(f'Missing the table/record/field info in {label_file_path}')
+
         self.rows = int(table_area['records'])
-        # record info is the last child tag of the table info area
-        record_area = table_area[list(table_area.keys())[-1]]
         self.columns = int(record_area['fields'])
 
         try:
@@ -197,9 +224,6 @@ class Pds4TableInfo(object):
 
         default_invalid = set(invalid.get('default', []))
 
-        # Get all the columns info from the record tags in the xml file
-        # columns info is the last child tag of the record info area
-        columns = record_area[list(record_area.keys())[-1]]
         for col in columns:
             name = col['name']
             field_num = int(col['field_number'])
