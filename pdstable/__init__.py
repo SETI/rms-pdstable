@@ -55,7 +55,6 @@ import julian
 from .pds3table import Pds3TableInfo
 from .pds4table import (Pds4TableInfo,
                         PDS4_BUNDLE_COLNAMES,
-                        PDS4_LBL_EXTENSIONS,
                         is_pds4_label)
 
 try:

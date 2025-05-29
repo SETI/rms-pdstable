@@ -8,6 +8,7 @@ import numpy as np
 import os
 import re
 
+from collections import defaultdict
 from pds4_tools.reader.label_objects import Label
 
 PDS4_LBL_EXTENSIONS = ('.xml', '.lblx')
@@ -224,6 +225,20 @@ class Pds4TableInfo(object):
 
         default_invalid = set(invalid.get('default', []))
 
+        # Check all the column names, append the suffix _{num} to the duplicated names
+        colname = defaultdict(list)
+        for idx, col in enumerate(columns):
+            name = col['name']
+            colname[name].append(idx)
+
+        for name, idx_li in colname.items():
+            # append _{num} if there are duplicated names
+            if len(idx_li) > 1:
+                num = 1
+                for i in idx_li:
+                    columns[i]['name'] += f'_{num}'
+                    num += 1
+
         for col in columns:
             name = col['name']
             field_num = int(col['field_number'])
@@ -232,20 +247,7 @@ class Pds4TableInfo(object):
                         invalid = invalid.get(name, default_invalid),
                         valid_range = valid_ranges.get(name, None))
 
-            # PDS4 TODO: Do we have more duplicated column names, except the 'Target'?
-            # Handle duplicated column name 'Target'
-            # _1, _2, _3, ....
-            if name in self.column_info_dict and name != 'Target':
-            # if name in self.column_info_dict:
-                raise ValueError('duplicated column name: ' + name)
-
             self.column_info_list.append(pdscol)
-            # Add '_Specific' for specific target column to avoid multiple pdscol
-            # instances having the same name and riase the error np.stack is called
-            # in pdstable/__init__.py. We don't need to do this if all column names
-            # are unique.
-            if pdscol.name in self.column_info_dict and pdscol.name == 'Target':
-                pdscol.name += '_Specific'
             self.column_info_dict[pdscol.name] = pdscol
             self.dtype0[pdscol.name] = pdscol.dtype0
 
