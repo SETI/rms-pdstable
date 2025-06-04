@@ -153,4 +153,149 @@ class Test_Pds4Table(unittest.TestCase):
                     table_file=TAB_TABLE_FILE_NAME)
     self.assertTrue(test.pdslabel == partial_table.pdslabel)
 
-    # PDS4 TODO: Add tests for invalids & replacements
+
+    ####################################
+    # Invalids
+    ####################################
+    # A dictionary stores the invalid results of each column at different rows in table:
+    # uranus_occultation_ring_fit_rfrench_20201201.tab
+    # key is the column name, and value is the number of invalid results in that column.
+    cols_with_invalid_results = {
+        'Ring name': 0,
+        'Semimajor axis': 0,
+        'Semimajor axis uncertainty': 0,
+        'Eccentricity': 0,
+        'Eccentricity uncertainty': 0,
+        'Periapse longitude': 0,
+        'Periapse uncertainty': 0,
+        'Periapse precession rate': 0,
+        'Periapse precession rate uncertainty': 1,
+        'Periapse precession rate method': 0,
+        'Inclination': 0,
+        'Inclination uncertainty': 0,
+        'Node longitude': 0,
+        'Node uncertainty': 0,
+        'Nodal regression rate': 0,
+        'Nodal regression rate uncertainty': 6,
+        'Nodal regression rate method': 0,
+        'Wavenumber': 6,
+        'Normal mode amplitude': 6,
+        'Normal mode amplitude uncertainty': 6,
+        'Normal mode phase': 6,
+        'Normal mode phase uncertainty': 6,
+        'Normal mode pattern speed': 6,
+        'Normal mode pattern speed uncertainty': 6,
+        'Number of points (Npts)': 0,
+        'RMS': 0,
+    }
+
+    test_table = PdsTable(label_file=INDEX_PATH, table_file=TAB_TABLE_FILE_NAME)
+
+    rowdict = test_table.dicts_by_row()
+    for key in test_table.get_keys():
+        if key.endswith('_mask'): continue
+        rowmasks = test_table.get_column_mask(key)
+
+        if cols_with_invalid_results[key] != 0:
+            self.assertTrue(np.any(rowmasks))
+        else:
+            self.assertFalse(np.any(rowmasks))
+        self.assertTrue(isinstance(rowmasks, np.ndarray))
+
+    # rowdict = test_table.dicts_by_row()
+    for key in test_table.get_keys():
+        if key.endswith('_mask'): continue
+
+        rowvals = test_table.get_column(key)
+        if np.shape(rowvals[0]) != (): continue
+
+        rowmask = test_table.get_column_mask(key)
+        # print('xxxxx')
+        # print(f'key: {key}')
+        # print(rowvals)
+        # print(rowvals.dtype.kind)
+
+        if cols_with_invalid_results[key] != 0:
+            if rowvals.dtype.kind == 'i':
+                # Wavenumber
+                countv = np.sum(rowvals == -999)
+                self.assertEqual(countv, cols_with_invalid_results[key])
+            else:
+                # Rest of columns that have invalid values
+                countv = np.sum(rowvals == -9.99e+99)
+                self.assertEqual(countv, cols_with_invalid_results[key])
+        else:
+            # columns without invalid values in the table
+            countv = 0
+
+        countm = np.sum(rowmask)
+        self.assertEqual(countv, countm)
+
+    # 3.0377050292398E-04 appear 4 times in column 'Inclination'
+    test_table = PdsTable(label_file=INDEX_PATH,
+                          invalid={'default': [3.0377050292398E-04]},
+                          table_file=TAB_TABLE_FILE_NAME)
+    key = 'Inclination'
+    rowmask = test_table.get_column_mask(key)
+    self.assertEqual(np.sum(rowmask), 4)
+
+    test_table = PdsTable(label_file=INDEX_PATH,
+                          invalid={'default': [3.0377050292398E-04],
+                                   key: 3.0377050292398E-04},
+                          table_file=TAB_TABLE_FILE_NAME)
+
+    rowmask = test_table.get_column_mask(key)
+    self.assertEqual(np.sum(rowmask), 4)
+
+
+    ####################################
+    # Replacements
+    ####################################
+
+    # Replacement as a number
+    key = 'Inclination'
+    test_table = PdsTable(label_file=INDEX_PATH,
+                          invalid={'default': [3.0377050292398E-04, -1.e32]},
+                          replacements={key: {3.0377050292398E-04: -1.e32}},
+                          table_file=TAB_TABLE_FILE_NAME)
+
+    # replace 3.0377050292398E-04 with -1.e32
+    rowvals = test_table.get_column(key)
+    self.assertEqual(np.sum(rowvals == 3.0377050292398E-04), 0)
+    self.assertEqual(np.sum(rowvals == -1.e32), 4)
+
+    # still 4 invalid values because we put -1.e32 in invalid
+    rowmask = test_table.get_column_mask(key)
+    self.assertEqual(np.sum(rowmask), 4)
+
+
+
+    # Replacement as a string
+    test_table = PdsTable(label_file=INDEX_PATH,
+                          invalid={'default': [3.0377050292398E-04, -1.e32]},
+                          replacements={key: {'  3.0377050292398E-04': '  -1.e32'}},
+                          table_file=TAB_TABLE_FILE_NAME)
+
+    rowvals = test_table.get_column(key)
+    self.assertEqual(np.sum(rowvals == 3.0377050292398E-04), 0)
+    self.assertEqual(np.sum(rowvals == -1.e32), 4)
+
+    rowmask = test_table.get_column_mask(key)
+    self.assertEqual(np.sum(rowmask), 4)
+
+    # Replacement via a callback
+    def test_callback_as_str(arg):
+        if arg.strip() == '3.0377050292398E-04': return '-1e32'
+        return arg
+
+    test_table = PdsTable(label_file=INDEX_PATH,
+                          invalid={'default': [3.0377050292398E-04, -1.e32]},
+                          callbacks={key: test_callback_as_str},
+                          table_file=TAB_TABLE_FILE_NAME)
+
+    rowvals = test_table.get_column(key)
+    self.assertEqual(np.sum(rowvals == 3.0377050292398E-04), 0)
+    self.assertEqual(np.sum(rowvals == -1.e32), 4)
+
+    rowmask = test_table.get_column_mask(key)
+    self.assertEqual(np.sum(rowmask), 4)

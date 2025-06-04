@@ -106,8 +106,8 @@ class Pds3TableInfo(object):
             if column_dict['OBJECT'] == "COLUMN":
                 name = column_dict["NAME"]
                 pdscol = Pds3ColumnInfo(column_dict, counter,
-                            invalid = invalid.get(name, default_invalid),
-                            valid_range = valid_ranges.get(name, None))
+                                        invalid = invalid.get(name, default_invalid),
+                                        valid_range = valid_ranges.get(name, None))
                 counter += 1
 
                 if name in self.column_info_dict:

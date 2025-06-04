@@ -44,6 +44,22 @@ PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING = {
     'Table_Delimited_Source_Product_Internal': ('Record_Delimited', 'Field_Delimited'),
 }
 
+# PDS4 label tags under Special_Constants
+PDS4_SPECIAL_CONSTANTS_TAGS = {
+    'error_constant',
+ 	'high_instrument_saturation',
+ 	'high_representation_saturation',
+ 	'invalid_constant',
+ 	'low_instrument_saturation',
+ 	'low_representation_saturation',
+ 	'missing_constant',
+ 	'not_applicable_constant',
+ 	'saturated_constant',
+ 	'unknown_constant',
+ 	# 'valid_maximum',
+ 	# 'valid_minimum'
+}
+
 # STR_DTYPE is 'U'
 STR_DTYPE = np.array(['x']).dtype.kind
 
@@ -244,8 +260,8 @@ class Pds4TableInfo(object):
             field_num = int(col['field_number'])
 
             pdscol = Pds4ColumnInfo(col, field_num,
-                        invalid = invalid.get(name, default_invalid),
-                        valid_range = valid_ranges.get(name, None))
+                                    invalid = invalid.get(name, default_invalid),
+                                    valid_range = valid_ranges.get(name, None))
 
             self.column_info_list.append(pdscol)
             self.column_info_dict[pdscol.name] = pdscol
@@ -268,8 +284,8 @@ class Pds4ColumnInfo(object):
         """Constructor for a Pds4Column.
 
         Input:
-            node_dict   the dictionary associated with the pdsparser.PdsNode
-                        object defining the column.
+            node_dict   the dictionary associated with the column info obtained
+                        from pds4_tools Label object.
             column_no   the index number of this column, starting at zero.
             invalid     an optional set of discrete values that are to be
                         treated as invalid, missing or unknown.
@@ -342,22 +358,40 @@ class Pds4ColumnInfo(object):
             self.scalar_func = tai_from_iso
 
         # Identify validity criteria
-        self.valid_range = valid_range or node_dict.get('VALID_RANGE', None)
+        invalid_set = set()
+        if valid_range is not None:
+            self.valid_range = valid_range
+        else:
+            valid_max = None
+            valid_min = None
+            # Search for 'Special_Constants' tag, if it exists, get the invalid values
+            # from tags in PDS4_SPECIAL_CONSTANTS_TAGS and store them in invalid_set
+            if 'Special_Constants' in node_dict.keys():
+                special_const_area = node_dict['Special_Constants']
+                for invalid_tag in PDS4_SPECIAL_CONSTANTS_TAGS:
+                    invalid_val = special_const_area.get(invalid_tag, None)
+                    if invalid_val:
+                        if self.scalar_func:
+                            try:
+                                invalid_val = self.scalar_func(invalid_val)
+                            except:
+                                # if the invalid value can't be converted, we will keep
+                                # its original value and data type
+                                invalid_val = invalid_val
+
+                        invalid_set.add(invalid_val)
+
+                valid_max = special_const_area.get('valid_maximum', None)
+                valid_min = special_const_area.get('valid_minimum', None)
+
+                valid_max = self.scalar_func(valid_max) if valid_max else None
+                valid_min = self.scalar_func(valid_min) if valid_min else None
+
+            self.valid_range = (valid_min, valid_max) if valid_min or valid_max else None
 
         if isinstance(invalid, (numbers.Real,) + STRING_TYPES):
-            invalid = set([invalid])
+            invalid_set |= set([invalid])
+        else:
+            invalid_set |= invalid
 
-        self.invalid_values = set(invalid)
-
-        # PDS4 TODO: update these with PDS4 invalid values
-        self.invalid_values.add(node_dict.get('INVALID_CONSTANT'       , None))
-        self.invalid_values.add(node_dict.get('MISSING_CONSTANT'       , None))
-        self.invalid_values.add(node_dict.get('UNKNOWN_CONSTANT'       , None))
-        self.invalid_values.add(node_dict.get('NOT_APPLICABLE_CONSTANT', None))
-        self.invalid_values.add(node_dict.get('NULL_CONSTANT'          , None))
-        self.invalid_values.add(node_dict.get('INVALID'                , None))
-        self.invalid_values.add(node_dict.get('MISSING'                , None))
-        self.invalid_values.add(node_dict.get('UNKNOWN'                , None))
-        self.invalid_values.add(node_dict.get('NOT_APPLICABLE'         , None))
-        self.invalid_values.add(node_dict.get('NULL'                   , None))
-        self.invalid_values -= {None}
+        self.invalid_values = invalid_set
