@@ -1035,7 +1035,9 @@ class PdsTableInfo(object):
         table_dict = self.label[key[1:]]
 
         # Save key info about the table
-        if table_dict["INTERCHANGE_FORMAT"] != "ASCII":
+        interchange_format = (table_dict.get("INTERCHANGE_FORMAT", '')
+                              or table_dict["INTERCHANGE_FORMAT_1"])
+        if interchange_format != "ASCII":
             raise IOError('PDS table is not in ASCII format')
 
         self.rows = table_dict["ROWS"]
