@@ -6,7 +6,7 @@ from pdstable import *
 
 import unittest
 
-class Test_PdsTable(unittest.TestCase):
+class Test_Pds3Table(unittest.TestCase):
 
   def runTest(self):
 

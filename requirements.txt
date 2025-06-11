@@ -1,4 +1,5 @@
 coverage
+pds4_tools
 pytest
 rms-julian
 rms-pdsparser
