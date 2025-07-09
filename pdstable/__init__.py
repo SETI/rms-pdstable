@@ -115,7 +115,8 @@ class PdsTable(object):
     def __init__(self, label_file, label_contents=None, times=[], columns=[],
                        nostrip=[], callbacks={}, ascii=False, replacements={},
                        invalid={}, valid_ranges={}, table_callback=None,
-                       merge_masks=False, filename_keylen=0, row_range=None):
+                       merge_masks=False, filename_keylen=0, row_range=None,
+                       label_method='strict'):
         """Constructor for a PdsTable object.
 
         Input:
@@ -176,6 +177,9 @@ class PdsTable(object):
             row_range       a tuple or list integers containing the index of the
                             first row to read and the first row to omit. If not
                             specified, then all the rows are read.
+            label_method    the method to use to parse the label. Valid values
+                            are 'strict' (default) or 'fast'. The 'fast' method
+                            is faster but may not be as accurate.
 
         Notes: If both a replacement and a callback are provided for the same
         column, the callback is applied first. The invalid and valid_ranges
@@ -187,7 +191,8 @@ class PdsTable(object):
 
         # Parse the label
         self.info = PdsTableInfo(label_file, label_list=label_contents,
-                                 invalid=invalid, valid_ranges=valid_ranges)
+                                 invalid=invalid, valid_ranges=valid_ranges,
+                                 label_method=label_method)
 
         # Select the columns
         if len(columns) == 0:
@@ -981,7 +986,8 @@ class PdsTableInfo(object):
     """The PdsTableInfo class holds the attributes of a PDS-labeled table."""
 
     def __init__(self, label_file_path, label_list=None, invalid={},
-                                                         valid_ranges={}):
+                                                         valid_ranges={},
+                                                         label_method='strict'):
         """Loads a PDS table based on its associated label file.
 
         Input:
@@ -999,15 +1005,18 @@ class PdsTableInfo(object):
                             returned value must be a tuple or list containing
                             the minimum and maximum numeric values in that
                             column.
+            label_method    the method to use to parse the label. Valid values
+                            are 'strict' (default) or 'fast'. The 'fast' method
+                            is faster but may not be as accurate.
         """
 
         # Parse the label
         if isinstance(label_list, (Pds3Label, dict)):
             self.label = label_list
         elif label_list:
-            self.label = Pds3Label(label_list)
+            self.label = Pds3Label(label_list, method=label_method)
         else:
-            self.label = Pds3Label(label_file_path)
+            self.label = Pds3Label(label_file_path, method=label_method)
 
         # Get the basic file info...
         if self.label["RECORD_TYPE"] != "FIXED_LENGTH":
