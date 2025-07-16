@@ -63,9 +63,6 @@ try:
 except ImportError as err:
     __version__ = 'Version unspecified'
 
-# STR_DTYPE is 'U'
-STR_DTYPE = 'U'
-
 # This is an exhaustive tuple of string-like types
 STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 
@@ -263,8 +260,7 @@ class PdsTable(object):
         # table is now a 1-D array in which the ASCII content of each column
         # can be accessed by name. In Python 3, these are bytes, not strings
         if self.info.fixed_length_row:
-            table = np.array(lines, dtype='S')
-
+            table = np.array(lines)
             try:
                 table.dtype = np.dtype(self.info.dtype0)
             except ValueError:
@@ -340,12 +336,6 @@ class PdsTable(object):
             else:
                 self.column_values[key] = [column]
 
-        # self.column_values now contains a list with one element for each item
-        # in that column. Each element is a 1-D array of ASCII strings, one for
-        # each row.
-
-        if STR_DTYPE == 'S': ascii = False
-
         # Replace each 1-D array of items from ASCII strings to the proper type
         for key in self.keys:
             column_info  = self.info.column_info_dict[key]
@@ -376,7 +366,7 @@ class PdsTable(object):
 
                     # Convert string to input format for callback
                     if not ascii:
-                       items = items.astype(STR_DTYPE)
+                       items = items.astype('U')
 
                     # Apply the callback row by row
                     new_items = []
@@ -411,7 +401,7 @@ class PdsTable(object):
                 # Handle a string
                 if data_type == 'string' or (data_type == 'time' and
                                              key not in times):
-                    items = items.astype(STR_DTYPE)
+                    items = items.astype('U')
 
                     if strip:
                         items = [i.strip() for i in items]

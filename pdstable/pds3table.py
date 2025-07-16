@@ -15,8 +15,6 @@ PDS3_VOLUME_COLNAMES = (
     'VOLUME_NAME',
     'VOLUME NAME'
 )
-# STR_DTYPE is 'U'
-STR_DTYPE = np.array(['x']).dtype.kind
 
 # This is an exhaustive tuple of string-like types
 STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
@@ -190,7 +188,7 @@ class Pds3ColumnInfo(object):
             self.scalar_func = tai_from_iso
         elif "CHAR" in self.data_type:
             self.data_type = "string"
-            self.dtype2 = STR_DTYPE
+            self.dtype2 = 'U'
             self.scalar_func = None
         else:
             raise IOError("unsupported data type: " + self.data_type)

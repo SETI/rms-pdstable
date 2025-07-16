@@ -60,9 +60,6 @@ PDS4_SPECIAL_CONSTANTS_TAGS = {
  	# 'valid_minimum'
 }
 
-# STR_DTYPE is 'U'
-STR_DTYPE = np.array(['x']).dtype.kind
-
 # This is an exhaustive tuple of string-like types
 STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 
@@ -102,18 +99,18 @@ PDS4_CHR_DATA_TYPE_MAPPING = {
     'ASCII_Integer': ('int', 'int', int),
     'ASCII_NonNegative_Integer': ('int', 'int', int),
     'ASCII_Real': ('float', 'float', float),
-    'ASCII_AnyURI': ('string', STR_DTYPE, None),
-    'ASCII_Directory_Path_Name': ('string', STR_DTYPE, None),
-    'ASCII_DOI': ('string', STR_DTYPE, None),
-    'ASCII_File_Name': ('string', STR_DTYPE, None),
-    'ASCII_File_Specification_Name': ('string', STR_DTYPE, None),
-    'ASCII_LID': ('string', STR_DTYPE, None),
-    'ASCII_LIDVID': ('string', STR_DTYPE, None),
-    'ASCII_LIDVID_LID': ('string', STR_DTYPE, None),
-    'ASCII_MD5_Checksum': ('string', STR_DTYPE, None),
-    'ASCII_String': ('string', STR_DTYPE, None),
-    'ASCII_VID': ('string', STR_DTYPE, None),
-    'UTF8_String': ('string', STR_DTYPE, None),
+    'ASCII_AnyURI': ('string', 'U', None),
+    'ASCII_Directory_Path_Name': ('string', 'U', None),
+    'ASCII_DOI': ('string', 'U', None),
+    'ASCII_File_Name': ('string', 'U', None),
+    'ASCII_File_Specification_Name': ('string', 'U', None),
+    'ASCII_LID': ('string', 'U', None),
+    'ASCII_LIDVID': ('string', 'U', None),
+    'ASCII_LIDVID_LID': ('string', 'U', None),
+    'ASCII_MD5_Checksum': ('string', 'U', None),
+    'ASCII_String': ('string', 'U', None),
+    'ASCII_VID': ('string', 'U', None),
+    'UTF8_String': ('string', 'U', None),
     'ASCII_Boolean': ('boolean', 'bool', None),
     'ASCII_Numeric_Base2': ('int', 'int', int_from_base2),
     'ASCII_Numeric_Base8': ('int', 'int', int_from_base8),
