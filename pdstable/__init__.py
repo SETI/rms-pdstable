@@ -110,7 +110,7 @@ class PdsTable(object):
                        nostrip=[], callbacks={}, ascii=False, replacements={},
                        invalid={}, valid_ranges={}, table_callback=None,
                        merge_masks=False, filename_keylen=0, row_range=None,
-                       table_file=None):
+                       table_file=None, label_method='strict'):
         """Constructor for a PdsTable object.
 
         Input:
@@ -173,6 +173,9 @@ class PdsTable(object):
                             specified, then all the rows are read.
             table_file      specify a table file to be read, if the provided table
                             doesn't exist in the label, an error will be raised.
+            label_method    the method to use to parse the label. Valid values
+                            are 'strict' (default) or 'fast'. The 'fast' method
+                            is faster but may not be as accurate.
 
         Notes: If both a replacement and a callback are provided for the same
         column, the callback is applied first. The invalid and valid_ranges
@@ -188,11 +191,13 @@ class PdsTable(object):
         # Parse the label
         if is_pds4_lbl:
             self.info = Pds4TableInfo(label_file, invalid=invalid,
-                                      valid_ranges=valid_ranges, table_file=table_file)
+                                      valid_ranges=valid_ranges,
+                                      table_file=table_file)
             self.encoding = {'encoding': 'utf-8'}
         else:
             self.info = Pds3TableInfo(label_file, label_list=label_contents,
-                                      invalid=invalid, valid_ranges=valid_ranges)
+                                      invalid=invalid, valid_ranges=valid_ranges,
+                                      label_method=label_method)
             # For open() of ASCII files in Python 3
             self.encoding = {'encoding': 'latin-1'}
 

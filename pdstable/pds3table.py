@@ -30,7 +30,8 @@ def tai_from_iso(string):
 class Pds3TableInfo(object):
     """The Pds3TableInfo class holds the attributes of a PDS3-labeled table."""
 
-    def __init__(self, label_file_path, label_list=None, invalid={}, valid_ranges={}):
+    def __init__(self, label_file_path, label_list=None, invalid={},
+                       valid_ranges={}, label_method='strict'):
         """Loads a PDS table based on its associated label file.
 
         Input:
@@ -48,15 +49,18 @@ class Pds3TableInfo(object):
                             returned value must be a tuple or list containing
                             the minimum and maximum numeric values in that
                             column.
+            label_method    the method to use to parse the label. Valid values
+                            are 'strict' (default) or 'fast'. The 'fast' method
+                            is faster but may not be as accurate.
         """
 
         # Parse the label
         if isinstance(label_list, (Pds3Label, dict)):
             self.label = label_list
         elif label_list:
-            self.label = Pds3Label(label_list)
+            self.label = Pds3Label(label_list, method=label_method)
         else:
-            self.label = Pds3Label(label_file_path)
+            self.label = Pds3Label(label_file_path, method=label_method)
 
         # Get the basic file info...
         if self.label["RECORD_TYPE"] != "FIXED_LENGTH":
