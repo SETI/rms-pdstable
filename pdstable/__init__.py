@@ -75,7 +75,9 @@ def tai_from_iso(string):
 
 # A list of possible table column names (unique) that store the path of the file spec or
 # the file name. This will be used to get the index of the column containing file
-# specification path or name.
+# specification path or name. The order of the values matters in this variable, we
+# would like to look for the file*specification* first and the file*name, and then the
+# rest.
 FILE_SPECIFICATION_COLUMN_NAMES_lc = (
     'file_specification',
     'file specification',
@@ -138,8 +140,7 @@ class PdsTable(object):
                             errors in a particular table.
             ascii           True to interpret the callbacks as translating
                             ASCII byte strings; False to interpret them as
-                            translating the default str type, which is 1-byte
-                            4-byte Unicode in Python 3.
+                            translating the default str type, which is Unicode in Python 3.
             replacements    an optional dictionary that returns a replacement
                             dictionary given the name of a column. If a
                             replacement dictionary is provided for any column,
