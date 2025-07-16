@@ -11,7 +11,7 @@ import re
 from collections import defaultdict
 from pds4_tools.reader.label_objects import Label
 
-PDS4_LBL_EXTENSIONS = ('.xml', '.lblx')
+PDS4_LBL_EXTENSIONS = {'.xml', '.lblx'}
 
 def is_pds4_label(label_name):
     """Check if the given label is a PDS4 label."""
