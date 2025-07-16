@@ -192,11 +192,12 @@ class PdsTable(object):
         if is_pds4_lbl:
             self.info = Pds4TableInfo(label_file, invalid=invalid,
                                       valid_ranges=valid_ranges, table_file=table_file)
-            ENCODING = {'encoding': 'utf-8'}
+            self.encoding = {'encoding': 'utf-8'}
         else:
             self.info = Pds3TableInfo(label_file, label_list=label_contents,
                                       invalid=invalid, valid_ranges=valid_ranges)
-            ENCODING = {'encoding': 'latin-1'}  # For open() of ASCII files in Python 3
+            # For open() of ASCII files in Python 3
+            self.encoding = {'encoding': 'latin-1'}
 
         # Select the columns
         if len(columns) == 0:
@@ -321,8 +322,8 @@ class PdsTable(object):
 
             #     col_li = None
             #     for col in column:
-            #         unstripped_items = col.decode(**ENCODING).replace('"', '').split(',')
-            #         stripped_items = [item.strip().encode(**ENCODING)
+            #         unstripped_items = col.decode(**self.encoding).replace('"', '').split(',')
+            #         stripped_items = [item.strip().encode(**self.encoding)
             #                           for item in unstripped_items]
 
             #         if col_li is None:
@@ -394,10 +395,10 @@ class PdsTable(object):
                     # to be applied as ASCII byte strings
 
                     if isinstance(before, (str, np.str_)):
-                        before = before.encode(**ENCODING)
+                        before = before.encode(**self.encoding)
 
                     if isinstance(after, (str, np.str_)):
-                        after  = after.encode(**ENCODING)
+                        after  = after.encode(**self.encoding)
 
                     # Replace values (suppressing FutureWarning)
                     items = items.astype('S')
@@ -453,7 +454,7 @@ class PdsTable(object):
 
                                 error_count += 1
                                 if not isinstance(item, str):
-                                    item = item.decode(**ENCODING)
+                                    item = item.decode(**self.encoding)
 
                                 if strip:
                                     item = item.strip()
