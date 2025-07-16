@@ -9,7 +9,12 @@ import os
 from pdsparser import Pds3Label
 import warnings
 
-
+PDS3_VOLUME_COLNAMES = (
+    'VOLUME_ID',
+    'VOLUME ID',
+    'VOLUME_NAME',
+    'VOLUME NAME'
+)
 # STR_DTYPE is 'U'
 STR_DTYPE = np.array(['x']).dtype.kind
 

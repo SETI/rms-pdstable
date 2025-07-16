@@ -52,7 +52,8 @@ import numbers
 from pdsparser import Pds3Label
 import julian
 
-from .pds3table import Pds3TableInfo
+from .pds3table import (Pds3TableInfo,
+                        PDS3_VOLUME_COLNAMES)
 from .pds4table import (Pds4TableInfo,
                         PDS4_BUNDLE_COLNAMES,
                         is_pds4_label)
@@ -88,12 +89,7 @@ FILE_SPECIFICATION_COLUMN_NAMES_lc = (
     'stsci_group_id'
 )
 
-VOLUME_ID_COLUMN_NAMES = (
-    'VOLUME_ID',
-    'VOLUME ID',
-    'VOLUME_NAME',
-    'VOLUME NAME'
-) + PDS4_BUNDLE_COLNAMES
+VOLUME_ID_COLUMN_NAMES = PDS3_VOLUME_COLNAMES + PDS4_BUNDLE_COLNAMES
 
 VOLUME_ID_COLUMN_NAMES_lc = [x.lower() for x in VOLUME_ID_COLUMN_NAMES]
 
