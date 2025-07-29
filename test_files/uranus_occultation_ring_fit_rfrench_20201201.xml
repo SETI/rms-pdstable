@@ -1,0 +1,1006 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+    <?xml-model href="https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1B10_1700.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+    <?xml-model href="https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1E00_1A00.sch"
+    schematypens="http://purl.oclc.org/dsdl/schematron"?>
+
+<Product_Ancillary xmlns="http://pds.nasa.gov/pds4/pds/v1"
+ xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+ xmlns:geom="http://pds.nasa.gov/pds4/geom/v1"
+ xmlns:rings="http://pds.nasa.gov/pds4/rings/v1"
+ xsi:schemaLocation="http://pds.nasa.gov/pds4/pds/v1 https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.xsd
+                     http://pds.nasa.gov/pds4/geom/v1 https://pds.nasa.gov/pds4/geom/v1/PDS4_GEOM_1B10_1700.xsd
+                     http://pds.nasa.gov/pds4/rings/v1 https://pds.nasa.gov/pds4/rings/v1/PDS4_RINGS_1E00_1A00.xsd">
+    <Identification_Area>
+         <logical_identifier>urn:nasa:pds:uranus_occ_support:data:uranus_occultation_ring_fit_rfrench_20201201</logical_identifier>
+        <version_id>1.0</version_id>
+         <title>Uranus Ring Orbit Model R. French 12-01-2020.</title>
+        <information_model_version>1.14.0.0</information_model_version>
+        <product_class>Product_Ancillary</product_class>
+        <Citation_Information>
+            <author_list>French, R. G.; McGhee-French, C. A.; Gordon, M. K.</author_list>
+            <publication_year>2020</publication_year>
+            <keyword>orbit model uranus rings</keyword>
+            <description>Uranus ring orbit model R. French 12-01-2020.</description>
+        </Citation_Information>
+        <Modification_History>
+            <Modification_Detail>
+                <modification_date>2020-12-08</modification_date>
+                <version_id>1.0</version_id>
+                <description>Initial version</description>
+            </Modification_Detail>
+        </Modification_History>
+    </Identification_Area>
+    <Context_Area>
+       <Primary_Result_Summary>
+           <purpose>Science</purpose>
+           <processing_level>Derived</processing_level>
+           <description>This is the Uranus ring orbit model uranus_occultation_ring_fit_rfrench_20201201,
+               based on a non-linear least squares fit to ring occultation data.
+               Internally the run which produced this file is identified as ringfit_v1.8.Ur017L-RF-V0204,
+               on 12/01/2020.
+
+               The algorithm for the non-linear least squares fit to earthbased and spacecraft stellar
+               occultations, and radio science occultations, is documented in the following publication:
+               French, R. G. et al. (1993) "Geometry of the Saturn System from the 3 July 1989
+               Occultation of 28 Sgr and Voyager Observations" Icarus 103, 163-214.
+               The calculations generally follow the solar system barycenter vector approach described in
+               Appendix A.1.1. See also Appendix B for details of the calculations,
+               including a sample barycentric calculation for Saturn.
+
+               Note that the ring orbit model presented here differs from the French et al. (1993)
+               in several respects, as discussed in French, R. G. et al. (2010)
+               "Occultation Observations of Saturn's B Ring and Cassini Division", Astron. J.
+                139:1649-1667 - see pp. 1650-1651 for details.
+           </description>
+           <Science_Facets>
+               <discipline_name>Ring-Moon Systems</discipline_name>
+           </Science_Facets>
+       </Primary_Result_Summary>
+       <Investigation_Area>
+            <name>Earth-based Observations of Uranus System Stellar Occultations</name>
+            <type>Observing Campaign</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:investigation:observing_campaign.earth-based-uranus-stellar-occultations</lid_reference>
+                <reference_type>ancillary_to_investigation</reference_type>
+           </Internal_Reference>
+       </Investigation_Area>
+       <Target_Identification>
+            <name>Uranus Rings</name>
+            <alternate_designation>Uranian Ring System</alternate_designation>
+            <type>Ring</type>
+            <Internal_Reference>
+                <lid_reference>urn:nasa:pds:context:target:ring.uranus.rings</lid_reference>
+                <reference_type>ancillary_to_target</reference_type>
+            </Internal_Reference>
+        </Target_Identification>
+        <Discipline_Area>
+            <geom:Geometry>
+                <geom:SPICE_Kernel_Files>
+                    <geom:SPICE_Kernel_Identification>
+                        <geom:kernel_type>SPK</geom:kernel_type>
+                        <geom:spice_kernel_file_name>vgr2.ura111.bsp</geom:spice_kernel_file_name>
+                    </geom:SPICE_Kernel_Identification>
+                    <geom:SPICE_Kernel_Identification>
+                        <geom:kernel_type>SPK</geom:kernel_type>
+                        <geom:spice_kernel_file_name>earthstns_itrf93_040916.bsp</geom:spice_kernel_file_name>
+                    </geom:SPICE_Kernel_Identification>
+                    <geom:SPICE_Kernel_Identification>
+                        <geom:kernel_type>BPC</geom:kernel_type>
+                        <geom:spice_kernel_file_name>earth_720101_031229.bpc</geom:spice_kernel_file_name>
+                    </geom:SPICE_Kernel_Identification>
+                    <geom:SPICE_Kernel_Identification>
+                        <geom:kernel_type>SPK</geom:kernel_type>
+                        <geom:spice_kernel_file_name>pg3f0000r.bsp</geom:spice_kernel_file_name>
+                    </geom:SPICE_Kernel_Identification>
+                    <geom:SPICE_Kernel_Identification>
+                        <geom:kernel_type>SPK</geom:kernel_type>
+                        <geom:spice_kernel_file_name>pg490000r.bsp</geom:spice_kernel_file_name>
+                    </geom:SPICE_Kernel_Identification>
+                    <geom:SPICE_Kernel_Identification>
+                        <geom:kernel_type>LSK</geom:kernel_type>
+                        <geom:spice_kernel_file_name>naif0012.tls</geom:spice_kernel_file_name>
+                    </geom:SPICE_Kernel_Identification>
+                    <geom:comment>These kernel files were used in the generation of the products in the parent bundle. Some or all of them may not have been used directly in the generation of this product.</geom:comment>
+                </geom:SPICE_Kernel_Files>
+            </geom:Geometry>
+            <rings:Ring_Moon_Systems>
+                <rings:Ring_Model>
+                    <rings:Global_Model_Parameters>
+                        <rings:Reference_Frame_Ident>
+                            <rings:frame_spice_name>J2000</rings:frame_spice_name>
+                        </rings:Reference_Frame_Ident>
+                        <rings:epoch_ring_fit_utc unit="s">1987-01-01T12:00:00Z</rings:epoch_ring_fit_utc>
+                    </rings:Global_Model_Parameters>
+                    <rings:Central_Body_Parameters>
+                        <rings:body_spice_name>799</rings:body_spice_name>
+                        <rings:name>Uranus</rings:name>
+                        <rings:gmass unit="km**3s**-2">5.7939513220000E+06</rings:gmass>
+                        <rings:grav_ref_radius unit="km">2.5559000000000E+04</rings:grav_ref_radius>
+                        <rings:j2>3.5105610352900E-03</rings:j2>
+                        <rings:j4>-3.4263605093516E-05</rings:j4>
+                        <rings:j6>2.5751209427419E-07</rings:j6>
+                        <rings:pole_right_ascension_angle unit="deg">7.7311142789503E+01</rings:pole_right_ascension_angle>
+                        <rings:pole_right_ascension_angle_uncert unit="deg">2.9482579245595E-04</rings:pole_right_ascension_angle_uncert>
+                        <rings:pole_declination_angle unit="deg">1.5172187676545E+01</rings:pole_declination_angle>
+                        <rings:pole_declination_angle_uncert unit="deg">6.3677126332641E-04</rings:pole_declination_angle_uncert>
+                    </rings:Central_Body_Parameters>
+                    <rings:Satellite_Parameters>
+                        <rings:Satellite_Identification>
+                            <rings:body_spice_name>701</rings:body_spice_name>
+                            <rings:name>Areil</rings:name>
+                        </rings:Satellite_Identification>
+                        <rings:gmass unit="km**3s**-2">8.3500000000000E+01</rings:gmass>
+                        <rings:semimajor_axis unit="km">1.9090000000000E+05</rings:semimajor_axis>
+                    </rings:Satellite_Parameters>
+                    <rings:Satellite_Parameters>
+                        <rings:Satellite_Identification>
+                            <rings:body_spice_name>702</rings:body_spice_name>
+                            <rings:name>Umbriel</rings:name>
+                        </rings:Satellite_Identification>
+                        <rings:gmass unit="km**3s**-2">8.5100000000000E+01</rings:gmass>
+                        <rings:semimajor_axis unit="km">2.6600000000000E+05</rings:semimajor_axis>
+                    </rings:Satellite_Parameters>
+                    <rings:Satellite_Parameters>
+                        <rings:Satellite_Identification>
+                            <rings:body_spice_name>703</rings:body_spice_name>
+                            <rings:name>Titania</rings:name>
+                        </rings:Satellite_Identification>
+                        <rings:gmass unit="km**3s**-2">2.2690000000000E+02</rings:gmass>
+                        <rings:semimajor_axis unit="km">4.3630000000000E+05</rings:semimajor_axis>
+                    </rings:Satellite_Parameters>
+                    <rings:Satellite_Parameters>
+                        <rings:Satellite_Identification>
+                            <rings:body_spice_name>704</rings:body_spice_name>
+                            <rings:name>Oberon</rings:name>
+                        </rings:Satellite_Identification>
+                        <rings:gmass unit="km**3s**-2">2.0530000000000E+02</rings:gmass>
+                        <rings:semimajor_axis unit="km">5.8350000000000E+05</rings:semimajor_axis>
+                    </rings:Satellite_Parameters>
+                    <rings:Satellite_Parameters>
+                        <rings:Satellite_Identification>
+                            <rings:body_spice_name>705</rings:body_spice_name>
+                            <rings:name>Miranda</rings:name>
+                        </rings:Satellite_Identification>
+                        <rings:gmass unit="km**3s**-2">4.3000000000000E+00</rings:gmass>
+                        <rings:semimajor_axis unit="km">1.2990000000000E+05</rings:semimajor_axis>
+                    </rings:Satellite_Parameters>
+                </rings:Ring_Model>
+            </rings:Ring_Moon_Systems>
+        </Discipline_Area>
+    </Context_Area>
+    <Reference_List>
+        <External_Reference>
+            <doi>10.1088/0004-6256/139/4/1649</doi>
+            <reference_text>French, R. G. et al. (2010)
+                "Occultation Observations of Saturn's B Ring and Cassini Division", Astron. J. 139, 1649-1667.
+            </reference_text>
+        </External_Reference>
+        <External_Reference>
+            <doi>10.1006/icar.1993.1066</doi>
+            <reference_text>French, R. G. et al. (1993) "Geometry of the Saturn System from the 3 July 1989 Occultation of 28 Sgr and Voyager Observations" Icarus 103, 163-214./reference_text>
+            </reference_text>
+        </External_Reference>
+    </Reference_List>
+
+
+<!-- Primary ring fit data file  -->
+
+    <File_Area_Ancillary>
+        <File>
+            <file_name>uranus_occultation_ring_fit_rfrench_20201201.tab</file_name>
+            <local_identifier>orbit-fits</local_identifier>
+            <creation_date_time>2020-12-01T03:40:40</creation_date_time>
+            <md5_checksum>50899397330c53d04b7c8138574944a9</md5_checksum>
+            <comment>
+            	This file contains the Uranus ring orbit model uranus_occultation_ring_fit_rfrench_20201201,
+                based on a non-linear least squares fit to ring occultation data.
+                Internally the run which produced this file is identified as ringfit_v1.8.Ur017L-RF-V0204,
+                on 12/1/2020.
+
+                The algorithm for the non-linear least squares fit to earthbased and spacecraft stellar
+                occultations, and radio science occultations, is documented in the following publication:
+                French, R. G. et al. (1993) "Geometry of the Saturn System from the 3 July 1989
+                Occultation of 28 Sgr and Voyager Observations" Icarus 103, 163-214.
+                The calculations generally follow the solar system barycenter vector approach described in
+                Appendix A.1.1. See also Appendix B for details of the calculations,
+                including a sample barycentric calculation for Saturn.
+
+                Note that the ring orbit model presented here differs from the French et al. (1993)
+                in several respects, as discussed in French, R. G. et al. (2010)
+                "Occultation Observations of Saturn's B Ring and Cassini Division", Astron. J.
+                 139:1649-1667 - see pp. 1650-1651 for details.
+            </comment>
+        </File>
+        <Header>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">591</object_length>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            <description>Provides the column headers, separated by commas, for the data table.</description>
+        </Header>
+        <Table_Character>
+            <offset unit="byte">591</offset>
+            <records>12</records>
+            <description>Each record provides the orbit fit parameters for a single ring. Multiple modes are possible per ring. If a ring has multiple nodes, there will be a separate row in the table for each node.
+            </description>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>26</fields>
+                <groups>0</groups>
+                <record_length unit="byte">502</record_length>
+                <Field_Character>
+                    <name>Ring name</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">10</field_length>
+                    <description>The name of the ring to which the data applies.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Semimajor axis</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">12</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Kilometer</unit>
+                    <description>The Semimajor axis of the specified ring.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Semimajor axis uncertainty</name>
+                    <field_number>3</field_number>
+                    <field_location unit="byte">34</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Kilometer</unit>
+                    <description>Uncertainty in the semimajor axis.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Eccentricity</name>
+                    <field_number>4</field_number>
+                    <field_location unit="byte">56</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <description>Eccentricity.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Eccentricity uncertainty</name>
+                    <field_number>5</field_number>
+                    <field_location unit="byte">78</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <description>Uncertainty in eccentricity (-9.99E99 if eccentricity is a fixed value).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Periapse longitude</name>
+                    <field_number>6</field_number>
+                    <field_location unit="byte">100</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree</unit>
+                    <description>Longitude of periapse at epoch, measured from the ascending node of the ring plane on the Earth's equator of J2000.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Periapse uncertainty</name>
+                    <field_number>7</field_number>
+                    <field_location unit="byte">122</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree</unit>
+                    <description>Uncertainty in periapse longitude in degrees (-9.99E99 if periapse longitude is a fixed value).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Periapse precession rate</name>
+                    <field_number>8</field_number>
+                    <field_location unit="byte">144</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree/Day</unit>
+                    <description>The periapse precession rate.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Periapse precession rate uncertainty</name>
+                    <field_number>9</field_number>
+                    <field_location unit="byte">166</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree/Day</unit>
+                   <description>Uncertainty in periapse precession rate (-9.99E99 if periapse precession rate is a fixed value).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Periapse precession rate method</name>
+                    <field_number>10</field_number>
+                    <field_location unit="byte">188</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <description>The method used to calculate the periapse regression rate. Options are:
+                    	           0 = fitted value
+                    	           1 = computed from Jn
+                    	           2 = computed from Jn, and five major Uranian satellites.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Inclination</name>
+                    <field_number>11</field_number>
+                    <field_location unit="byte">195</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <description>The inclination of the ring.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Inclination uncertainty</name>
+                    <field_number>12</field_number>
+                    <field_location unit="byte">217</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <description>Uncertainty in inclination in degrees (-9.99E99 if inclination is a fixed value).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Node longitude</name>
+                    <field_number>13</field_number>
+                    <field_location unit="byte">239</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree</unit>
+                    <description>Longitude of node at epoch, measured from the ascending node of the ring plane on the Earth's equator of J2000.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Node uncertainty</name>
+                    <field_number>14</field_number>
+                    <field_location unit="byte">261</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree</unit>
+                    <description>Uncertainty in node longitude in degrees (-9.99E99 if node longitude is a fixed value).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Nodal regression rate</name>
+                    <field_number>15</field_number>
+                    <field_location unit="byte">283</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree/Day</unit>
+                    <description>The node regression rate.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Nodal regression rate uncertainty</name>
+                    <field_number>16</field_number>
+                    <field_location unit="byte">305</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree/Day</unit>
+                    <description>Uncertainty in nodal precession rate (-9.99E99 if nodal regression rate is a fixed value).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Nodal regression rate method</name>
+                    <field_number>17</field_number>
+                    <field_location unit="byte">327</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <description>The method used to calculate the nodal regression rate. Options are:
+                    	           0 = fitted value
+                    	           1 = computed from Jn
+                    	           2 = computed from Jn, and five major Uranian satellites.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Wavenumber</name>
+                    <field_number>18</field_number>
+                    <field_location unit="byte">334</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <description>Wavenumber of normal mode. Multiple modes are possible per ring. If a ring has multiple nodes, there will be a separate row in the table for each node. (-999 indicates no normal mode for this ring).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-999</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-999</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Normal mode amplitude</name>
+                    <field_number>19</field_number>
+                    <field_location unit="byte">341</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Kilometer</unit>
+                    <description>Amplitude in km of normal mode (-9.99E99 if no normal mode for this ring).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Normal mode amplitude uncertainty</name>
+                    <field_number>20</field_number>
+                    <field_location unit="byte">363</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Kilometer</unit>
+                    <description>Uncertainty in amplitude of normal mode (-9.99E99 if no normal mode for this ring).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                 <Field_Character>
+                    <name>Normal mode phase</name>
+                    <field_number>21</field_number>
+                    <field_location unit="byte">385</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree</unit>
+                    <description>Phase in degrees of normal mode at epoch (-9.99E99 if no normal mode for this ring).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Normal mode phase uncertainty</name>
+                    <field_number>22</field_number>
+                    <field_location unit="byte">407</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <description>Uncertainty of normal mode phase (-9.99E99 if no normal mode for this ring).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                 <Field_Character>
+                    <name>Normal mode pattern speed</name>
+                    <field_number>23</field_number>
+                    <field_location unit="byte">429</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Degree/Day</unit>
+                    <description>Pattern speed in degrees/day of normal mode (-9.99E99 if no normal mode for this ring).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Normal mode pattern speed uncertainty</name>
+                    <field_number>24</field_number>
+                    <field_location unit="byte">451</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <description>Uncertainty in pattern speed in degrees/day of normal mode phase (-9.99E99 if no normal mode for this ring).
+                    </description>
+                    <Special_Constants>
+                        <not_applicable_constant>-9.99E99</not_applicable_constant>
+                    </Special_Constants>
+                    <Field_Statistics>
+                        <minimum>-9.99E99</minimum>
+                    </Field_Statistics>
+                </Field_Character>
+                <Field_Character>
+                    <name>Number of points (Npts)</name>
+                    <field_number>25</field_number>
+                    <field_location unit="byte">473</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <description>Number of fitted data points for this ring.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>RMS</name>
+                    <field_number>26</field_number>
+                    <field_location unit="byte">480</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <unit>Kilometer</unit>
+                    <description>RMS residuals for this ring.
+                    </description>
+                </Field_Character>
+            </Record_Character>
+        </Table_Character>
+    </File_Area_Ancillary>
+
+<!-- Support Files -->
+
+<!-- Annotated ring fit file  -->
+
+    <File_Area_Ancillary>
+        <File>
+            <file_name>uranus_occultation_ring_fit_rfrench_20201201.txt</file_name>
+            <local_identifier>annotated-fit</local_identifier>
+            <creation_date_time>2020-12-01T23:44:27</creation_date_time>
+            <md5_checksum>fa5fa9aa064af2b5b819d4fe13cf65dc</md5_checksum>
+            <comment>This file docouments the Uranus ring orbit fit model entitled
+               uranus_occultation_ring_fit_rfrench_20201201
+
+               This is an annotated version of the output file produced by the IDL
+               program ringfit_infile_v1.8.pro. The algorithm for the non-linear
+               least squares fit to earthbased and spacecraft stellar occultations, and
+               radio science occultations, is documented in the following publication:
+               French, R. G. et al. (1993) "Geometry of the Saturn System from the 3 July 1989
+               Occultation of 28 Sgr and Voyager Observations" Icarus 103, 163-214.
+               The calculations generally follow the solar system barycenter vector approach described in
+               Appendix A.1.1. See also Appendix B for details of the calculations,
+               including a sample barycentric calculation for Saturn.
+
+               Note that the geometrical model presented here differs from the French et al. (1993)
+               in several respects, as discussed in French, R. G. et al. (2010)
+               "Occultation Observations of Saturn's B Ring and Cassini Division", Astron. J.
+                139:1649-1667 - see pp. 1650-1651 for details.
+
+               Detailed intermediate calculations are included for a representative Earth-based ring occultation observation
+               Detailed intermediate calculations are included for a representative spacecraft-based stellar occultation observation
+               Detailed intermediate calculations are included for a representative radio science occultation observation
+            	</comment>
+        </File>
+        <Stream_Text>
+            <offset unit="byte">0</offset>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+        </Stream_Text>
+    </File_Area_Ancillary>
+
+<!--  Input data file -->
+
+    <File_Area_Ancillary>
+        <File>
+            <file_name>uranus_occultation_ring_fit_rfrench_input_data_20201201.tab</file_name>
+            <local_identifier>input-data</local_identifier>
+            <creation_date_time>2020-12-01T23:44:27</creation_date_time>
+            <md5_checksum>9f2d7e9907d6d462d34ee814b32a36e8</md5_checksum>
+            <comment>This table provides information to identify the specific ring occultation
+            	 observations used as inputs for the Uranus ring orbit model
+            	 uranus_occultation_ring_fit_rfrench_20201201.
+
+            	 This is an input file for the ring fit program. It identifies individual fragments of
+            	 the occultation events used. Each fragment is identified by:
+            	   - the occulted star (as an index number [0,114])
+            	   - occultation event (as an index number [0,40])
+            	   - observatory codes (as an abbreviation or index number)
+            	   - the specific ring (as an index number [1,10])
+                 - the direction of the occultation track (-1 ingress, 1 egress)
+
+            	 The key to the star index numbers is given in the file
+            	 uranus_occultation_ring_fit_rfrench_input_stars_20201201.tab described in another section
+            	 of this label file.
+
+            	 The key to the occultation event index numbers is given in the file
+            	 uranus_occultation_ring_fit_rfrench_input_events_20201201.tab described in another section
+            	 of this label file.
+
+            	 The key to the observatory codes is given in the file
+            	 uranus_occultation_ring_fit_rfrench_input_observatories_20201201.tab describe in another section
+            	 of this label file.
+
+            	 The resulting ring orbit model is given in the file uranus_occultation_ring_fit_rfrench_20201201.tab
+            	 described above.
+            </comment>
+        </File>
+        <Header>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">94</object_length>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            <description>Provides the column headers, separated by commas, for the data table.</description>
+        </Header>
+        <Table_Character>
+            <offset unit="byte">94</offset>
+            <records>662</records>
+            <description>This table provides information to identify the specific ring occultation observations used as inputs for the Uranus ring orbit model uranus_occultation_ring_fit_rfrench_20201201.</description>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>6</fields>
+                <groups>0</groups>
+                <record_length unit="byte">58</record_length>
+                <Field_Character>
+                    <name>Star number</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <description>Index number of the occultation star within uranus_occultation_stars.tab (0 indicates a radio science occultation).</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Occultation number</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">7</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <description>Index number of stellar occultation event within uranus_occultation_events.tab.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Observatory code</name>
+                    <field_number>3</field_number>
+                    <field_location unit="byte">14</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">6</field_length>
+                    <description>Observatory location within uranus_occultation_observatories.tab.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Ring number</name>
+                    <field_number>4</field_number>
+                    <field_location unit="byte">21</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">3</field_length>
+                    <description>Index number of Uranian ring, moving radially outward from 1:ring six to 10:epsilon.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Direction</name>
+                    <field_number>5</field_number>
+                    <field_location unit="byte">25</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">3</field_length>
+                    <description>Occultation direction: -1 for ingress, 1 for egress.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Observed time UTC</name>
+                    <field_number>6</field_number>
+                    <field_location unit="byte">29</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">28</field_length>
+                    <description>Observed mid-time of ring occultation profile.</description>
+                </Field_Character>
+            </Record_Character>
+        </Table_Character>
+    </File_Area_Ancillary>
+
+<!--  Input events file -->
+
+    <File_Area_Ancillary>
+        <File>
+            <file_name>uranus_occultation_ring_fit_rfrench_input_events_20201201.tab</file_name>
+            <local_identifier>input-events</local_identifier>
+            <creation_date_time>2020-12-01T23:44:27</creation_date_time>
+            <md5_checksum>83fcb6fdb992a7fc48ed4a429e854b67</md5_checksum>
+            <comment>
+            	 The input files for the ring fit program identify individual fragments of
+            	 the occultation events used. These are referenced in those files by occultation event (as an
+            	 index number [0,42]) and the specific ring (as an index number [1,10]).
+
+            	 This file provides the key to the occultation event index numbers.
+
+            </comment>
+        </File>
+        <Header>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">62</object_length>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            <description>Provides the column headers, separated by commas, for the data table.</description>
+        </Header>
+        <Table_Character>
+            <offset unit="byte">62</offset>
+            <records>29</records>
+            <description>Associtates occultation number with the occultation event code and the occultation date.</description>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>3</fields>
+                <groups>0</groups>
+                <record_length unit="byte">32</record_length>
+                <Field_Character>
+                    <name>Occultation number</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_Integer</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <description>Index number of stellar occultation event.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Occultation event code</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">7</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <description>Event code name; typically, the name of the occulted star.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Occultation date</name>
+                    <field_number>3</field_number>
+                    <field_location unit="byte">19</field_location>
+                    <data_type>ASCII_Date_YMD</data_type>
+                    <field_length unit="byte">12</field_length>
+                    <unit>day</unit>
+                    <description>Approximate date (yyyy-mm-dd) of the occultation event.</description>
+                </Field_Character>
+            </Record_Character>
+        </Table_Character>
+    </File_Area_Ancillary>
+
+<!-- Input Observatories  -->
+
+    <File_Area_Ancillary>
+        <File>
+            <file_name>uranus_occultation_ring_fit_rfrench_input_observatories_20201201.tab</file_name>
+            <local_identifier>input-observatories</local_identifier>
+            <creation_date_time>2020-12-01T23:44:27</creation_date_time>
+            <md5_checksum>811f67b162d9573e51a66ba05302ef2a</md5_checksum>
+            <comment>This file contains a list of Earth-based observatory codes, the
+               corresponding topocentric locations (latitude, E longitude,
+               and altitude), and the observatory and telescope names for those sites
+               used in the data files of ring occultation times used for the ring
+               ring orbit model uranus_occultation_ring_fit_rfrench_data_20201201.tab.
+               Not included are observatory codes KAO and HST, each of which have
+               SPICE kernels describing their motion relative to the center of the
+               earth over the course of the corresponding occultations.
+        </comment>
+        </File>
+        <Header>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">83</object_length>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            <description>Provides the column headers, separated by commas, for the data table.</description>
+        </Header>
+        <Table_Character>
+            <offset unit="byte">83</offset>
+            <records>14</records>
+            <description>
+            	This file provides additional details for the observatories referenced by Earth-based observatory codes
+            	listed in the uranus_occultation_ring_fit_rfrench_input_data_20201201.tab file described
+            	above. This file provides the corresponding topocentric locations, and the observatory and
+            	telescope names.
+
+            	Note: Two entries, TEN and TEE have identical parameters. TEN and TEE are used to keep track of
+            	the fact that the timing for this event was different on egress than on ingress, which is handled
+            	by assigning a different observatory code and fitting separately for offset times for TEN and TEE.
+            </description>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <Record_Character>
+                <fields>6</fields>
+                <groups>0</groups>
+                <record_length unit="byte">116</record_length>
+                <Field_Character>
+                    <name>Observatory code</name>
+                    <field_number>1</field_number>
+                    <field_location unit="byte">1</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">5</field_length>
+                    <description>Abbreviation for observatory name, used in data files for ring orbit fit.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Latitude</name>
+                    <field_number>2</field_number>
+                    <field_location unit="byte">7</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>Degree</unit>
+                    <description>Latitude of observatory, in degrees.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>East Longitude</name>
+                    <field_number>3</field_number>
+                    <field_location unit="byte">19</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>Degree</unit>
+                    <description>East longitude of observatory, in degrees.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Altitude</name>
+                    <field_number>4</field_number>
+                    <field_location unit="byte">31</field_location>
+                    <data_type>ASCII_Real</data_type>
+                    <field_length unit="byte">11</field_length>
+                    <unit>Kilometer</unit>
+                    <description>Altitude of observatory, in km.
+                    </description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Observatory name</name>
+                    <field_number>5</field_number>
+                    <field_location unit="byte">43</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">50</field_length>
+                    <description>Name of observatory.</description>
+                </Field_Character>
+                <Field_Character>
+                    <name>Telescope</name>
+                    <field_number>6</field_number>
+                    <field_location unit="byte">94</field_location>
+                    <data_type>ASCII_String</data_type>
+                    <field_length unit="byte">21</field_length>
+                    <description>Aperture or other identifying characteristic of telescope.</description>
+                </Field_Character>
+            </Record_Character>
+        </Table_Character>
+    </File_Area_Ancillary>
+
+<!-- Input Stars  -->
+
+    <File_Area_Ancillary>
+        <File>
+            <file_name>uranus_occultation_ring_fit_rfrench_input_stars_20201201.csv</file_name>
+            <local_identifier>input-stars</local_identifier>
+            <creation_date_time>2020-12-01T23:44:27</creation_date_time>
+            <md5_checksum>b2885f2a8e599081f4a97e82a72c9e49</md5_checksum>
+            <comment>
+            	This file associates the star indices used in the
+            	uranus_occultation_ring_fit_rfrench_input_data_20201201.tab file (described above)
+            	with the "star names" used through the Uranus occultation archives, star catalog IDs,
+            	and star positions for the occultation stars used in the generation of the ring orbit model.</comment>
+        </File>
+        <Header>
+            <offset unit="byte">0</offset>
+            <object_length unit="byte">185</object_length>
+            <parsing_standard_id>UTF-8 Text</parsing_standard_id>
+            <description>Provides the column headers, separated by commas, for the data table. The second provides the units for the field.</description>
+        </Header>
+        <Table_Delimited>
+            <offset unit="byte">185</offset>
+            <parsing_standard_id>PDS DSV 1</parsing_standard_id>
+            <records>28</records>
+            <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
+            <field_delimiter>Comma</field_delimiter>
+            <Record_Delimited>
+                <fields>15</fields>
+                <groups>0</groups>
+                <maximum_record_length unit="byte">300</maximum_record_length>
+                <Field_Delimited>
+                    <name>Star Number</name>
+                    <field_number>1</field_number>
+                    <data_type>ASCII_Integer</data_type>
+                    <description>Index number used to identify star position used in ring orbit fit.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>Star Name</name>
+                    <field_number>2</field_number>
+                    <data_type>ASCII_String</data_type>
+                    <description>Internal shorthand name for the occultation star.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>Source Catalog</name>
+                    <field_number>3</field_number>
+                    <data_type>ASCII_String</data_type>
+                    <description>Name of source catalog for star position (e.g., Hipparcos, 2MASS, UCAC4).</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>Catalog ID</name>
+                    <field_number>4</field_number>
+                    <data_type>ASCII_String</data_type>
+                    <description>The identification number of the star within the Source Catalog.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>RA(ICRS)</name>
+                    <field_number>5</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>Degree</unit>
+                    <description>Mean right ascencion International Celestial Reference System (ICRS) J2000.0 epoch.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>DE(ICRS)</name>
+                    <field_number>6</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>Degree</unit>
+                    <description>Mean declination International Celestial Reference System (ICRS) J2000.0 epoch.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>Epoch</name>
+                    <field_number>7</field_number>
+                    <data_type>ASCII_String</data_type>
+                    <description>The epoch of RA(ICRS)/DE(ICRS).</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>Plx</name>
+                    <field_number>8</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>milli-second of arc</unit>
+                    <description>Trigonometric parallax in millisecond of arc.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>pmRA</name>
+                    <field_number>9</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>milli-second of arc per year</unit>
+                    <description>Proper motion in RA in equatorial coordinates in millisecond of arc per year.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>pmDE</name>
+                    <field_number>10</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>milli-second of arc per year</unit>
+                    <description>Proper motion in Dec in equatorial coordinates in milli-second of arc per year.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>e_RAdeg</name>
+                    <field_number>11</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>millisecond of arc</unit>
+                    <description>Standard error in RA*cos(delta) in millisecond of arc.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>e_DEdeg</name>
+                    <field_number>12</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>millisecond of arc</unit>
+                    <description>Standard error in DE in millisecond of arc.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>e_Plx</name>
+                    <field_number>13</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>millisecond of arc</unit>
+                    <description>Standard error in Plx in millisecond of arc.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>e_pmRA</name>
+                    <field_number>14</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>millisecond of arc</unit>
+                    <description>Standard error in pmRA in millisecond of arc.</description>
+                </Field_Delimited>
+                <Field_Delimited>
+                    <name>e_pmDE</name>
+                    <field_number>15</field_number>
+                    <data_type>ASCII_Real</data_type>
+                    <unit>millisecond of arc</unit>
+                    <description>Standard error in pmDE in millisecond of arc.</description>
+                </Field_Delimited>
+            </Record_Delimited>
+        </Table_Delimited>
+    </File_Area_Ancillary>
+</Product_Ancillary>
