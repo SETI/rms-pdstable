@@ -9,6 +9,7 @@ description = "Routines for reading PDS3 tables"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
+  "pds4_tools",
   "rms-julian",
   "rms-pdsparser",
 ]
