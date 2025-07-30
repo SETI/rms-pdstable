@@ -147,8 +147,11 @@ class Pds4TableInfo(object):
                             returned value must be a tuple or list containing
                             the minimum and maximum numeric values in that
                             column.
-            table_file      specify a table file to be read, if the provided table
-                            doesn't exist in the label, an error will be raised.
+            table_file      specify a table file name to be read or specify an
+                            integer representing the order in which the table
+                            appears in the lable file. If the provided table value
+                            doesn't exist in the label or the integer is
+                            out of the range, an error will be raised.
         """
 
         # Parse PDS4 label, store the label dictionary from the pds4_tools Label object
@@ -181,10 +184,16 @@ class Pds4TableInfo(object):
             except:
                 raise ValueError('Table file name was not found in PDS4 label')
 
-            if table_file is not None and table_file not in self.table_file_li:
-                raise ValueError("The provided table file name doesn't match the one" +
-                                 'in the label. The label contains one table file ' +
-                                 f'{self.table_file_name}')
+            if table_file is not None:
+                if isinstance(table_file, str) and table_file not in self.table_file_li:
+                    raise ValueError("The provided table file name doesn't match the " +
+                                     'one in the label. The label contains one ' +
+                                     f'table file {self.table_file_name}')
+                elif (isinstance(table_file, int) and
+                      table_file not in range(1, len(self.table_file_li)+1)):
+                    raise ValueError('The provided table order is out of the range. ' +
+                                     f'Valide range: 1 to {len(self.table_file_li)}')
+
         # The label file points to multiple table files
         elif isinstance(file_area, list):
             try:
@@ -192,15 +201,30 @@ class Pds4TableInfo(object):
             except:
                 raise ValueError('Table file name was not found in PDS4 label')
 
-            if table_file is None or table_file not in table_name_li:
+            if table_file is None:
+                raise ValueError('The table_file parameter is not specified. ' +
+                                 f'The label contains {len(table_name_li)} table ' +
+                                 f'files: {table_name_li}')
+            elif isinstance(table_file, str) and table_file not in table_name_li:
                 raise ValueError(f"The table file name '{table_file}' doesn't exist. " +
                                  f'The label contains {len(table_name_li)} table ' +
                                  f'files: {table_name_li}')
+            elif (isinstance(table_file, int) and
+                  table_file not in range(1, len(table_name_li)+1)):
+                raise ValueError('The provided table order is out of the range. ' +
+                                 f'Valide range: 1 to {len(table_name_li)}')
             else:
-                self.table_file_name = table_file
+
+
+                # specify the table that we want to read
+                if isinstance(table_file, str):
+                    idx = table_name_li.index(table_file)
+                    self.table_file_name = table_file
+                elif isinstance(table_file, int):
+                    idx = table_file-1
+                    self.table_file_name = table_name_li[idx]
+
                 self.table_file_li = table_name_li
-                # specify the table file that we want to read
-                idx = table_name_li.index(table_file)
                 file_area = file_area[idx]
         # The label file has no table file info
         else:

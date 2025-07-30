@@ -14,10 +14,10 @@ class Test_Pds4Table(unittest.TestCase):
     #######################################################################
     # Test csv table
     #######################################################################
-    CSV_TABLE_FILE_NAME = 'uranus_occultation_ring_fit_rfrench_input_stars_20201201.csv'
-
+    # CSV_TABLE_FILE_NAME = 'uranus_occultation_ring_fit_rfrench_input_stars_20201201.csv'
+    CSV_TABLE_FILE_ORDER = 6
     test_csv_table_basic = PdsTable(label_file=INDEX_PATH,
-                                    table_file=CSV_TABLE_FILE_NAME)
+                                    table_file=CSV_TABLE_FILE_ORDER)
 
     # Test strings
     test_star_names = test_csv_table_basic.column_values['Star Name']
@@ -81,7 +81,7 @@ class Test_Pds4Table(unittest.TestCase):
     try:
         partial_table = PdsTable(label_file=INDEX_PATH,
                                  row_range=(2,4),
-                                 table_file=CSV_TABLE_FILE_NAME)
+                                 table_file=CSV_TABLE_FILE_ORDER)
     except ValueError as e:
         self.assertIn(error_msg, str(e),
                       f'"{error_msg}" NOT in error messages: "{str(e)}"')
