@@ -29,19 +29,32 @@ PDS4_BUNDLE_COLNAMES = (
 PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING = {
     'Product_Ancillary': 'File_Area_Ancillary',
     'Product_Browse': 'File_Area_Browse',
+    'Product_Bundle': 'File_Area_Text',
+    'Product_Collection': 'File_Area_Inventory',
+    'Product_External': 'File_Area_External',
+    'Product_File_Repository': 'File_Area_Binary',
+    'Product_File_Text': 'File_Area_Text',
     'Product_Metadata_Supplemental': 'File_Area_Metadata',
-    'Product_Observational': ('File_Area_Observational',
+    'Product_Native': 'File_Area_Native',
+    'Product_Observational': ('File_Area_Ancillary',
+                              'File_Area_Observational',
                               'File_Area_Observational_Supplemental'),
+    'Product_Proxy_PDS3': 'File_Area_Binary',
+    'Product_SPICE_Kernel': 'File_Area_SPICE_Kernel',
+    'Product_XML_Schema': 'File_Area_XML_Schema',
 }
 
 # The mapping of a table tag to its corresponding record and field tags
 # The key is a table tag, and the value is a tuple of the record and field tags
 PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING = {
+    'Inventory': ('Record_Delimited', 'Field_Delimited'),
+    'Manifest_SIP_Deep_Archive': ('Record_Delimited', 'Field_Delimited'),
     'Table_Binary': ('Record_Binary', 'Field_Binary'),
     'Table_Character': ('Record_Character', 'Field_Character'),
     'Table_Delimited': ('Record_Delimited', 'Field_Delimited'),
     'Table_Delimited_Source_Product_External': ('Record_Delimited', 'Field_Delimited'),
     'Table_Delimited_Source_Product_Internal': ('Record_Delimited', 'Field_Delimited'),
+    'Transfer_Manifest': ('Record_Character', 'Field_Character'),
 }
 
 # PDS4 label tags under Special_Constants
@@ -225,7 +238,11 @@ class Pds4TableInfo(object):
             self.field_delimiter = None
         except:
             # for the case like .csv table, row length is not used
-            self.row_bytes = int(record_area['maximum_record_length'])
+            try:
+                self.row_bytes = int(record_area['maximum_record_length'])
+            except KeyError:
+                # set to max 255 if the tag doesn't exist in the label
+                self.row_bytes = 255
             self.fixed_length_row = False
             self.field_delimiter = PDS4_FIELD_DELIMITER[table_area['field_delimiter']]
 
