@@ -12,6 +12,7 @@ from collections import defaultdict
 from pds4_tools.reader.label_objects import Label
 
 PDS4_LBL_EXTENSIONS = {'.xml', '.lblx'}
+TABLE_EXTENSIONS = {'tab', 'csv'}
 
 def is_pds4_label(label_name):
     """Check if the given label is a PDS4 label."""
@@ -19,6 +20,7 @@ def is_pds4_label(label_name):
     for ext in PDS4_LBL_EXTENSIONS:
         if label_name.endswith(ext):
             return True
+    return False
 
 PDS4_BUNDLE_COLNAMES = (
     'Bundle Name',
@@ -166,18 +168,27 @@ class Pds4TableInfo(object):
                 prod_component = lbl_dict[prod_tag]
                 if isinstance(file_area_tag, str):
                     file_area = prod_component[file_area_tag]
+                    if isinstance(file_area, dict):
+                        file_area = [prod_component[file_area_tag]]
                 elif isinstance(file_area_tag, tuple):
                     for tag in file_area_tag:
                         if tag in prod_component.keys():
-                            file_area = prod_component[tag]
-                            break
+                            current_file_area = prod_component[tag]
+                            if isinstance(current_file_area, dict):
+                                current_file_area = [prod_component[tag]]
+                            # Include file info from all the file area tags in the tuple
+                            if file_area is None:
+                                file_area = current_file_area
+                            else:
+                                file_area += current_file_area
             if file_area:
                 break
 
         self.table_file_name = None
 
         # The label file points to one table file
-        if isinstance(file_area, dict):
+        if len(file_area) == 1:
+            file_area = file_area[0]
             try:
                 self.table_file_name = file_area['File']['file_name']
                 self.table_file_li = [self.table_file_name]
@@ -191,11 +202,11 @@ class Pds4TableInfo(object):
                                      f'table file {self.table_file_name}')
                 elif (isinstance(table_file, int) and
                       table_file not in range(1, len(self.table_file_li)+1)):
-                    raise ValueError('The provided table order is out of the range. ' +
-                                     f'Valide range: 1 to {len(self.table_file_li)}')
+                    raise ValueError('The provided table number is out of the range. ' +
+                                     f'Valid range: 1 to {len(self.table_file_li)}')
 
         # The label file points to multiple table files
-        elif isinstance(file_area, list):
+        elif len(file_area) > 1:
             try:
                 table_name_li = [f['File']['file_name'] for f in file_area]
             except:
@@ -211,11 +222,9 @@ class Pds4TableInfo(object):
                                  f'files: {table_name_li}')
             elif (isinstance(table_file, int) and
                   table_file not in range(1, len(table_name_li)+1)):
-                raise ValueError('The provided table order is out of the range. ' +
-                                 f'Valide range: 1 to {len(table_name_li)}')
+                raise ValueError('The provided table number is out of the range. ' +
+                                 f'Valid range: 1 to {len(table_name_li)}')
             else:
-
-
                 # specify the table that we want to read
                 if isinstance(table_file, str):
                     idx = table_name_li.index(table_file)
@@ -226,6 +235,15 @@ class Pds4TableInfo(object):
 
                 self.table_file_li = table_name_li
                 file_area = file_area[idx]
+
+                # Check if the selected file is a table. If it's not a table, raise
+                # an error
+                file_name = file_area['File']['file_name']
+                _, _, ext = file_name.rpartition('.')
+                if ext not in TABLE_EXTENSIONS:
+                    raise ValueError(f'{file_name} is not a table. Choose other table ' +
+                                     f'name or number. Files: {table_name_li}')
+
         # The label file has no table file info
         else:
             raise ValueError(f'{label_file_path} does not contain any table file info.' )

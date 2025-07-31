@@ -43,6 +43,23 @@ class Test_Pds4Table(unittest.TestCase):
         self.assertEqual(rowdict[i]['RA(ICRS)'], ra_test_set[i])
 
     ######################################################################################
+    # Test table_file pointing to a file not a table
+    ######################################################################################
+    error_msg = 'is not a table. Choose other table name or number'
+    try:
+        _ = PdsTable(label_file=INDEX_PATH, table_file=2)
+    except ValueError as e:
+        self.assertIn(error_msg, str(e),
+                      f'"{error_msg}" NOT in error messages: "{str(e)}"')
+
+    try:
+        _ = PdsTable(label_file=INDEX_PATH,
+                     table_file='uranus_occultation_ring_fit_rfrench_20201201.txt')
+    except ValueError as e:
+        self.assertIn(error_msg, str(e),
+                      f'"{error_msg}" NOT in error messages: "{str(e)}"')
+
+    ######################################################################################
     # Test PdsTable instantiation without specifying a valid table name if multiple tables
     # are available
     ######################################################################################
