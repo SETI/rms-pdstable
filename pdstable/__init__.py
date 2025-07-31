@@ -42,14 +42,10 @@
 #   index.
 ################################################################################
 
-import sys
 import os
-import datetime as dt
 import warnings
 import numpy as np
-import numbers
 
-from pdsparser import Pds3Label
 import julian
 
 from .pds3table import (Pds3TableInfo,
@@ -106,7 +102,7 @@ class PdsTable(object):
         (7) Time fields are represented as character strings at this stage.
     """
 
-    def __init__(self, label_file, label_contents=None, times=[], columns=[],
+    def __init__(self, label_file, *, label_contents=None, times=[], columns=[],
                        nostrip=[], callbacks={}, ascii=False, replacements={},
                        invalid={}, valid_ranges={}, table_callback=None,
                        merge_masks=False, filename_keylen=0, row_range=None,
@@ -119,8 +115,8 @@ class PdsTable(object):
             label_contents  The contents of the label as a list of strings if
                             we shouldn't read it from the file. Alternatively, a
                             Pds3Label object to avoid label parsing entirely.
-                            Note: this param is for PDS3 label only, it's ignored
-                            in PDS4.
+                            Note: this param is for PDS3 labels only; it is ignored
+                            for PDS4.
             columns         an optional list of the names of the columns to
                             return. If the list is empty, then every column is
                             returned.
@@ -137,7 +133,8 @@ class PdsTable(object):
                             errors in a particular table.
             ascii           True to interpret the callbacks as translating
                             ASCII byte strings; False to interpret them as
-                            translating the default str type, which is Unicode in Python 3.
+                            translating the default str type, which is Unicode
+                            in Python 3.
             replacements    an optional dictionary that returns a replacement
                             dictionary given the name of a column. If a
                             replacement dictionary is provided for any column,
@@ -175,14 +172,14 @@ class PdsTable(object):
                             doesn't exist in the label, an error will be raised.
             label_method    the method to use to parse the label. Valid values
                             are 'strict' (default) or 'fast'. The 'fast' method
-                            is faster but may not be as accurate.
+                            is faster but may not be as accurate. Only relevant
+                            for PDS3 labels.
 
         Notes: If both a replacement and a callback are provided for the same
         column, the callback is applied first. The invalid and valid_ranges
         parameters are applied afterward.
 
-        Note that, in Python 3, performance will be slightly faster if
-        ascii=True.
+        Note that performance will be slightly faster if ascii=True.
         """
 
         self.label_file_name = label_file
@@ -198,7 +195,6 @@ class PdsTable(object):
             self.info = Pds3TableInfo(label_file, label_list=label_contents,
                                       invalid=invalid, valid_ranges=valid_ranges,
                                       label_method=label_method)
-            # For open() of ASCII files in Python 3
             self.encoding = {'encoding': 'latin-1'}
 
         # Select the columns
@@ -269,7 +265,7 @@ class PdsTable(object):
             try:
                 table.dtype = np.dtype(self.info.dtype0)
             except ValueError:
-                raise ValueError('Error in PDS3 row description:\n' +
+                raise ValueError('Error in row description:\n' +
                                 'old dtype = ' + str(table.dtype) +
                                 ';\nnew dtype = ' + str(np.dtype(self.info.dtype0)))
         # For table file that doesn't have fixed length row, like .csv file:
