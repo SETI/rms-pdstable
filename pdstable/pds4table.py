@@ -373,19 +373,10 @@ class Pds4ColumnInfo(object):
             self.start_byte = None
             self.bytes = None
 
-        # Handle the case where one column stores multiple items, like EXPECTED_MAXIMUM
-        # in casssini iss cruise
-        self.description = node_dict.get('description', '')
-        items = 1
-        if '-valued' in self.description:
-            try:
-                items = int(re.match(r'.*(\d)-valued.*', self.description.strip())[1])
-            except:
-                items = 1
-
         if self.start_byte is not None and self.bytes is not None:
-            self.items = node_dict.get('ITEMS', items)
-            item_bytes = int((self.bytes-items+1)/items)
+            # TODO: Add a proper way to parse PDS4 label to get 'ITEMS' in the future
+            self.items = int(node_dict.get('ITEMS', 1))
+            item_bytes = int((self.bytes-self.items+1)/self.items)
 
             self.item_bytes = node_dict.get('ITEM_BYTES', item_bytes)
             self.item_offset = node_dict.get('ITEM_OFFSET', item_bytes+1)
