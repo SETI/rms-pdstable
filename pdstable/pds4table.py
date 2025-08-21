@@ -2,24 +2,15 @@
 # pdstable/pds4table.py
 # Store Pds4TableInfo and Pds4ColumnInfo
 ##########################################################################################
-import julian
 import numbers
 import numpy as np
 import os
-import re
 
 from collections import defaultdict
 from pds4_tools.reader.label_objects import Label
 
-PDS4_LBL_EXTENSIONS = {'.xml', '.lblx'}
+from .utils import tai_from_iso, int_from_base2, int_from_base8, int_from_base16
 
-def is_pds4_label(label_name):
-    """Check if the given label is a PDS4 label."""
-
-    for ext in PDS4_LBL_EXTENSIONS:
-        if label_name.endswith(ext):
-            return True
-    return False
 
 PDS4_BUNDLE_COLNAMES = (
     'Bundle Name',
@@ -60,34 +51,22 @@ PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING = {
 # PDS4 label tags under Special_Constants
 PDS4_SPECIAL_CONSTANTS_TAGS = {
     'error_constant',
- 	'high_instrument_saturation',
- 	'high_representation_saturation',
- 	'invalid_constant',
- 	'low_instrument_saturation',
- 	'low_representation_saturation',
- 	'missing_constant',
- 	'not_applicable_constant',
- 	'saturated_constant',
- 	'unknown_constant',
- 	# 'valid_maximum',
- 	# 'valid_minimum'
+    'high_instrument_saturation',
+    'high_representation_saturation',
+    'invalid_constant',
+    'low_instrument_saturation',
+    'low_representation_saturation',
+    'missing_constant',
+    'not_applicable_constant',
+    'saturated_constant',
+    'unknown_constant',
+    # 'valid_maximum',
+    # 'valid_minimum'
 }
 
 # This is an exhaustive tuple of string-like types
 STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 
-# Needed because the default value of strip is False
-def tai_from_iso(string):
-    return julian.tai_from_iso(string, strip=True)
-
-def int_from_base2(string):
-    return int(string, 2)
-
-def int_from_base8(string):
-    return int(string, 8)
-
-def int_from_base16(string):
-    return int(string, 16)
 
 # Delimiter used to separate column values in the same row
 # It's encoded by 'UTF-8'
@@ -130,6 +109,7 @@ PDS4_CHR_DATA_TYPE_MAPPING = {
     'ASCII_Numeric_Base16': ('int', 'int', int_from_base16),
 }
 
+
 ################################################################################
 # Class Pds4TableInfo
 ################################################################################
@@ -138,22 +118,20 @@ class Pds4TableInfo(object):
 
     def __init__(self, label_file_path, *, invalid={}, valid_ranges={},
                  table_file=None):
-        """Loads a PDS4 table based on its associated label file.
+        """Load a PDS4 table based on its associated label file.
 
         Parameters:
-            label_file_path path to the PDS4 label file
-            invalid         an optional dictionary keyed by column name. The
-                            returned value must be a list or set of values that
-                            are to be treated as invalid, missing or unknown.
-            valid_ranges    an optional dictionary keyed by column name. The
-                            returned value must be a tuple or list containing
-                            the minimum and maximum numeric values in that
-                            column.
-            table_file      specify a table file name to be read or an integer
-                            representing the order in which the table appears in
-                            the label file. If the provided table name doesn't
-                            exist in the label or the integer is out of the range,
-                            an error will be raised.
+            label_file_path (str): Path to the PDS4 label file. invalid (dict, optional):
+                An optional dictionary keyed by column name. The returned value must be a
+                list or set of values that are to be treated as invalid, missing or
+                unknown.
+            valid_ranges (dict, optional): An optional dictionary keyed by column name.
+                The returned value must be a tuple or list containing the minimum and
+                maximum numeric values in that column.
+            table_file (str or int, optional): Specify a table file name to be read or an
+                integer representing the order in which the table appears in the label
+                file. If the provided table name doesn't exist in the label or the integer
+                is out of the range, an error will be raised.
         """
 
         # Parse PDS4 label, store the label dictionary from the pds4_tools Label object
@@ -180,7 +158,7 @@ class Pds4TableInfo(object):
         self.table_file_name = None
 
         if len(file_areas) == 0:
-            raise ValueError(f'{label_file_path} does not contain any table file info.' )
+            raise ValueError(f'{label_file_path} does not contain any table file info.')
 
         if len(file_areas) == 1:
             # The label file points to one table file. We make this a special case
@@ -290,7 +268,7 @@ class Pds4TableInfo(object):
             self.row_bytes = int(record_area['record_length'])
             self.fixed_length_row = True
             self.field_delimiter = None
-        except:
+        except KeyError:
             # for the case like .csv table, row length is not used
             try:
                 self.row_bytes = int(record_area['maximum_record_length'])
@@ -328,13 +306,12 @@ class Pds4TableInfo(object):
             field_num = int(col['field_number'])
 
             pdscol = Pds4ColumnInfo(col, field_num,
-                                    invalid = invalid.get(name, default_invalid),
-                                    valid_range = valid_ranges.get(name, None))
+                                    invalid=invalid.get(name, default_invalid),
+                                    valid_range=valid_ranges.get(name, None))
 
             self.column_info_list.append(pdscol)
             self.column_info_dict[pdscol.name] = pdscol
             self.dtype0[pdscol.name] = pdscol.dtype0
-
 
         self.table_file_path = os.path.join(os.path.dirname(label_file_path),
                                             self.table_file_name)
@@ -345,20 +322,19 @@ class Pds4TableInfo(object):
 ################################################################################
 
 class Pds4ColumnInfo(object):
-    """The Pds4ColumnInfo class holds the attributes of one column in a PDS4
-    label."""
+    """The Pds4ColumnInfo class holds the attributes of one column in a PDS4 label."""
 
     def __init__(self, node_dict, column_no, invalid=set(), valid_range=None):
-        """Constructor for a Pds4Column.
+        """Constructor for a Pds4ColumnInfo.
 
-        Input:
-            node_dict   the dictionary associated with the column info obtained
-                        from pds4_tools Label object.
-            column_no   the index number of this column, starting at zero.
-            invalid     an optional set of discrete values that are to be
-                        treated as invalid, missing or unknown.
-            valid_range an optional tuple or list identifying the lower and
-                        upper limits of the valid range for a numeric column.
+        Parameters:
+            node_dict (dict): The dictionary associated with the column info obtained
+                from pds4_tools Label object.
+            column_no (int): The index number of this column, starting at zero.
+            invalid (set, optional): An optional set of discrete values that are to be
+                treated as invalid, missing or unknown.
+            valid_range (tuple or list, optional): An optional tuple or list identifying
+                the lower and upper limits of the valid range for a numeric column.
         """
 
         self.name = node_dict['name']
@@ -367,7 +343,7 @@ class Pds4ColumnInfo(object):
         try:
             self.start_byte = int(node_dict['field_location'])
             self.bytes      = int(node_dict['field_length'])
-        except:
+        except KeyError:
             # For .csv table, each column length is not fixed (row is not fixed), so
             # we don't have these info.
             self.start_byte = None
@@ -390,7 +366,7 @@ class Pds4ColumnInfo(object):
             (self.data_type,
              self.dtype2,
              self.scalar_func) = PDS4_CHR_DATA_TYPE_MAPPING[self.data_type]
-        except:
+        except KeyError:
             raise ValueError('unsupported data type: ' + self.data_type)
 
         # Handle the case like "START_TIME" with ASCII_String instead of ASCII_Time as
@@ -417,7 +393,7 @@ class Pds4ColumnInfo(object):
                         if self.scalar_func:
                             try:
                                 invalid_val = self.scalar_func(invalid_val)
-                            except:
+                            except ValueError:
                                 # if the invalid value can't be converted, we will keep
                                 # its original value and data type
                                 invalid_val = invalid_val

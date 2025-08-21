@@ -2,12 +2,13 @@
 # pdstable/pds3table.py
 # Store Pds3TableInfo and Pds3ColumnInfo
 ##########################################################################################
-import julian
 import numbers
 import numpy as np
 import os
 from pdsparser import Pds3Label
 import warnings
+
+from .utils import tai_from_iso
 
 PDS3_VOLUME_COLNAMES = (
     'VOLUME_ID',
@@ -19,10 +20,6 @@ PDS3_VOLUME_COLNAMES = (
 # This is an exhaustive tuple of string-like types
 STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 
-# Needed because the default value of strip is False
-def tai_from_iso(string):
-    return julian.tai_from_iso(string, strip=True)
-
 
 ################################################################################
 # Class Pds3TableInfo
@@ -32,26 +29,23 @@ class Pds3TableInfo(object):
 
     def __init__(self, label_file_path, label_list=None, invalid={},
                        valid_ranges={}, label_method='strict'):
-        """Loads a PDS table based on its associated label file.
+        """Load a PDS table based on its associated label file.
 
-        Input:
-            label_file_path path to the label file
-            label_list      an option to override the parsing of the label.
-                            If this is a list, it is interpreted as containing
-                            all the records of the PDS label, in which case the
-                            overrides the contents of the label file.
-                            Alternatively, this can be a Pds3Label object that
-                            was already parsed.
-            invalid         an optional dictionary keyed by column name. The
-                            returned value must be a list or set of values that
-                            are to be treated as invalid, missing or unknown.
-            valid_ranges    an optional dictionary keyed by column name. The
-                            returned value must be a tuple or list containing
-                            the minimum and maximum numeric values in that
-                            column.
-            label_method    the method to use to parse the label. Valid values
-                            are 'strict' (default) or 'fast'. The 'fast' method
-                            is faster but may not be as accurate.
+        Parameters:
+            label_file_path (str): Path to the label file. label_list (list or Pds3Label,
+                optional): An option to override the parsing of the label. If this is a
+                list, it is interpreted as containing all the records of the PDS label, in
+                which case it overrides the contents of the label file. Alternatively,
+                this can be a Pds3Label object that was already parsed.
+            invalid (dict, optional): An optional dictionary keyed by column name. The
+                returned value must be a list or set of values that are to be treated as
+                invalid, missing or unknown.
+            valid_ranges (dict, optional): An optional dictionary keyed by column name.
+                The returned value must be a tuple or list containing the minimum and
+                maximum numeric values in that column.
+            label_method (str, optional): The method to use to parse the label. Valid
+                values are 'strict' (default) or 'fast'. The 'fast' method is faster but
+                may not be as accurate.
         """
 
         # Parse the label
@@ -77,7 +71,7 @@ class Pds3TableInfo(object):
                 self.table_file_name = value
                 if key + '_offset' in self.label:
                     msg = ("Table file pointer " + self.label[key + '_fmt'] +
-                           " is not a Simple Pointer and isn't fully "+
+                           " is not a Simple Pointer and isn't fully " +
                            "supported")
                     warnings.warn(msg)
                 else:
@@ -115,8 +109,8 @@ class Pds3TableInfo(object):
             if column_dict['OBJECT'] == "COLUMN":
                 name = column_dict["NAME"]
                 pdscol = Pds3ColumnInfo(column_dict, counter,
-                                        invalid = invalid.get(name, default_invalid),
-                                        valid_range = valid_ranges.get(name, None))
+                                        invalid=invalid.get(name, default_invalid),
+                                        valid_range=valid_ranges.get(name, None))
                 counter += 1
 
                 if name in self.column_info_dict:
@@ -130,25 +124,25 @@ class Pds3TableInfo(object):
         self.table_file_path = os.path.join(os.path.dirname(label_file_path),
                                             self.table_file_name)
 
+
 ################################################################################
 # class Pds3ColumnInfo
 ################################################################################
 
 class Pds3ColumnInfo(object):
-    """The PdsColumnInfo class holds the attributes of one column in a PDS
-    label."""
+    """The Pds3ColumnInfo class holds the attributes of one column in a PDS3 label."""
 
     def __init__(self, node_dict, column_no, invalid=set(), valid_range=None):
-        """Constructor for a PdsColumn.
+        """Constructor for a Pds3Column.
 
-        Input:
-            node_dict   the dictionary associated with the pdsparser.PdsNode
-                        object defining the column.
-            column_no   the index number of this column, starting at zero.
-            invalid     an optional set of discrete values that are to be
-                        treated as invalid, missing or unknown.
-            valid_range an optional tuple or list identifying the lower and
-                        upper limits of the valid range for a numeric column.
+        Parameters:
+            node_dict (dict): The dictionary associated with the pdsparser.PdsNode
+                object defining the column.
+            column_no (int): The index number of this column, starting at zero.
+            invalid (set, optional): An optional set of discrete values that are to be
+                treated as invalid, missing or unknown.
+            valid_range (tuple or list, optional): An optional tuple or list identifying
+                the lower and upper limits of the valid range for a numeric column.
         """
 
         self.name = node_dict["NAME"]

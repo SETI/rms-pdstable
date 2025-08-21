@@ -46,25 +46,20 @@ import os
 import warnings
 import numpy as np
 
-import julian
-
 from .pds3table import (Pds3TableInfo,
                         PDS3_VOLUME_COLNAMES)
 from .pds4table import (Pds4TableInfo,
-                        PDS4_BUNDLE_COLNAMES,
-                        is_pds4_label)
+                        PDS4_BUNDLE_COLNAMES)
+from .utils import tai_from_iso, is_pds4_label
 
 try:
     from ._version import __version__
-except ImportError as err:
+except ImportError:
     __version__ = 'Version unspecified'
 
 # This is an exhaustive tuple of string-like types
 STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 
-# Needed because the default value of strip is False
-def tai_from_iso(string):
-    return julian.tai_from_iso(string, strip=True)
 
 # A list of possible table column names (unique) that store the path of the file spec or
 # the file name. This will be used to get the index of the column containing file
@@ -88,9 +83,11 @@ VOLUME_ID_COLUMN_NAMES = PDS3_VOLUME_COLNAMES + PDS4_BUNDLE_COLNAMES
 
 VOLUME_ID_COLUMN_NAMES_lc = [x.lower() for x in VOLUME_ID_COLUMN_NAMES]
 
+
 class PdsTable(object):
-    """The PdsTable class holds the contents of a PDS-labeled table. It is
-    represented by a list of Numpy arrays, one for each column.
+    """The PdsTable class holds the contents of a PDS-labeled table.
+
+    It is represented by a list of Numpy arrays, one for each column.
 
     Current limitations:
         (1) ASCII tables only, no binary formats.
@@ -109,77 +106,64 @@ class PdsTable(object):
                        table_file=None, label_method='strict'):
         """Constructor for a PdsTable object.
 
-        Input:
-            label_file      the path to the PDS label of the table file. Must be
-                            supplied to get proper relative path resolution.
-            label_contents  The contents of the label as a list of strings if
-                            we shouldn't read it from the file. Alternatively, a
-                            Pds3Label object to avoid label parsing entirely.
-                            Note: this param is for PDS3 labels only; it is ignored
-                            for PDS4.
-            columns         an optional list of the names of the columns to
-                            return. If the list is empty, then every column is
-                            returned.
-            times           an optional list of the names of time columns to be
-                            stored as floats in units of seconds TAI rather than
-                            as strings.
-            nostrip         an optional list of the names of string columns that
-                            are not to be stripped of surrounding whitespace.
-            callbacks       an optional dictionary that returns a callback
-                            function given the name of a column. If a callback
-                            is provided for any column, then the function is
-                            called on the string value of that column before it
-                            is parsed. This can be used to update known syntax
-                            errors in a particular table.
-            ascii           True to interpret the callbacks as translating
-                            ASCII byte strings; False to interpret them as
-                            translating the default str type, which is Unicode
-                            in Python 3.
-            replacements    an optional dictionary that returns a replacement
-                            dictionary given the name of a column. If a
-                            replacement dictionary is provided for any column,
-                            then any value in that column (as a string or as its
-                            native value) that matches a key in the dictionary
-                            is replaced by the value resulting from the
-                            dictionary lookup.
-            invalid         an optional dictionary keyed by column name. The
-                            returned value must be a list or set of values that
-                            are to be treated as invalid, missing or unknown.
-                            An optional entry keyed by "default" can be a list
-                            or set of values that are invalid by default; these
-                            are used for any column whose name does not apppear
-                            as a key in the dictionary.
-            valid_ranges    an optional dictionary keyed by column name. The
-                            returned value must be a tuple or list containing
-                            the minimum and maximum numeric values in that
-                            column.
-            table_callback  an optional function to be called after reading
-                            the data table contents before processing them. Note
-                            that this callback must handle bytestrings in Python
-                            3.
-            merge_masks     True to return a single mask value for each column,
-                            regardless of how many items might be in that
-                            column. False to return a separate mask value for
-                            each value in a column.
-            filename_keylen number of characters in the filename to use as the
-                            key of the index if this table is to be indexed by
-                            filename. Zero to use the entire file basename after
-                            stripping off the extension.
-            row_range       a tuple or list integers containing the index of the
-                            first row to read and the first row to omit. If not
-                            specified, then all the rows are read.
-            table_file      specify a table file to be read, if the provided table
-                            doesn't exist in the label, an error will be raised.
-            label_method    the method to use to parse the label. Valid values
-                            are 'strict' (default) or 'fast'. The 'fast' method
-                            is faster but may not be as accurate. Only relevant
-                            for PDS3 labels.
+        Parameters:
+            label_file (str): The path to the PDS label of the table file. Must be
+                supplied to get proper relative path resolution.
+            label_contents (list or Pds3Label, optional): The contents of the label as a
+                list of strings if we shouldn't read it from the file. Alternatively, a
+                Pds3Label object to avoid label parsing entirely. Note: this param is for
+                PDS3 labels only; it is ignored for PDS4.
+            columns (list, optional): An optional list of the names of the columns to
+                return. If the list is empty, then every column is returned.
+            times (list, optional): An optional list of the names of time columns to be
+                stored as floats in units of seconds TAI rather than as strings.
+            nostrip (list, optional): An optional list of the names of string columns that
+                are not to be stripped of surrounding whitespace.
+            callbacks (dict, optional): An optional dictionary that returns a callback
+                function given the name of a column. If a callback is provided for any
+                column, then the function is called on the string value of that column
+                before it is parsed. This can be used to update known syntax errors in a
+                particular table.
+            ascii (bool, optional): True to interpret the callbacks as translating
+                ASCII byte strings; False to interpret them as translating the default str
+                type, which is Unicode in Python 3.
+            replacements (dict, optional): An optional dictionary that returns a
+                replacement dictionary given the name of a column. If a replacement
+                dictionary is provided for any column, then any value in that column (as a
+                string or as its native value) that matches a key in the dictionary is
+                replaced by the value resulting from the dictionary lookup.
+            invalid (dict, optional): An optional dictionary keyed by column name. The
+                returned value must be a list or set of values that are to be treated as
+                invalid, missing or unknown. An optional entry keyed by "default" can be a
+                list or set of values that are invalid by default; these are used for any
+                column whose name does not appear as a key in the dictionary.
+            valid_ranges (dict, optional): An optional dictionary keyed by column name.
+                The returned value must be a tuple or list containing the minimum and
+                maximum numeric values in that column.
+            table_callback (callable, optional): An optional function to be called after
+                reading the data table contents before processing them. Note that this
+                callback must handle bytestrings in Python 3.
+            merge_masks (bool, optional): True to return a single mask value for each
+                column, regardless of how many items might be in that column. False to
+                return a separate mask value for each value in a column.
+            filename_keylen (int, optional): Number of characters in the filename to use
+                as the key of the index if this table is to be indexed by filename. Zero
+                to use the entire file basename after stripping off the extension.
+            row_range (tuple or list, optional): A tuple or list of integers containing
+                the index of the first row to read and the first row to omit. If not
+                specified, then all the rows are read.
+            table_file (str or int, optional): Specify a table file to be read, if the
+                provided table doesn't exist in the label, an error will be raised.
+            label_method (str, optional): The method to use to parse the label. Valid
+                values are 'strict' (default) or 'fast'. The 'fast' method is faster but
+                may not be as accurate. Only relevant for PDS3 labels.
 
-        Notes: If both a replacement and a callback are provided for the same
-        column, the callback is applied first. The invalid and valid_ranges
-        parameters are applied afterward.
+        Notes:
+            If both a replacement and a callback are provided for the same column, the
+            callback is applied first. The invalid and valid_ranges parameters are applied
+            afterward.
 
-        Note that performance will be slightly faster if ascii=True.
+            Note that performance will be slightly faster if ascii=True.
         """
 
         self.label_file_name = label_file
@@ -266,15 +250,13 @@ class PdsTable(object):
                 table.dtype = np.dtype(self.info.dtype0)
             except ValueError:
                 raise ValueError('Error in row description:\n' +
-                                'old dtype = ' + str(table.dtype) +
-                                ';\nnew dtype = ' + str(np.dtype(self.info.dtype0)))
+                                 'old dtype = ' + str(table.dtype) +
+                                 ';\nnew dtype = ' + str(np.dtype(self.info.dtype0)))
         # For table file that doesn't have fixed length row, like .csv file:
         # table is a 2-D array, each row is an array of the column values for the row.
         else:
             table = np.array([np.array(line.split(self.info.field_delimiter))
                               for line in lines])
-
-
 
         # Extract the substring arrays and save in a dictionary...
         self.column_values = {}
@@ -308,32 +290,6 @@ class PdsTable(object):
                 # this column.
 
                 self.column_values[key] = items
-            # PDS4 TODO: Work on one column with multiple values, uncomment the following
-            # block if we prefer not to parse the items from the description in
-            # Pds4ColumnInfo (line 190-204, pds4table.py)
-            # elif (column_info.items == 1 and
-            #       column_info.data_type != 'string' and
-            #       '-valued' in column_info.description):
-            #     items = []
-            #     masks = []
-
-            #     col_li = None
-            #     for col in column:
-            #         unstripped_items = col.decode(**self.encoding).replace('"', '').split(',')
-            #         stripped_items = [item.strip().encode(**self.encoding)
-            #                           for item in unstripped_items]
-
-            #         if col_li is None:
-            #             col_li = [[] for _ in range(len(stripped_items))]
-
-            #         for idx, el in enumerate(stripped_items):
-            #             col_li[idx].append(el)
-
-
-            #     for item in col_li:
-            #         items.append(item)
-            #         masks.append(False)
-            #     self.column_values[key] = items
             else:
                 self.column_values[key] = [column]
 
@@ -367,7 +323,7 @@ class PdsTable(object):
 
                     # Convert string to input format for callback
                     if not ascii:
-                       items = items.astype('U')
+                        items = items.astype('U')
 
                     # Apply the callback row by row
                     new_items = []
@@ -379,8 +335,10 @@ class PdsTable(object):
 
                 # Apply the replacement dictionary if any pairs are strings
                 for (before, after) in repdict.items():
-                    if not isinstance(before, STRING_TYPES): continue
-                    if not isinstance(after,  STRING_TYPES): continue
+                    if not isinstance(before, STRING_TYPES):
+                        continue
+                    if not isinstance(after,  STRING_TYPES):
+                        continue
 
                     # The file is read as binary, so the replacements have
                     # to be applied as ASCII byte strings
@@ -464,7 +422,7 @@ class PdsTable(object):
                         items = new_items
 
                 # Determine validity mask if not already done
-                if type(items) == np.ndarray:
+                if isinstance(items, np.ndarray):
                     for invalid_value in invalid_values:
 
                         # Hide FutureWarning for comparisons of different types
@@ -489,7 +447,7 @@ class PdsTable(object):
                 self.column_masks[key]  = new_column_masks[0]
 
             else:
-                theyre_all_arrays = np.all([type(c) == np.ndarray
+                theyre_all_arrays = np.all([isinstance(c, np.ndarray)
                                             for c in new_column_items])
 
                 if theyre_all_arrays:
@@ -505,7 +463,7 @@ class PdsTable(object):
                                                     axis=0)
                 else:
                     mask_array = np.stack(new_column_masks)
-                    self.column_masks[key] = mask_array.swapaxes(0,1)
+                    self.column_masks[key] = mask_array.swapaxes(0, 1)
 
             # Report errors as warnings
             if error_count:
@@ -538,8 +496,12 @@ class PdsTable(object):
 
     @property
     def pdslabel(self):
-        """Property to return the Pds3Label object, so that it can be used as a
-        label_contents input parameter in subsequent calls."""
+        """Property to return the Pds3Label object.
+
+        Returns:
+            Pds3Label: The Pds3Label object, so that it can be used as a
+                label_contents input parameter in subsequent calls.
+        """
 
         return self.info.label
 
@@ -547,21 +509,26 @@ class PdsTable(object):
     # Support for extracting rows and columns
     ############################################################################
 
-    def dicts_by_row(self, lowercase=(False,False)):
-        """Returns a list of dictionaries, one for each row in the table, and
-        with each dictionary containing all of the column values in that
-        particular row. The dictionary keys are the column names; append "_mask"
-        to the key to get the mask value, which is True if the column value is
-        invalid; False otherwise.
+    def dicts_by_row(self, lowercase=(False, False)):
+        """Returns a list of dictionaries, one for each row in the table.
 
-        Input parameter lowercase is a tuple of two booleans. If the first is
-        True, then the dictionary is also keyed by column names converted to
-        lower case. If the second is True, then keys with "_lower" appended
-        return values converted to lower case.
+        Each dictionary contains all of the column values in that particular row.
+        The dictionary keys are the column names; append "_mask" to the key to get
+        the mask value, which is True if the column value is invalid; False otherwise.
+
+        Parameters:
+            lowercase (tuple or bool): A tuple of two booleans. If the first is
+                True, then the dictionary is also keyed by column names converted to
+                lower case. If the second is True, then keys with "_lower" appended
+                return values converted to lower case. If a single boolean is provided,
+                it will be duplicated for both parameters.
+
+        Returns:
+            list: A list of dictionaries, one for each row in the table.
         """
 
         # Duplicate the lowercase value if only one is provided
-        if type(lowercase) == bool:
+        if isinstance(lowercase, bool):
             lowercase = (lowercase, lowercase)
 
         # If we already have the needed list of dictionaries, return it
@@ -612,38 +579,62 @@ class PdsTable(object):
         return row_dicts
 
     def get_column(self, name):
-        """Return the values in the specified column as a list or 1-D array."""
+        """Return the values in the specified column as a list or 1-D array.
+
+        Parameters:
+            name (str): The name of the column to retrieve.
+
+        Returns:
+            list or numpy.ndarray: The values in the specified column.
+        """
 
         return self.column_values[name]
 
     def get_column_mask(self, name):
-        """Return the masks for the specified column as a list or 1-D array."""
+        """Return the masks for the specified column as a list or 1-D array.
+
+        Parameters:
+            name (str): The name of the column to retrieve masks for.
+
+        Returns:
+            list or numpy.ndarray: The masks for the specified column.
+        """
 
         return self.column_masks[name]
 
     def get_keys(self):
+        """Get the list of column names.
+
+        Returns:
+            list: A list of column names.
+        """
+
         return list(self.keys)
 
     ############################################################################
     # Support for finding rows by specified column values
     ############################################################################
 
-    def find_row_indices(self, lowercase=(False,False), limit=None,
+    def find_row_indices(self, lowercase=(False, False), limit=None,
                                substrings=[], **params):
-        """A list of indices of rows in the table where each named parameter
+        """Find a list of indices of rows in the table where each named parameter
         equals the specified value.
 
-        Input parameter lowercase is a tuple of two booleans. If the first is
-        True, then the dictionary is also keyed by column names converted to
-        lower case. If the second is True, then keys with "_lower" appended
-        return values converted to lower case.
+        Parameters:
+            lowercase (tuple or bool): A tuple of two booleans. If the first is
+                True, then the dictionary is also keyed by column names converted to lower
+                case. If the second is True, then keys with "_lower" appended return
+                values converted to lower case.
+            limit (int, optional): If not zero or None, this is the maximum number of
+                matching rows that are returned.
+            substrings (list, optional): A list of column names for which a match
+                occurs if the given parameter value is embedded within the string; an
+                exact match is not required.
+            **params: Named parameters where each parameter name corresponds to a column
+                name and the value is what to search for in that column.
 
-        If limit is not zero or None, this is the maximum number of matching
-        rows that are return.
-
-        Input parameter substrings is a list of column names for which a match
-        occurs if the given parameter value is embedded within the string; an
-        exact match is not required.
+        Returns:
+            list: A list of row indices that match the search criteria.
         """
 
         dicts_by_row = self.dicts_by_row(lowercase=lowercase)
@@ -702,14 +693,26 @@ class PdsTable(object):
 
         return matches
 
-    def find_row_index(self, lowercase=(False,False), substrings=[], **params):
-        """The index of the first row in the table where each named parameter
+    def find_row_index(self, lowercase=(False, False), substrings=[], **params):
+        """Find the index of the first row in the table where each named parameter
         equals the specified value.
 
-        Input parameter lowercase is a tuple of two booleans. If the first is
-        True, then the dictionary is also keyed by column names converted to
-        lower case. If the second is True, then keys with "_lower" appended
-        return values converted to lower case.
+        Parameters:
+            lowercase (tuple or bool): A tuple of two booleans. If the first is
+                True, then the dictionary is also keyed by column names converted to
+                lower case. If the second is True, then keys with "_lower" appended
+                return values converted to lower case.
+            substrings (list, optional): A list of column names for which a match
+                occurs if the given parameter value is embedded within the string; an
+                exact match is not required.
+            **params: Named parameters where each parameter name corresponds to a column
+                name and the value is what to search for in that column.
+
+        Returns:
+            int: The index of the first matching row.
+
+        Raises:
+            ValueError: If no matching row is found.
         """
 
         matches = self.find_row_indices(lowercase=lowercase, limit=1,
@@ -720,27 +723,42 @@ class PdsTable(object):
 
         raise ValueError('row not found: ' + str(params))
 
-    def find_rows(self, lowercase=(False,False), **params):
-        """A list of dictionaries representing rows in the table where each
+    def find_rows(self, lowercase=(False, False), **params):
+        """Find a list of dictionaries representing rows in the table where each
         named parameter equals the specified value.
 
-        Input parameter lowercase is a tuple of two booleans. If the first is
-        True, then the dictionary is also keyed by column names converted to
-        lower case. If the second is True, then keys with "_lower" appended
-        return values converted to lower case.
+        Parameters:
+            lowercase (tuple or bool): A tuple of two booleans. If the first is
+                True, then the dictionary is also keyed by column names converted to
+                lower case. If the second is True, then keys with "_lower" appended
+                return values converted to lower case.
+            **params: Named parameters where each parameter name corresponds to a column
+                name and the value is what to search for in that column.
+
+        Returns:
+            list: A list of dictionaries representing the matching rows.
         """
 
         indices = self.find_row_indices(lowercase=lowercase, **params)
         return [self.dicts_by_row()[k] for k in indices]
 
-    def find_row(self, lowercase=(False,False), **params):
-        """A dictionary representing the first row of the table where each
+    def find_row(self, lowercase=(False, False), **params):
+        """Find a dictionary representing the first row of the table where each
         named parameter equals the specified value.
 
-        Input parameter lowercase is a tuple of two booleans. If the first is
-        True, then the dictionary is also keyed by column names converted to
-        lower case. If the second is True, then keys with "_lower" appended
-        return values converted to lower case.
+        Parameters:
+            lowercase (tuple or bool): A tuple of two booleans. If the first is
+                True, then the dictionary is also keyed by column names converted to
+                lower case. If the second is True, then keys with "_lower" appended
+                return values converted to lower case.
+            **params: Named parameters where each parameter name corresponds to a column
+                name and the value is what to search for in that column.
+
+        Returns:
+            dict: A dictionary representing the first matching row.
+
+        Raises:
+            ValueError: If no matching row is found.
         """
 
         k = self.find_row_index(lowercase=lowercase, **params)
@@ -751,8 +769,16 @@ class PdsTable(object):
     ############################################################################
 
     def filename_key(self, filename):
-        """Convert a filename to a key for indexing the rows. The key is the
-        basename with the extension removed."""
+        """Convert a filename to a key for indexing the rows.
+
+        The key is the basename with the extension removed.
+
+        Parameters:
+            filename (str): The filename to convert to a key.
+
+        Returns:
+            str: The filename key for indexing.
+        """
 
         basename = os.path.basename(filename)
         key = os.path.splitext(basename)[0]
@@ -762,7 +788,11 @@ class PdsTable(object):
         return key
 
     def volume_column_index(self):
-        """The index of the column containing volume IDs, or -1 if none."""
+        """Get the index of the column containing volume IDs.
+
+        Returns:
+            int: The index of the column containing volume IDs, or -1 if none.
+        """
 
         if self._volume_colname_index is None:
             self._volume_colname_index = -1
@@ -780,8 +810,12 @@ class PdsTable(object):
         return self._volume_colname_index
 
     def filespec_column_index(self):
-        """The index of the column containing file specification name, or -1 if
-        none."""
+        """Get the index of the column containing file specification name.
+
+        Returns:
+            int: The index of the column containing file specification name, or -1 if
+            none.
+        """
 
         if self._filespec_colname_index is None:
             self._filespec_colname_index = -1
@@ -800,7 +834,7 @@ class PdsTable(object):
 
     def find_row_indices_by_volume_filespec(self, volume_id, filespec=None,
                                                   limit=None, substring=False):
-        """The row indices of the table with the specified volume_id and
+        """Find the row indices of the table with the specified volume_id and
         file_specification_name.
 
         The search is case-insensitive.
@@ -814,13 +848,20 @@ class PdsTable(object):
         whether the column contains paths to labels or data files. It also works
         in tables that contain columns of file names without directory paths.
 
-        If input parameter substring is True, then a match occurs whenever the
-        given filespec appears inside what is tabulated in the file, so a
-        complete match is not required.
+        Parameters:
+            volume_id (str): The volume ID to search for.
+            filespec (str, optional): The file specification name to search for.
+                If None, volume_id is treated as the filespec.
+            limit (int, optional): Maximum number of matching rows to return.
+            substring (bool, optional): If True, a match occurs whenever the given
+                filespec appears inside what is tabulated in the file, so a complete
+                match is not required.
+
+        Returns:
+            list: A list of row indices that match the search criteria.
         """
 
-        dicts_by_row = self.dicts_by_row(lowercase=(True,True))
-        keys = dicts_by_row[0].keys()
+        dicts_by_row = self.dicts_by_row(lowercase=(True, True))
 
         if filespec is None:
             filespec = volume_id
@@ -861,18 +902,18 @@ class PdsTable(object):
         else:
             substrings = []
         if volume_colname and volume_id:
-            return self.find_row_indices(lowercase=(True,True),
+            return self.find_row_indices(lowercase=(True, True),
                                          substrings=substrings, limit=limit,
                                          **{filespec_colname: filespec,
                                             volume_colname: volume_id})
         else:
-            return self.find_row_indices(lowercase=(True,True),
+            return self.find_row_indices(lowercase=(True, True),
                                          substrings=substrings, limit=limit,
                                          **{filespec_colname: filespec})
 
     def find_row_index_by_volume_filespec(self, volume_id, filespec=None,
                                                 substring=False):
-        """The row index with the specified volume_id and
+        """Find the row index with the specified volume_id and
         file_specification_name.
 
         The search is case-insensitive.
@@ -886,9 +927,19 @@ class PdsTable(object):
         whether the column contains paths to labels or data files. It also works
         in tables that contain columns of file names without directory paths.
 
-        If input parameter substring is True, then a match occurs whenever the
-        given filespec appears inside what is tabulated in the file, so a
-        complete match is not required.
+        Parameters:
+            volume_id (str): The volume ID to search for.
+            filespec (str, optional): The file specification name to search for.
+                If None, volume_id is treated as the filespec.
+            substring (bool, optional): If True, a match occurs whenever the given
+                filespec appears inside what is tabulated in the file, so a
+                complete match is not required.
+
+        Returns:
+            int: The index of the first matching row.
+
+        Raises:
+            ValueError: If no matching row is found.
         """
 
         indices = self.find_row_indices_by_volume_filespec(volume_id, filespec,
@@ -906,7 +957,7 @@ class PdsTable(object):
 
     def find_rows_by_volume_filespec(self, volume_id, filespec=None,
                                            limit=None, substring=False):
-        """The rows of the table with the specified volume_id and
+        """Find the rows of the table with the specified volume_id and
         file_specification_name.
 
         The search is case-insensitive.
@@ -923,6 +974,17 @@ class PdsTable(object):
         If input parameter substring is True, then a match occurs whenever the
         given filespec appears inside what is tabulated in the file, so a
         complete match is not required.
+
+        Parameters:
+            volume_id (str): The volume ID to search for.
+            filespec (str, optional): The file specification name to search for.
+                If None, volume_id is treated as the filespec.
+            limit (int, optional): Maximum number of matching rows to return.
+            substring (bool, optional): If True, a match occurs whenever the given
+                filespec appears inside what is tabulated in the file.
+
+        Returns:
+            list: A list of dictionaries representing the matching rows.
         """
 
         indices = self.find_row_indices_by_volume_filespec(volume_id, filespec,
@@ -932,7 +994,7 @@ class PdsTable(object):
 
     def find_row_by_volume_filespec(self, volume_id, filespec=None,
                                           substring=False):
-        """The first row of the table with the specified volume_id and
+        """Find the first row of the table with the specified volume_id and
         file_specification_name.
 
         The search is case-insensitive.
@@ -946,9 +1008,19 @@ class PdsTable(object):
         whether the column contains paths to labels or data files. It also works
         in tables that contain columns of file names without directory paths.
 
-        If input parameter substring is True, then a match occurs whenever the
-        given filespec appears inside what is tabulated in the file, so a
-        complete match is not required.
+        Parameters:
+            volume_id (str): The volume ID to search for.
+            filespec (str, optional): The file specification name to search for.
+                If None, volume_id is treated as the filespec.
+            substring (bool, optional): If True, a match occurs whenever the given
+                filespec appears inside what is tabulated in the file, so a
+                complete match is not required.
+
+        Returns:
+            dict: A dictionary representing the first matching row.
+
+        Raises:
+            ValueError: If no matching row is found.
         """
 
         k = self.find_row_index_by_volume_filespec(volume_id, filespec,
@@ -956,9 +1028,11 @@ class PdsTable(object):
         return self.dicts_by_row()[k]
 
     def index_rows_by_filename_key(self):
-        """A dictionary of row indices keyed by the file basename associated
-        with the row. The key has the file extension stripped away and is
-        converted to lower case."""
+        """Create a dictionary of row indices keyed by the file basename associated
+        with the row.
+
+        The key has the file extension stripped away and is converted to lower case.
+        """
 
         if self._rows_by_filename is None:
             _ = self.volume_column_index()
@@ -970,7 +1044,8 @@ class PdsTable(object):
             rows_by_filename = {}
             filename_keys = []
             for k in range(len(filespecs)):
-                if masks[k]: continue
+                if masks[k]:
+                    continue
 
                 key = self.filename_key(filespecs[k])
                 key_lc = key.lower()
@@ -984,7 +1059,14 @@ class PdsTable(object):
             self.filename_keys = filename_keys
 
     def row_indices_by_filename_key(self, key):
-        """Quick lookup of the row indices associated with a filename key."""
+        """Quick lookup of the row indices associated with a filename key.
+
+        Parameters:
+            key (str): The filename key to look up.
+
+        Returns:
+            list: A list of row indices associated with the filename key.
+        """
 
         # Create the index if necessary
         self.index_rows_by_filename_key()
@@ -992,7 +1074,15 @@ class PdsTable(object):
         return self._rows_by_filename[key.lower()]
 
     def rows_by_filename_key(self, key):
-        """Quick lookup of the rows associated with a filename key."""
+        """Quick lookup of the rows associated with a filename key.
+
+        Parameters:
+            key (str): The filename key to look up.
+
+        Returns:
+            list: A list of dictionaries representing the rows associated with the
+            filename key.
+        """
 
         # Create the index if necessary
         self.index_rows_by_filename_key()
@@ -1005,20 +1095,33 @@ class PdsTable(object):
 
         return rows
 
+
 def lowercase_value(value):
-    """Convert a table value to lower case. Handles strings and tuples; leaves
-    ints and floats unchanged."""
+    """Convert a table value to lower case.
+
+    Handles strings and tuples; leaves ints and floats unchanged.
+
+    Parameters:
+        value: The value to convert to lowercase. Can be a string, tuple, numpy array, or
+        other type.
+
+    Returns:
+        The value converted to lowercase where applicable. Strings are converted to
+        lowercase, tuples have their string elements converted to lowercase, numpy arrays
+        have their string elements converted to lowercase, and other types are returned
+        unchanged.
+    """
 
     if isinstance(value, str):
         value_lc = value.lower()
-    elif type(value) == tuple:
+    elif isinstance(value, tuple):
         value_lc = []
         for item in value:
-            if type(item) == str:
+            if isinstance(item, str):
                 value_lc.append(item.lower())
             else:
                 value_lc.append(item)
-    elif type(value) == np.ndarray:
+    elif isinstance(value, np.ndarray):
         value_lc = value.copy()
         for k in range(len(value)):
             if isinstance(value[k], str):
