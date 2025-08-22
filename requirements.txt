@@ -4,6 +4,7 @@ myst-parser
 pds4_tools
 pytest
 pytest-cov
+rms-filecache
 rms-julian
 rms-pdsparser
 sphinx

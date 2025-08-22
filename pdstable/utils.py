@@ -4,6 +4,11 @@
 ##########################################################################################
 import julian
 
+import numpy as np
+
+
+# This is an exhaustive tuple of string-like types
+STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 
 _PDS4_LBL_EXTENSIONS = {'.xml', '.lblx'}
 
@@ -71,3 +76,39 @@ def int_from_base16(string):
         int: The integer value.
     """
     return int(string, 16)
+
+
+def lowercase_value(value):
+    """Convert a table value to lower case.
+
+    Handles strings and tuples; leaves ints and floats unchanged.
+
+    Parameters:
+        value: The value to convert to lowercase. Can be a string, tuple, numpy array, or
+        other type.
+
+    Returns:
+        The value converted to lowercase where applicable. Strings are converted to
+        lowercase, tuples have their string elements converted to lowercase, numpy arrays
+        have their string elements converted to lowercase, and other types are returned
+        unchanged.
+    """
+
+    if isinstance(value, str):
+        value_lc = value.lower()
+    elif isinstance(value, tuple):
+        value_lc = []
+        for item in value:
+            if isinstance(item, str):
+                value_lc.append(item.lower())
+            else:
+                value_lc.append(item)
+    elif isinstance(value, np.ndarray):
+        value_lc = value.copy()
+        for k, val in enumerate(value):
+            if isinstance(val, str):
+                value_lc[k] = val.lower()
+    else:
+        value_lc = value
+
+    return value_lc

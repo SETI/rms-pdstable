@@ -100,7 +100,7 @@ class Test_Pds4Table(unittest.TestCase):
         # Row ranges
         # Can't specify row range since rows are not fixed length
         ########################################################################
-        error_msg = 'cannot specify row range for the table without fixed length rows'
+        error_msg = 'Cannot specify row range for the table without fixed length rows'
         try:
             partial_table = PdsTable(label_file=INDEX_PATH,
                                      row_range=(2, 4),

@@ -1,24 +1,47 @@
 ##########################################################################################
-# pdstable/pds4table.py
-# Store Pds4TableInfo and Pds4ColumnInfo
+# pdstable/pds4_table_info.py
+# Pds4TableInfo and Pds4ColumnInfo
 ##########################################################################################
 import numbers
-import numpy as np
-import os
 
 from collections import defaultdict
+
+from filecache import FCPath
 from pds4_tools.reader.label_objects import Label
 
-from .utils import tai_from_iso, int_from_base2, int_from_base8, int_from_base16
+from .pds_table_info import PdsColumnInfo, PdsTableInfo
+from .utils import (tai_from_iso, int_from_base2, int_from_base8, int_from_base16,
+                    STRING_TYPES)
 
 
-PDS4_BUNDLE_COLNAMES = (
-    'Bundle Name',
+# A list of possible table column names that store the bundle name.
+PDS4_BUNDLE_COLNAMES_lc = (
+    'bundle_name',
+    'bundle name',
+    'bundle',
 )
+
+# A list of possible table column names (unique) that store the path of the file spec or
+# the file name. This will be used to get the index of the column containing file
+# specification path or name. The order of the values matters in this variable.
+# Since there is no standard name in PDS4 for this column (if it's even present),
+# we look for these fields that are created by the RMS Node's
+# pds4_create_xml_index tool.
+PDS4_FILE_SPECIFICATION_COLUMN_NAMES_lc = (
+    'file_specification',
+    'file specification',
+    'file_specification_name',
+    'file specification name',
+    'filepath',
+    'filename',
+    'file name',
+    'file_name',
+)
+
 # The mapping of a product tag to its corresponding file area tags
 # The key is a product component tag, and the value is its corresponding file area tag,
 # it could be just one (string) or multiple (tuple) file area tags
-PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING = {
+_PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING = {
     'Product_Ancillary': ('File_Area_Ancillary',),
     'Product_Browse': ('File_Area_Browse',),
     'Product_Bundle': ('File_Area_Text',),
@@ -37,7 +60,7 @@ PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING = {
 
 # The mapping of a table tag to its corresponding record and field tags
 # The key is a table tag, and the value is a tuple of the record and field tags
-PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING = {
+_PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING = {
     'Inventory': ('Record_Delimited', 'Field_Delimited'),
     'Manifest_SIP_Deep_Archive': ('Record_Delimited', 'Field_Delimited'),
     'Table_Binary': ('Record_Binary', 'Field_Binary'),
@@ -49,7 +72,7 @@ PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING = {
 }
 
 # PDS4 label tags under Special_Constants
-PDS4_SPECIAL_CONSTANTS_TAGS = {
+_PDS4_SPECIAL_CONSTANTS_TAGS = {
     'error_constant',
     'high_instrument_saturation',
     'high_representation_saturation',
@@ -63,9 +86,6 @@ PDS4_SPECIAL_CONSTANTS_TAGS = {
     # 'valid_maximum',
     # 'valid_minimum'
 }
-
-# This is an exhaustive tuple of string-like types
-STRING_TYPES = (str, bytes, bytearray, np.str_, np.bytes_)
 
 
 # Delimiter used to separate column values in the same row
@@ -113,10 +133,10 @@ PDS4_CHR_DATA_TYPE_MAPPING = {
 ################################################################################
 # Class Pds4TableInfo
 ################################################################################
-class Pds4TableInfo(object):
+class Pds4TableInfo(PdsTableInfo):
     """The Pds4TableInfo class holds the attributes of a PDS4-labeled table."""
 
-    def __init__(self, label_file_path, *, invalid={}, valid_ranges={},
+    def __init__(self, label_file_path, *, invalid=None, valid_ranges=None,
                  table_file=None):
         """Load a PDS4 table based on its associated label file.
 
@@ -134,17 +154,25 @@ class Pds4TableInfo(object):
                 is out of the range, an error will be raised.
         """
 
+        if invalid is None:
+            invalid = {}
+        if valid_ranges is None:
+            valid_ranges = {}
+
+        label_file_path = FCPath(label_file_path)
+        local_file_path = label_file_path.retrieve()
+
         # Parse PDS4 label, store the label dictionary from the pds4_tools Label object
-        lbl = Label.from_file(label_file_path)
+        lbl = Label.from_file(local_file_path)
         lbl_dict = lbl.to_dict()
-        self.label = lbl_dict
+        self._label = lbl_dict
 
         # Get the file area (table file) info from the label dictionary
         file_areas = None
         for prod_tag, prod_component in lbl_dict.items():
-            if prod_tag not in PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING:
+            if prod_tag not in _PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING:
                 continue
-            file_area_tags = PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING[prod_tag]
+            file_area_tags = _PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING[prod_tag]
             for current_file_area_tag, current_file_area in prod_component.items():
                 if current_file_area_tag not in file_area_tags:
                     continue
@@ -155,7 +183,7 @@ class Pds4TableInfo(object):
                 else:
                     file_areas += current_file_area
 
-        self.table_file_name = None
+        self._table_file_name = None
 
         if len(file_areas) == 0:
             raise ValueError(f'{label_file_path} does not contain any table file info.')
@@ -165,22 +193,22 @@ class Pds4TableInfo(object):
             # because the table_file parameter is not used in this case.
             file_area = file_areas[0]
             try:
-                self.table_file_name = file_area['File']['file_name']
-                self.table_file_li = [self.table_file_name]
+                self._table_file_name = file_area['File']['file_name']
+                table_file_li = [self._table_file_name]
             except KeyError:
                 raise ValueError('"File/file_name" element not found in PDS4 label')
 
             if table_file is not None:
                 # If table_file is specified even though not required, make sure
                 # it is correct
-                if isinstance(table_file, str) and table_file not in self.table_file_li:
+                if isinstance(table_file, str) and table_file not in table_file_li:
                     raise ValueError("The requested table file name doesn't match the " +
                                      'one in the label. The label contains one ' +
-                                     f'table file "{self.table_file_name}"')
+                                     f'table file "{self._table_file_name}"')
                 elif (isinstance(table_file, int) and
-                      not 1 <= table_file <= len(self.table_file_li)):
+                      not 1 <= table_file <= len(table_file_li)):
                     raise ValueError('The requested table number is out of the valid ' +
-                                     f'range 1 to {len(self.table_file_li)}')
+                                     f'range 1 to {len(table_file_li)}')
 
         # The label file points to multiple table files
         else:
@@ -208,26 +236,27 @@ class Pds4TableInfo(object):
             # specify the table that we want to read
             if isinstance(table_file, str):
                 idx = table_name_li.index(table_file)
-                self.table_file_name = table_file
+                self._table_file_name = table_file
             elif isinstance(table_file, int):
                 idx = table_file-1
-                self.table_file_name = table_name_li[idx]
+                self._table_file_name = table_name_li[idx]
 
-            self.table_file_li = table_name_li
+            table_file_li = table_name_li
             file_area = file_areas[idx]
 
         try:
-            self.header_bytes = int(file_area['Header']['object_length'])
+            self._header_bytes = int(file_area['Header']['object_length'])
         except KeyError:
             # Some tables don't have header
-            self.header_bytes = 0
+            self._header_bytes = 0
 
         # Get the table/record/field info by searching the tags in the file area
         table_tag = None
         table_area = None
         record_area = None
         columns = None
-        for table_type, rec_field_tags in PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING.items():
+        for table_type, rec_field_tags in (_PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING
+                                           .items()):
             # There will only be one table type in the file area so the search order
             # doesn't matter
             if table_type in file_area:
@@ -239,51 +268,51 @@ class Pds4TableInfo(object):
                 break
 
         if table_area is None:
-            raise ValueError(f'No Table type found for {self.table_file_name} in ' +
+            raise ValueError(f'No Table type found for {self._table_file_name} in ' +
                              f'{label_file_path}; this probably means the file type '
                              'is currently not supported by PdsTable')
         if record_area is None:
-            raise ValueError(f'No Record element found for {self.table_file_name} in ' +
+            raise ValueError(f'No Record element found for {self._table_file_name} in ' +
                              f'{label_file_path}')
         if columns is None:
-            raise ValueError(f'No Field element found for {self.table_file_name} in ' +
+            raise ValueError(f'No Field element found for {self._table_file_name} in ' +
                              f'{label_file_path}')
         if table_tag == 'Table_Binary':
             raise ValueError('Binary table is not supported for ' +
-                             f'{self.table_file_name} in {label_file_path}')
+                             f'{self._table_file_name} in {label_file_path}')
 
         try:
-            self.rows = int(table_area['records'])
+            self._rows = int(table_area['records'])
         except (KeyError, ValueError):
             raise ValueError('Missing or bad "records" element for '
-                             f'{self.table_file_name} in {label_file_path}')
+                             f'{self._table_file_name} in {label_file_path}')
         try:
-            self.columns = int(record_area['fields'])
+            self._columns = int(record_area['fields'])
         except (KeyError, ValueError):
             raise ValueError('Missing or bad "fields" element for '
                              f'{self.table_file_name} in {label_file_path}')
 
         try:
             # for a table with fixed row length
-            self.row_bytes = int(record_area['record_length'])
-            self.fixed_length_row = True
-            self.field_delimiter = None
+            self._row_bytes = int(record_area['record_length'])
+            self._fixed_length_row = True
+            self._field_delimiter = None
         except KeyError:
             # for the case like .csv table, row length is not used
             try:
-                self.row_bytes = int(record_area['maximum_record_length'])
+                self._row_bytes = int(record_area['maximum_record_length'])
             except KeyError:
                 # set to max 255 if the tag doesn't exist in the label
-                self.row_bytes = 255
-            self.fixed_length_row = False
-            self.field_delimiter = PDS4_FIELD_DELIMITER[table_area['field_delimiter']]
+                self._row_bytes = 255
+            self._fixed_length_row = False
+            self._field_delimiter = PDS4_FIELD_DELIMITER[table_area['field_delimiter']]
 
         # Save the key info about each column in a list and a dictionary
-        self.column_info_list = []
-        self.column_info_dict = {}
+        self._column_info_list = []
+        self._column_info_dict = {}
 
         # Construct the dtype0 dictionary
-        self.dtype0 = {'crlf': ('|S2', self.row_bytes-2)}
+        self._dtype0 = {'crlf': ('|S2', self._row_bytes-2)}
 
         default_invalid = set(invalid.get('default', []))
 
@@ -313,15 +342,15 @@ class Pds4TableInfo(object):
             self.column_info_dict[pdscol.name] = pdscol
             self.dtype0[pdscol.name] = pdscol.dtype0
 
-        self.table_file_path = os.path.join(os.path.dirname(label_file_path),
-                                            self.table_file_name)
+        table_file_path = label_file_path.with_name(self._table_file_name)
+        self._table_file_path = table_file_path.retrieve()
 
 
 ################################################################################
 # class Pds4ColumnInfo
 ################################################################################
 
-class Pds4ColumnInfo(object):
+class Pds4ColumnInfo(PdsColumnInfo):
     """The Pds4ColumnInfo class holds the attributes of one column in a PDS4 label."""
 
     def __init__(self, node_dict, column_no, invalid=set(), valid_range=None):
@@ -337,49 +366,49 @@ class Pds4ColumnInfo(object):
                 the lower and upper limits of the valid range for a numeric column.
         """
 
-        self.name = node_dict['name']
-        self.colno = column_no
+        self._name = node_dict['name']
+        self._colno = column_no
 
         try:
-            self.start_byte = int(node_dict['field_location'])
-            self.bytes      = int(node_dict['field_length'])
+            self._start_byte = int(node_dict['field_location'])
+            self._bytes      = int(node_dict['field_length'])
         except KeyError:
             # For .csv table, each column length is not fixed (row is not fixed), so
             # we don't have these info.
-            self.start_byte = None
-            self.bytes = None
+            self._start_byte = None
+            self._bytes = None
 
-        if self.start_byte is not None and self.bytes is not None:
-            self.items = 1
+        if self._start_byte is not None and self._bytes is not None:
+            self._items = 1
             # Define dtype0 to isolate each column in a record
-            self.dtype0 = ('S' + str(self.bytes), self.start_byte - 1)
-            self.dtype1 = None
+            self._dtype0 = ('S' + str(self._bytes), self._start_byte - 1)
+            self._dtype1 = None
         else:
-            self.dtype0 = None
-            self.dtype1 = None
+            self._dtype0 = None
+            self._dtype1 = None
 
         # PDS4 TODO: review the data type conversion
         # Define dtype2 as the intended dtype of the values in the column
-        self.data_type = node_dict['data_type']
+        self._data_type = node_dict['data_type']
         # Convert PDS4 data_type
         try:
-            (self.data_type,
-             self.dtype2,
-             self.scalar_func) = PDS4_CHR_DATA_TYPE_MAPPING[self.data_type]
+            (self._data_type,
+             self._dtype2,
+             self._scalar_func) = PDS4_CHR_DATA_TYPE_MAPPING[self._data_type]
         except KeyError:
-            raise ValueError('unsupported data type: ' + self.data_type)
+            raise ValueError('unsupported data type: ' + self._data_type)
 
         # Handle the case like "START_TIME" with ASCII_String instead of ASCII_Time as
         # the data type
-        if self.name.endswith("_TIME") or self.name.endswith("_DATE"):
-            self.data_type = "time"
-            self.dtype2 = 'S'
-            self.scalar_func = tai_from_iso
+        if self._name.endswith("_TIME") or self._name.endswith("_DATE"):
+            self._data_type = "time"
+            self._dtype2 = 'S'
+            self._scalar_func = tai_from_iso
 
         # Identify validity criteria
         invalid_set = set()
         if valid_range is not None:
-            self.valid_range = valid_range
+            self._valid_range = valid_range
         else:
             valid_max = None
             valid_min = None
@@ -387,7 +416,7 @@ class Pds4ColumnInfo(object):
             # from tags in PDS4_SPECIAL_CONSTANTS_TAGS and store them in invalid_set
             if 'Special_Constants' in node_dict:
                 special_const_area = node_dict['Special_Constants']
-                for invalid_tag in PDS4_SPECIAL_CONSTANTS_TAGS:
+                for invalid_tag in _PDS4_SPECIAL_CONSTANTS_TAGS:
                     invalid_val = special_const_area.get(invalid_tag, None)
                     if invalid_val:
                         if self.scalar_func:
@@ -406,11 +435,11 @@ class Pds4ColumnInfo(object):
                 valid_max = self.scalar_func(valid_max) if valid_max else None
                 valid_min = self.scalar_func(valid_min) if valid_min else None
 
-            self.valid_range = (valid_min, valid_max) if valid_min or valid_max else None
+            self._valid_range = (valid_min, valid_max) if valid_min or valid_max else None
 
         if isinstance(invalid, (numbers.Real,) + STRING_TYPES):
             invalid_set |= set([invalid])
         else:
             invalid_set |= invalid
 
-        self.invalid_values = invalid_set
+        self._invalid_values = invalid_set
