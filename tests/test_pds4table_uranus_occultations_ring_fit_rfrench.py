@@ -168,8 +168,8 @@ class Test_Pds4Table(unittest.TestCase):
         ####################################
         # PdsLabel input option
         ####################################
-        # For PDS4, we store the label dictionary in .lable instead of pdsparser.PdsLabel
-        # instance, therefore we use "==" here instead of "is"
+        # For PDS4, we store the label dictionary instead of pdsparser.PdsLabel
+        # in ._label; therefore we use "==" here instead of "is"
         test = PdsTable(label_file=INDEX_PATH,
                         label_contents=partial_table.pdslabel,
                         table_file=TAB_TABLE_FILE_NAME)
@@ -234,10 +234,6 @@ class Test_Pds4Table(unittest.TestCase):
                 continue
 
             rowmask = test_table.get_column_mask(key)
-            # print('xxxxx')
-            # print(f'key: {key}')
-            # print(rowvals)
-            # print(rowvals.dtype.kind)
 
             if cols_with_invalid_results[key] != 0:
                 if rowvals.dtype.kind == 'i':

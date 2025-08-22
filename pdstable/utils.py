@@ -103,11 +103,12 @@ def lowercase_value(value):
                 value_lc.append(item.lower())
             else:
                 value_lc.append(item)
+        value_lc = tuple(value_lc)
     elif isinstance(value, np.ndarray):
         value_lc = value.copy()
         for k, val in enumerate(value):
-            if isinstance(val, str):
-                value_lc[k] = val.lower()
+            if isinstance(val, STRING_TYPES):
+                value_lc[k] = str(val).lower()
     else:
         value_lc = value
 

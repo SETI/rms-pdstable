@@ -290,7 +290,7 @@ class Pds4TableInfo(PdsTableInfo):
             self._columns = int(record_area['fields'])
         except (KeyError, ValueError):
             raise ValueError('Missing or bad "fields" element for '
-                             f'{self.table_file_name} in {label_file_path}')
+                             f'{self._table_file_name} in {label_file_path}')
 
         try:
             # for a table with fixed row length
@@ -353,7 +353,7 @@ class Pds4TableInfo(PdsTableInfo):
 class Pds4ColumnInfo(PdsColumnInfo):
     """The Pds4ColumnInfo class holds the attributes of one column in a PDS4 label."""
 
-    def __init__(self, node_dict, column_no, invalid=set(), valid_range=None):
+    def __init__(self, node_dict, column_no, invalid=None, valid_range=None):
         """Constructor for a Pds4ColumnInfo.
 
         Parameters:
@@ -365,6 +365,9 @@ class Pds4ColumnInfo(PdsColumnInfo):
             valid_range (tuple or list, optional): An optional tuple or list identifying
                 the lower and upper limits of the valid range for a numeric column.
         """
+
+        if invalid is None:
+            invalid = set()
 
         self._name = node_dict['name']
         self._colno = column_no
@@ -400,8 +403,8 @@ class Pds4ColumnInfo(PdsColumnInfo):
 
         # Handle the case like "START_TIME" with ASCII_String instead of ASCII_Time as
         # the data type
-        if self._name.endswith("_TIME") or self._name.endswith("_DATE"):
-            self._data_type = "time"
+        if self._name.endswith('_TIME') or self._name.endswith('_DATE'):
+            self._data_type = 'time'
             self._dtype2 = 'S'
             self._scalar_func = tai_from_iso
 

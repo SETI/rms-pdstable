@@ -8,7 +8,7 @@ Welcome to ``pdstable``'s documentation!
 
 .. include:: ../README.md
    :parser: myst_parser.sphinx_
-   :start-after: forks/SETI/rms-starcat)
+   :start-after: forks/SETI/rms-pdstable)
 
 .. toctree::
    :maxdepth: 2

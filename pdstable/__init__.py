@@ -233,7 +233,7 @@ class PdsTable:
             except ValueError:
                 raise ValueError('Error in row description:\n' +
                                  'old dtype = ' + str(table.dtype) +
-                                 ';\nnew dtype = ' + str(np.dtype(self._info._dtype0)))
+                                 ';\nnew dtype = ' + str(np.dtype(self._info.dtype0)))
         # For a table file that doesn't have fixed length row, like a .csv file:
         # table is a 2-D array, each row is an array of the column values for the row.
         else:
@@ -790,7 +790,7 @@ class PdsTable:
 
         k = self.find_row_index(lowercase=lowercase, **params)
         dicts_by_row = self.dicts_by_row()
-        return dicts_by_row()[k]
+        return dicts_by_row[k]
 
     ############################################################################
     # Support for finding rows by filename
@@ -1003,7 +1003,7 @@ class PdsTable:
                                          **{filespec_colname: filespec})
 
     def find_row_index_by_bundle_filespec(self, bundle_name, filespec=None, *,
-                                                limit=None, substring=False):
+                                                substring=False):
         """Find the first row index with the specified bundle_name and
         file_specification_name.
 
@@ -1036,7 +1036,6 @@ class PdsTable:
         """
 
         return self.find_row_index_by_volume_filespec(bundle_name, filespec,
-                                                      limit=limit,
                                                       substring=substring)
 
     def find_row_index_by_volume_filespec(self, volume_id, filespec=None,

@@ -84,7 +84,7 @@ class Pds3TableInfo(PdsTableInfo):
             self._label = Pds3Label(label_file_path, method=label_method)
 
         # Get the basic file info...
-        if self._label["RECORD_TYPE"] != "FIXED_LENGTH":
+        if self._label['RECORD_TYPE'] != 'FIXED_LENGTH':
             raise IOError('PDS table does not contain fixed-length records')
         else:
             # PDS3 table has fixed length rows
@@ -94,32 +94,30 @@ class Pds3TableInfo(PdsTableInfo):
         # Confirm that the value is a PdsSimplePointer
         self._table_file_name = None
         for key, value in self._label.items():
-            if key[0] == "^" and key.endswith('TABLE'):
+            if key[0] == '^' and key.endswith('TABLE'):
                 self._table_file_name = value
                 if key + '_offset' in self._label:
-                    msg = ("Table file pointer " + self._label[key + '_fmt'] +
-                           " is not a Simple Pointer and isn't fully " +
-                           "supported")
+                    msg = ('Table file pointer ' + self._label[key + '_fmt'] +
+                           ' is not a Simple Pointer and isn\'t fully ' +
+                           'supported')
                     warnings.warn(msg)
-                else:
-                    self._table_file_name = value
                 break
 
         if self._table_file_name is None:
-            raise IOError("Pointer to a data file was not found in PDS label")
+            raise IOError('Pointer to a data file was not found in PDS label')
 
         # Locate the root of the table object
         table_dict = self._label[key[1:]]
 
         # Save key info about the table
-        interchange_format = (table_dict.get("INTERCHANGE_FORMAT", '')
-                              or table_dict["INTERCHANGE_FORMAT_1"])
-        if interchange_format != "ASCII":
+        interchange_format = (table_dict.get('INTERCHANGE_FORMAT', '')
+                              or table_dict['INTERCHANGE_FORMAT_1'])
+        if interchange_format != 'ASCII':
             raise IOError('PDS table is not in ASCII format')
 
-        self._rows = table_dict["ROWS"]
-        self._columns = table_dict["COLUMNS"]
-        self._row_bytes = table_dict["ROW_BYTES"]
+        self._rows = table_dict['ROWS']
+        self._columns = table_dict['COLUMNS']
+        self._row_bytes = table_dict['ROW_BYTES']
 
         # Save the key info about each column in a list and a dictionary
         self._column_info_list = []
@@ -128,13 +126,13 @@ class Pds3TableInfo(PdsTableInfo):
         # Construct the dtype0 dictionary
         self._dtype0 = {'crlf': ('|S2', self._row_bytes-2)}
 
-        default_invalid = set(invalid.get("default", []))
+        default_invalid = set(invalid.get('default', []))
         counter = 0
         for key, column_dict in table_dict.items():
             if not isinstance(column_dict, dict):
                 continue
-            if column_dict['OBJECT'] == "COLUMN":
-                name = column_dict["NAME"]
+            if column_dict['OBJECT'] == 'COLUMN':
+                name = column_dict['NAME']
                 pdscol = Pds3ColumnInfo(column_dict, counter,
                                         invalid=invalid.get(name, default_invalid),
                                         valid_range=valid_ranges.get(name, None))
@@ -159,7 +157,7 @@ class Pds3ColumnInfo(PdsColumnInfo):
     """The Pds3ColumnInfo class holds the attributes of one column in a PDS3 label."""
 
     def __init__(self, node_dict, column_no, invalid=set(), valid_range=None):
-        """Constructor for a Pds3Column.
+        """Constructor for a Pds3ColumnInfo.
 
         Parameters:
             node_dict (dict): The dictionary associated with the pdsparser.PdsNode
@@ -171,18 +169,18 @@ class Pds3ColumnInfo(PdsColumnInfo):
                 the lower and upper limits of the valid range for a numeric column.
         """
 
-        self._name = node_dict["NAME"]
+        self._name = node_dict['NAME']
         self._colno = column_no
 
-        self._start_byte = node_dict["START_BYTE"]
-        self._bytes      = node_dict["BYTES"]
+        self._start_byte = node_dict['START_BYTE']
+        self._bytes      = node_dict['BYTES']
 
-        self._items = node_dict.get("ITEMS", 1)
-        self._item_bytes = node_dict.get("ITEM_BYTES", self._bytes)
-        self._item_offset = node_dict.get("ITEM_OFFSET", self._bytes)
+        self._items = node_dict.get('ITEMS', 1)
+        self._item_bytes = node_dict.get('ITEM_BYTES', self._bytes)
+        self._item_offset = node_dict.get('ITEM_OFFSET', self._bytes)
 
         # Define dtype0 to isolate each column in a record
-        self._dtype0 = ("S" + str(self._bytes), self._start_byte - 1)
+        self._dtype0 = ('S' + str(self._bytes), self._start_byte - 1)
 
         # Define dtype1 as a list of dtypes needed to isolate each item
         if self._items == 1:
@@ -191,48 +189,48 @@ class Pds3ColumnInfo(PdsColumnInfo):
             self._dtype1 = {}
             byte0 = 0
             for i in range(self._items):
-                self._dtype1["item_" + str(i)] = ("S" + str(self._item_bytes),
+                self._dtype1['item_' + str(i)] = ('S' + str(self._item_bytes),
                                                  byte0)
                 byte0 += self._item_offset
 
         # Define dtype2 as the intended dtype of the values in the column
-        self._data_type = node_dict["DATA_TYPE"]
-        if "INTEGER" in self._data_type:
-            self._data_type = "int"
-            self._dtype2 = "int"
+        self._data_type = node_dict['DATA_TYPE']
+        if 'INTEGER' in self._data_type:
+            self._data_type = 'int'
+            self._dtype2 = 'int'
             self._scalar_func = int
-        elif "REAL" in self._data_type:
-            self._data_type = "float"
-            self._dtype2 = "float"
+        elif 'REAL' in self._data_type:
+            self._data_type = 'float'
+            self._dtype2 = 'float'
             self._scalar_func = float
-        elif ("TIME" in self._data_type or "DATE" in self._data_type or
-              self._name.endswith("_TIME") or self._name.endswith("_DATE")):
-            self._data_type = "time"
+        elif ('TIME' in self._data_type or 'DATE' in self._data_type or
+              self._name.endswith('_TIME') or self._name.endswith('_DATE')):
+            self._data_type = 'time'
             self._dtype2 = 'S'
             self._scalar_func = tai_from_iso
-        elif "CHAR" in self._data_type:
-            self._data_type = "string"
+        elif 'CHAR' in self._data_type:
+            self._data_type = 'string'
             self._dtype2 = 'U'
             self._scalar_func = None
         else:
-            raise IOError("unsupported data type: " + self._data_type)
+            raise IOError('unsupported data type: ' + self._data_type)
 
         # Identify validity criteria
-        self._valid_range = valid_range or node_dict.get("VALID_RANGE", None)
+        self._valid_range = valid_range or node_dict.get('VALID_RANGE', None)
 
         if isinstance(invalid, (numbers.Real,) + STRING_TYPES):
             invalid = set([invalid])
 
         self._invalid_values = set(invalid)
 
-        self._invalid_values.add(node_dict.get("INVALID_CONSTANT"       , None))
-        self._invalid_values.add(node_dict.get("MISSING_CONSTANT"       , None))
-        self._invalid_values.add(node_dict.get("UNKNOWN_CONSTANT"       , None))
-        self._invalid_values.add(node_dict.get("NOT_APPLICABLE_CONSTANT", None))
-        self._invalid_values.add(node_dict.get("NULL_CONSTANT"          , None))
-        self._invalid_values.add(node_dict.get("INVALID"                , None))
-        self._invalid_values.add(node_dict.get("MISSING"                , None))
-        self._invalid_values.add(node_dict.get("UNKNOWN"                , None))
-        self._invalid_values.add(node_dict.get("NOT_APPLICABLE"         , None))
-        self._invalid_values.add(node_dict.get("NULL"                   , None))
+        self._invalid_values.add(node_dict.get('INVALID_CONSTANT'       , None))
+        self._invalid_values.add(node_dict.get('MISSING_CONSTANT'       , None))
+        self._invalid_values.add(node_dict.get('UNKNOWN_CONSTANT'       , None))
+        self._invalid_values.add(node_dict.get('NOT_APPLICABLE_CONSTANT', None))
+        self._invalid_values.add(node_dict.get('NULL_CONSTANT'          , None))
+        self._invalid_values.add(node_dict.get('INVALID'                , None))
+        self._invalid_values.add(node_dict.get('MISSING'                , None))
+        self._invalid_values.add(node_dict.get('UNKNOWN'                , None))
+        self._invalid_values.add(node_dict.get('NOT_APPLICABLE'         , None))
+        self._invalid_values.add(node_dict.get('NULL'                   , None))
         self._invalid_values -= {None}
