@@ -44,21 +44,26 @@
 
 import os
 import warnings
+
 import numpy as np
 
+from .pds_table_info import PdsTableInfo, PdsColumnInfo
 from .pds3_table_info import (Pds3TableInfo,
                               PDS3_VOLUME_COLNAMES_lc,
                               PDS3_FILE_SPECIFICATION_COLUMN_NAMES_lc)
 from .pds4_table_info import (Pds4TableInfo,
                               PDS4_BUNDLE_COLNAMES_lc,
                               PDS4_FILE_SPECIFICATION_COLUMN_NAMES_lc)
-
 from .utils import is_pds4_label, lowercase_value, tai_from_iso, STRING_TYPES
 
 try:
     from ._version import __version__
 except ImportError:
     __version__ = 'Version unspecified'
+
+
+# This is mainly to make the documentation look good
+__all__ = ['PdsTable', 'PdsTableInfo', 'PdsColumnInfo']
 
 
 class PdsTable:
@@ -128,8 +133,11 @@ class PdsTable:
             row_range (tuple or list, optional): A tuple or list of integers containing
                 the index of the first row to read and the first row to omit. If not
                 specified, then all the rows are read.
-            table_file (str or int, optional): Specify a table file to be read, if the
-                provided table doesn't exist in the label, an error will be raised.
+            table_file (str or int, optional): Specify a table file name to be read or an
+                integer (1-based) representing the order in which the table appears in the
+                label file. If the provided table name doesn't exist in the label or the
+                integer is out of the range, an error will be raised. Only relevant for
+                PDS4 labels.
             label_method (str, optional): The method to use to parse the label. Valid
                 values are 'strict' (default) or 'fast'. The 'fast' method is faster but
                 may not be as accurate. Only relevant for PDS3 labels.
@@ -167,7 +175,9 @@ class PdsTable:
                                        table_file=table_file)
             self._encoding = {'encoding': 'utf-8'}
         else:
-            self._info = Pds3TableInfo(label_file, label_list=label_contents,
+            if table_file is not None:
+                raise ValueError('table_file is not supported for PDS3 labels')
+            self._info = Pds3TableInfo(label_file, label_contents=label_contents,
                                        invalid=invalid, valid_ranges=valid_ranges,
                                        label_method=label_method)
             self._encoding = {'encoding': 'latin-1'}

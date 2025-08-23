@@ -251,7 +251,7 @@ class Test_Pds4Table(unittest.TestCase):
             countm = np.sum(rowmask)
             self.assertEqual(countv, countm)
 
-        # 3.0377050292398E-04 appear 4 times in column 'Inclination'
+        # 3.0377050292398E-04 appears 4 times in column 'Inclination'
         test_table = PdsTable(label_file=INDEX_PATH,
                               invalid={'default': [3.0377050292398E-04]},
                               table_file=TAB_TABLE_FILE_NAME)

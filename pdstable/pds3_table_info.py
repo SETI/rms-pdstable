@@ -1,15 +1,17 @@
-##########################################################################################
+################################################################################
 # pdstable/pds3_table_info.py
 # Pds3TableInfo and Pds3ColumnInfo
-##########################################################################################
+################################################################################
+
 import numbers
-from pdsparser import Pds3Label
 import warnings
 
 from filecache import FCPath
+from pdsparser import Pds3Label
 
 from .pds_table_info import PdsColumnInfo, PdsTableInfo
 from .utils import tai_from_iso, STRING_TYPES
+
 
 # A list of possible table column names that store the volume ID.
 PDS3_VOLUME_COLNAMES_lc = (
@@ -41,29 +43,45 @@ PDS3_FILE_SPECIFICATION_COLUMN_NAMES_lc = (
 ################################################################################
 # Class Pds3TableInfo
 ################################################################################
+
 class Pds3TableInfo(PdsTableInfo):
     """The Pds3TableInfo class holds the attributes of a PDS3-labeled table."""
 
-    def __init__(self, label_file_path, label_list=None, invalid=None,
+    def __init__(self, label_file_path, *, label_contents=None, invalid=None,
                        valid_ranges=None, label_method='strict'):
         """Load a PDS table based on its associated label file.
 
         Parameters:
-            label_file_path (str or Path or FCPath): Path to the label file.
-            label_list (list or Pds3Label, optional): An option to override the parsing of
-                the label. If this is a list, it is interpreted as containing all the
-                records of the PDS label, in which case it overrides the contents of the
-                label file. Alternatively, this can be a Pds3Label object that was already
-                parsed.
+            label_file_path (str or Path or FCPath): Path to the PDS3 label file. Even if
+                the label contents is provided in `label_list`, `label_file_path` must be
+                be specificed because it is needed to locate the table file. If this
+                parameter is an FCPath object, it will be downloaded from the remote
+                source.
+            label_contents (list or dict or Pds3Label, optional): An option to override
+                the parsing of the label. If this is a list, it is interpreted as
+                containing all the records of the PDS label. If it is a dict, it is
+                treated as a parsed label keyed by label item. If it is a Pds3Label
+                object, it is assumed to be the label file that was already parsed. If
+                None, the label file specified by `label_file_path` is read and parsed.
             invalid (dict, optional): An optional dictionary keyed by column name. The
                 returned value must be a list or set of values that are to be treated as
-                invalid, missing or unknown.
+                invalid, missing, or unknown.
             valid_ranges (dict, optional): An optional dictionary keyed by column name.
                 The returned value must be a tuple or list containing the minimum and
                 maximum numeric values in that column.
-            label_method (str, optional): The method to use to parse the label. Valid
-                values are 'strict' (default) or 'fast'. The 'fast' method is faster but
-                may not be as accurate.
+            label_method (str, optional): The method to use to parse the label. One of:
+
+                * "strict" performs strict parsing, which requires that the label conform
+                  to the full PDS3 standard.
+                * "loose" is similar to the above, but tolerates some common syntax
+                  errors.
+                * "compound" is similar to "loose", but it parses a "compound" label,
+                  i.e., one that might contain more than one "END" statement. This option
+                  is not supported for attached labels.
+                * "fast": uses a different parser, which executes ~ 30x fast than the
+                  above and handles all the most common aspects of the PDS3 standard.
+                  However, it is not guaranteed to provide an accurate parsing under all
+                  circumstances.
         """
 
         if invalid is None:
@@ -76,19 +94,20 @@ class Pds3TableInfo(PdsTableInfo):
         label_file_path = FCPath(label_file_path)
 
         # Parse the label
-        if isinstance(label_list, (Pds3Label, dict)):
-            self._label = label_list
-        elif label_list:
-            self._label = Pds3Label(label_list, method=label_method)
+        if isinstance(label_contents, (Pds3Label, dict)):
+            self._label = label_contents
+        elif label_contents:
+            # Pds3Label already support FCPath objects
+            self._label = Pds3Label(label_contents, method=label_method)
         else:
             self._label = Pds3Label(label_file_path, method=label_method)
 
         # Get the basic file info...
         if self._label['RECORD_TYPE'] != 'FIXED_LENGTH':
             raise IOError('PDS table does not contain fixed-length records')
-        else:
-            # PDS3 table has fixed length rows
-            self._fixed_length_row = True
+
+        # PDS3 table always has fixed length rows (for now)
+        self._fixed_length_row = True
 
         # Find the pointer to the table file
         # Confirm that the value is a PdsSimplePointer
@@ -156,7 +175,7 @@ class Pds3TableInfo(PdsTableInfo):
 class Pds3ColumnInfo(PdsColumnInfo):
     """The Pds3ColumnInfo class holds the attributes of one column in a PDS3 label."""
 
-    def __init__(self, node_dict, column_no, invalid=set(), valid_range=None):
+    def __init__(self, node_dict, column_no, *, invalid=None, valid_range=None):
         """Constructor for a Pds3ColumnInfo.
 
         Parameters:
@@ -164,10 +183,13 @@ class Pds3ColumnInfo(PdsColumnInfo):
                 object defining the column.
             column_no (int): The index number of this column, starting at zero.
             invalid (set, optional): An optional set of discrete values that are to be
-                treated as invalid, missing or unknown.
+                treated as invalid, missing, or unknown.
             valid_range (tuple or list, optional): An optional tuple or list identifying
                 the lower and upper limits of the valid range for a numeric column.
         """
+
+        if invalid is None:
+            invalid = set()
 
         self._name = node_dict['NAME']
         self._colno = column_no
@@ -189,8 +211,7 @@ class Pds3ColumnInfo(PdsColumnInfo):
             self._dtype1 = {}
             byte0 = 0
             for i in range(self._items):
-                self._dtype1['item_' + str(i)] = ('S' + str(self._item_bytes),
-                                                 byte0)
+                self._dtype1['item_' + str(i)] = ('S' + str(self._item_bytes), byte0)
                 byte0 += self._item_offset
 
         # Define dtype2 as the intended dtype of the values in the column

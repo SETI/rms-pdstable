@@ -1,10 +1,9 @@
-##########################################################################################
+################################################################################
 # pdstable/pds_table_info.py
 # PdsTableInfo and PdsColumnInfo
 # These are the parent classes for Pds3TableInfo and Pds4TableInfo,
 # and Pds3ColumnInfo and Pds4ColumnInfo.
-##########################################################################################
-
+################################################################################
 
 
 ################################################################################
@@ -16,12 +15,12 @@ class PdsTableInfo:
 
     @property
     def label(self):
-        """The label of the table as a Pds3Label or dict for PDS4."""
+        """The label of the table as a Pds3Label for PDS3 or dict for PDS4."""
         return self._label
 
     @property
     def table_file_name(self):
-        """The name of the table file."""
+        """The name of the table file (without the path)."""
         return self._table_file_name
 
     @property
@@ -56,7 +55,7 @@ class PdsTableInfo:
 
     @property
     def row_bytes(self):
-        """The number of bytes in a row of the table."""
+        """The number of bytes in a single row of the table."""
         return self._row_bytes
 
     @property
@@ -66,15 +65,16 @@ class PdsTableInfo:
 
     @property
     def column_info_dict(self):
-        """The dictionary of PdsColumnInfo objects for the columns in the table."""
+        """The dict of PdsColumnInfo objects for the columns in the table, keyed by
+        the column name."""
         return self._column_info_dict
 
     @property
     def dtype0(self):
-        """The dtype dictionary for the table.
+        """The dtype dictionary for the table, keyed by the column name.
 
-        The key is the name of the column, and the value is a tuple of the dtype and the
-        number of bytes in the column.
+        Each value is a tuple of the string representation of the dtype used to isolate
+        the column as a string (Snnn) and the starting byte of the column in a row.
         """
         return self._dtype0
 
@@ -93,12 +93,12 @@ class PdsColumnInfo:
 
     @property
     def colno(self):
-        """The index number of the column."""
+        """The index number of the column, starting at zero."""
         return self._colno
 
     @property
     def start_byte(self):
-        """The starting byte of the column."""
+        """The starting byte of the column in the row."""
         return self._start_byte
 
     @property
@@ -108,50 +108,71 @@ class PdsColumnInfo:
 
     @property
     def items(self):
-        """The number of items in the column."""
+        """The number of items in the column (PDS3 only)."""
         return self._items
 
     @property
     def item_bytes(self):
-        """The number of bytes in an item of the column."""
+        """The number of bytes in an item of the column (PDS3 only)."""
         return self._item_bytes
 
     @property
     def item_offset(self):
-        """The offset of an item of the column."""
+        """The incremental offset of each item within the column."""
         return self._item_offset
 
     @property
     def data_type(self):
-        """The data type of the column."""
+        """The data type of the column.
+
+        Possible values are 'int', 'float', 'time', and 'string'.
+        """
         return self._data_type
 
     @property
     def dtype0(self):
-        """The dtype0 of the column."""
+        """The dtype of the entire column as a string.
+
+        The value is a tuple of the string representation of the dtype used to isolate
+        the column as a string (Snnn) and the starting byte of the column in a row.
+        """
         return self._dtype0
 
     @property
     def dtype1(self):
-        """The dtype1 of the column."""
+        """The dtype of a multiple-item column.
+
+        If items == 0, this value is None. Otherwise, it is a dict keyed by 'item_0',
+        'item_1', etc. with the value being a tuple of the string representation of
+        the dtype used to isolate each item as a string (Snnn) and the starting byte
+        relative to the beginning of the column for that item.
+        """
         return self._dtype1
 
     @property
     def dtype2(self):
-        """The dtype2 of the column."""
+        """The dtype of the column with the actual data type.
+
+        Possible values are 'int', 'float', 'S', and 'U'.
+        """
         return self._dtype2
 
     @property
     def scalar_func(self):
-        """The scalar function of the column."""
+        """The scalar function used to convert the column's string value to its data
+        value."""
         return self._scalar_func
 
     @property
     def valid_range(self):
-        """The valid range of the column."""
+        """The valid range of the column as a tuple (lower, upper) or None."""
         return self._valid_range
 
     @property
     def invalid_values(self):
-        """The invalid values of the column."""
+        """The set of invalid value markers for the column.
+
+        If the column's value equals one of these markers, the column value is considered
+        invalid.
+        """
         return self._invalid_values
