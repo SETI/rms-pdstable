@@ -1,0 +1,9 @@
+[flake8]
+max-line-length: 90
+extend-ignore =
+    # E127 continuation line over-indented for visual indent
+    # E203 whitespace before ','
+    # E221 multiple spaces before operator
+    # E265 block comment should start with '# '
+    # E266 too many leading '#' for block comment
+    E127, E203, E221, E265, E266
