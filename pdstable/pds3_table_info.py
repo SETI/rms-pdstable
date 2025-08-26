@@ -113,7 +113,8 @@ class Pds3TableInfo(PdsTableInfo):
         for key, value in self._label.items():
             if key[0] == '^' and key.endswith('TABLE'):
                 self._table_file_name = value
-                if key + '_offset' in self._label:
+                print(key, key + '_OFFSET' in self._label)
+                if key + '_OFFSET' in self._label:
                     msg = ('Table file pointer ' + self._label[key + '_fmt'] +
                            ' is not a Simple Pointer and isn\'t fully ' +
                            'supported')

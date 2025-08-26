@@ -13,7 +13,11 @@ from filecache import FCPath
 ################################################################################
 
 class PdsTableInfo:
-    """Class to hold the attributes of a PDS-labeled table."""
+    """Class to hold the attributes of a PDS-labeled table.
+
+    Direct access to this class's attributes by the end user is deprecated and only
+    supported for backwards compatibility. Use the properties of PdsTable instead.
+    """
 
     def __init__(self, label_file_path):
 
@@ -115,7 +119,11 @@ class PdsTableInfo:
 ################################################################################
 
 class PdsColumnInfo:
-    """Class to hold the attributes of one column in a PDS-labeled table."""
+    """Class to hold the attributes of one column in a PDS-labeled table.
+
+    Direct access of this class's attributes by the end user is not generally necessary,
+    but is permitted if you want the inner details of each column.
+    """
 
     @property
     def name(self):

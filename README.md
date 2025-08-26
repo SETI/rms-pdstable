@@ -24,8 +24,8 @@
 
 # Introduction
 
-`pdstable` is a set of classes for reading and searching star catalogs. Currently NAIF SPICE
-star catalogs, the Yale Bright Star Catalog (YBSC), and UCAC4 are supported.
+`pdstable` contains a class, `PdsTable`, that can read PDS3 or PDS4 labels and their associated
+tables.
 
 `pdstable` is a product of the [PDS Ring-Moon Systems Node](https://pds-rings.seti.org).
 
@@ -39,69 +39,52 @@ pip install rms-pdstable
 
 # Getting Started
 
-The `pdstable` module provides the `pdstablealog` class, which is the superclass for classes
-that handle specific star catalogs. Each star catalog class takes an optional directory
-path to point at the root of the star catalog data; if no directory path is provided,
-the contents of an environment variable is used instead. Each path can be a full URL
-as supported by [`rms-filecache`](https://rms-filecache.readthedocs.io/en/latest/),
-allowing the catalog data to be downloaded (and cached locally) at runtime.
-
-- `Spicepdstablealog`
-  - The `dir` argument, if specified, must point to a directory containing NAIF SPICE
-    kernels.
-  - Otherwise, the environment variable `SPICE_PATH`, if defined, must contain a `Stars`
-    subdirectory with NAIF SPICE kernels.
-  - Otherwise, the environment variable `OOPS_RESOURCES` must contain a `SPICE/Stars`
-    subdirectory.
-- `YBSCpdstablealog`
-  - The `dir` argument, if specified, must point to a directory containing the file
-    `catalog`.
-  - Otherwise, the environment variable `YBSC_PATH` must point to that directory.
-- `UCAC4pdstablealog`
-  - The `dir` argument, if specified, must point to a directory containing the directory
-    `u4b`.
-  - Otherwise, the environment variable `UCAC4_PATH` must point to that directory.
-
-Each star catalog returns stars as a class that is a subclass of `Star`. Each subclass
-contains the attributes provided by that star catalog, and none are guaranteed to be
-filled in for all stars:
-
-- `SpiceStar`
-- `YBSCStar`
-- `UCAC4Star`
-
-Details of each class are available in the [module documentation](https://rms-pdstable.readthedocs.io/en/latest/module.html).
-
-Basic operation is as follows:
+The `pdstable` module provides the `PdsTable` class, which can be used to read both
+PDS3 and PDS4 labels and their associated tables. A `PdsTable` object can be created
+easily:
 
 ```python
-from pdstable import YBSCpdstablealog
-import numpy as np
-cat = YBSCpdstablealog()
-ra_vega = 279.2333
-dec_vega = 38.7836
-vega_list = list(cat.find_stars(ra_min=np.radians(ra_vega-0.1),
-                                ra_max=np.radians(ra_vega+0.1),
-                                dec_min=np.radians(dec_vega-0.1),
-                                dec_max=np.radians(dec_vega+0.1)))
-
-assert len(vega_list) == 1
-print(vega_list[0])
+from pdstable import PdsTable
+p3 = PdsTable('label_filename.lbl')  # PDS3 label and table
+p4 = PdsTable('label_filename.xml')  # PDS4 label and table
 ```
 
-yields:
+Once created, the `PdsTable` object has properties that can be used to access the
+contents of the table. Columns of values are represented by NumPy arrays.
 
+```python
+rows = p3.rows  # The number of rows
+columns = p3.columns # The number of columns
+col_vals = p3.get_column("FILE_SPEC")  # All values in the FILE_SPEC column
+col_mask = p3.get_column_mask("FILE_SPEC")  # The mask of invalid values
 ```
-UNIQUE ID 7001 | RA 279.2345833° (18h36m56.300s) | DEC 38.7836111° (+038d47m1.000s)
-VMAG  0.030  | PM RA 259.135 mas/yr  | PM DEC 286.000 mas/yr
-TEMP 10800 | SCLASS A0Va
-Name "3Alp Lyr" | Durch "BD+38 3238" | Draper 172167 | SAO 67174 | FK5 699
-IR 1 Ref NASA | Multiple " " | Aitken 11510 None | Variable "Alp Lyr"
-SCLASS Code   | Galactic LON 67.44 LAT 19.24
-B-V 0.0 | U-B -0.01 | R-I -0.03
-Parallax TRIG 0.1230000 arcsec | RadVel -14.0 km/s V  | RotVel (v sin i) 15.0 km/s
-Double mag diff 10.40 Sep 62.80 arcsec Components AB # 5
+
+The entire table can be returned as a series of dictionaries, one per row. The
+dictionary keys are the names of the columns:
+
+```python
+as_dict = p3.dicts_by_row()
 ```
+
+PDS3 labels can only point to a single table. However, PDS4 labels can point to
+multiple tables. If multiple tables are present in the label, you must specify
+which table you want to read. This can be done using an integer index or specifying
+a filename or regular expression:
+
+```python
+p4 = PdsTable('multi_table_label.xml', table_file=3)  # Load the 3rd table
+p4 = PdsTable('multi_table_label.xml', table_file='.*summary_index.*')
+```
+
+A wide variety of other features are available, many of which are designed to
+increase performance. These include:
+
+- Specifying a subset of columns to parse.
+- Reading only a subset of rows.
+- Using a faster but less rigorous label parser for PDS3 labels.
+- Searching for rows with a specific volume or bundle name and/or file specification.
+
+Full details can be found in the [module documentation](https://rms-pdstable.readthedocs.io/en/latest/module.html).
 
 # Contributing
 

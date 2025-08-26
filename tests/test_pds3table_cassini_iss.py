@@ -18,7 +18,6 @@ class Test_Pds3Table(unittest.TestCase):
         # Testing different values parsed correctly...
         INDEX_PATH = "test_files/cassini_iss_index.lbl"
         EDITED_INDEX_PATH = "test_files/cassini_iss_index_edited.lbl"
-        BAD_ROWS_INDEX_PATH = "test_files/cassini_iss_index_edited_bad_rows.lbl"
 
         test_table_some_cols = PdsTable(INDEX_PATH, columns=['FILE_NAME', 'START_TIME'])
 
@@ -107,10 +106,13 @@ class Test_Pds3Table(unittest.TestCase):
         # Test string stripping
         ####################################
 
-        self.assertEqual(test_table_basic.column_values['FILE_NAME'][0], 'N1573186009_1.IMG')
+        self.assertEqual(test_table_basic.column_values['FILE_NAME'][0],
+                         'N1573186009_1.IMG')
 
-        test_table_no_strip = PdsTable(INDEX_PATH, columns=['FILE_NAME'], nostrip=['FILE_NAME'])
-        self.assertEqual(test_table_no_strip.column_values['FILE_NAME'][0], 'N1573186009_1.IMG     ')
+        test_table_no_strip = PdsTable(INDEX_PATH, columns=['FILE_NAME'],
+                                       nostrip=['FILE_NAME'])
+        self.assertEqual(test_table_no_strip.column_values['FILE_NAME'][0],
+                         'N1573186009_1.IMG     ')
 
         ####################################
         # Test times as seconds (floats)
@@ -422,7 +424,11 @@ class Test_Pds3Table(unittest.TestCase):
         ####################################
 
         test = PdsTable(INDEX_PATH, label_contents=partial_table.pdslabel)
-        self.assertTrue(test.pdslabel is partial_table.pdslabel)
+        self.assertIs(test.pdslabel, partial_table.pdslabel)
+
+        test = PdsTable(INDEX_PATH, label_contents=partial_table.pdslabel.content)
+        self.assertIsNot(test.pdslabel, partial_table.pdslabel)
+        self.assertEqual(test.pdslabel.content, partial_table.pdslabel.content)
 
         ####################################
         # Other PdsTable options
@@ -458,11 +464,30 @@ class Test_Pds3Table(unittest.TestCase):
         self.assertEqual(test_table_basic.column_info_dict['START_TIME'].items, 1)
         self.assertEqual(test_table_basic.column_info_dict['START_TIME'].item_bytes, 22)
         self.assertEqual(test_table_basic.column_info_dict['START_TIME'].item_offset, 22)
-        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].dtype0, ('S22', 1503))
+        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].dtype0,
+                         ('S22', 1503))
         self.assertEqual(test_table_basic.column_info_dict['START_TIME'].dtype1, None)
 
         ####################################
         # Bad label file
         ####################################
 
-        self.assertRaises(ValueError, PdsTable, BAD_ROWS_INDEX_PATH)
+        self.assertRaises(ValueError, PdsTable,
+                          EDITED_INDEX_PATH.replace('.lbl', '_bad_rows.lbl'))
+        self.assertRaises(IOError, PdsTable,
+                          EDITED_INDEX_PATH.replace('.lbl', '_not_fixed.lbl'))
+        # This next call needs to test that a warning is raised
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+            PdsTable(EDITED_INDEX_PATH.replace('.lbl', '_not_simple.lbl'))
+            self.assertEqual(w[0].category, UserWarning)
+            self.assertIn('Simple Pointer', str(w[0].message))
+        warnings.resetwarnings()
+        self.assertRaises(IOError, PdsTable,
+                          EDITED_INDEX_PATH.replace('.lbl', '_no_ptr.lbl'))
+        self.assertRaises(IOError, PdsTable,
+                          EDITED_INDEX_PATH.replace('.lbl', '_not_ascii.lbl'))
+        self.assertRaises(ValueError, PdsTable,
+                          EDITED_INDEX_PATH.replace('.lbl', '_dup_col.lbl'))
+        self.assertRaises(IOError, PdsTable,
+                          EDITED_INDEX_PATH.replace('.lbl', '_bad_data_type.lbl'))

@@ -31,14 +31,15 @@ class PdsTable:
 
     It is represented by a list of Numpy arrays, one for each column.
 
-    Current limitations:
+    Current limitations for PDS3:
         (1) ASCII tables only, no binary formats.
         (2) Detached PDS labels only.
         (3) Only one data file per label.
         (4) No row or record offsets in the label's pointer to the table file.
         (5) STRUCTURE fields in the label are not supported.
-        (6) Columns containing multiple items are not loaded. MUST BE FIXED.
-        (7) Time fields are represented as character strings at this stage.
+        (6) Columns containing multiple items are not loaded.
+        (7) Time fields are represented as character strings unless explicitly
+            listed for conversion.
     """
     def __init__(self, label_file, *, label_contents=None, times=None, columns=None,
                        nostrip=None, callbacks=None, ascii=False, replacements=None,
@@ -665,7 +666,7 @@ class PdsTable:
         return self._column_masks[name]
 
     def get_keys(self):
-        """Get the list of column names.
+        """Get the list of column names that were actually loaded.
 
         Returns:
             list: A list of column names.
