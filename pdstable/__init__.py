@@ -1249,7 +1249,7 @@ class PdsTable:
         k = self.find_row_index_by_volume_filespec(volume_id, filespec=filespec,
                                                    substring=substring)
         dicts_by_row = self.dicts_by_row()
-        return dicts_by_row()[k]
+        return dicts_by_row[k]
 
     def _create_index_rows_by_filename_key(self):
         """Create a dictionary of row indices keyed by the file basename associated

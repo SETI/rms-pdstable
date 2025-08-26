@@ -1,5 +1,5 @@
 ################################################################################
-# pdstable/pds_table_info.py
+# pdstable/pdsxtable.py
 # PdsTableInfo and PdsColumnInfo
 # These are the parent classes for Pds3TableInfo and Pds4TableInfo,
 # and Pds3ColumnInfo and Pds4ColumnInfo.
@@ -124,6 +124,22 @@ class PdsColumnInfo:
     Direct access of this class's attributes by the end user is not generally necessary,
     but is permitted if you want the inner details of each column.
     """
+
+    def __init__(self):
+        self._name = None
+        self._colno = None
+        self._start_byte = None
+        self._bytes = None
+        self._items = None
+        self._item_bytes = None
+        self._item_offset = None
+        self._data_type = None
+        self._dtype0 = None
+        self._dtype1 = None
+        self._dtype2 = None
+        self._scalar_func = None
+        self._valid_range = None
+        self._invalid_values = None
 
     @property
     def name(self):

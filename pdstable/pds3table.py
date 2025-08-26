@@ -1,5 +1,5 @@
 ################################################################################
-# pdstable/pds3_table_info.py
+# pdstable/pds3table.py
 # Pds3TableInfo and Pds3ColumnInfo
 ################################################################################
 
@@ -83,14 +83,14 @@ class Pds3TableInfo(PdsTableInfo):
                   circumstances.
         """
 
+        super().__init__(label_file_path)
+
         if invalid is None:
             invalid = {}
         if valid_ranges is None:
             valid_ranges = {}
 
         self._header_bytes = 0
-
-        super().__init__(label_file_path)
 
         # Parse the label
         if isinstance(label_contents, (Pds3Label, dict)):
@@ -113,7 +113,6 @@ class Pds3TableInfo(PdsTableInfo):
         for key, value in self._label.items():
             if key[0] == '^' and key.endswith('TABLE'):
                 self._table_file_name = value
-                print(key, key + '_OFFSET' in self._label)
                 if key + '_OFFSET' in self._label:
                     msg = ('Table file pointer ' + self._label[key + '_fmt'] +
                            ' is not a Simple Pointer and isn\'t fully ' +
@@ -187,6 +186,8 @@ class Pds3ColumnInfo(PdsColumnInfo):
             valid_range (tuple or list, optional): An optional tuple or list identifying
                 the lower and upper limits of the valid range for a numeric column.
         """
+
+        super().__init__()
 
         if invalid is None:  # pragma: no cover
             # This can never be reached because we always just pass an empty set
