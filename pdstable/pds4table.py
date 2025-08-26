@@ -98,7 +98,7 @@ PDS4_FIELD_DELIMITER = {
 }
 
 # key: PDS4 data type
-# value: a tuple of (self.data_type, self.dtype2, self.scalar_func)
+# value: a tuple of (self._data_type, self._dtype2, self._scalar_func)
 PDS4_CHR_DATA_TYPE_MAPPING = {
     'ASCII_Date_DOY': ('time', 'S', tai_from_iso),
     'ASCII_Date_Time_DOY': ('time', 'S', tai_from_iso),
@@ -413,9 +413,9 @@ class Pds4ColumnInfo(PdsColumnInfo):
                 for invalid_tag in _PDS4_SPECIAL_CONSTANTS_TAGS:
                     invalid_val = special_const_area.get(invalid_tag, None)
                     if invalid_val:
-                        if self.scalar_func:
+                        if self._scalar_func:
                             try:
-                                invalid_val = self.scalar_func(invalid_val)
+                                invalid_val = self._scalar_func(invalid_val)
                             except ValueError:
                                 # if the invalid value can't be converted, we will keep
                                 # its original value and data type
