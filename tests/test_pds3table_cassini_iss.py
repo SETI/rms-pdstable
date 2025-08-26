@@ -2,6 +2,7 @@
 # UNIT TESTS
 ################################################################################
 
+from pathlib import Path
 import unittest
 import warnings
 
@@ -17,8 +18,41 @@ class Test_Pds3Table(unittest.TestCase):
         # Testing different values parsed correctly...
         INDEX_PATH = "test_files/cassini_iss_index.lbl"
         EDITED_INDEX_PATH = "test_files/cassini_iss_index_edited.lbl"
+        BAD_ROWS_INDEX_PATH = "test_files/cassini_iss_index_edited_bad_rows.lbl"
+
+        test_table_some_cols = PdsTable(INDEX_PATH, columns=['FILE_NAME', 'START_TIME'])
+
+        self.assertEqual(test_table_some_cols.columns, 2)
+        self.assertEqual(test_table_some_cols.all_columns, 118)
+        self.assertEqual(len(test_table_some_cols.column_values), 2)
+        self.assertEqual(len(test_table_some_cols.column_masks), 2)
+        self.assertEqual(len(test_table_some_cols.column_info_list), 118)
+        self.assertEqual(len(test_table_some_cols.column_info_dict), 118)
 
         test_table_basic = PdsTable(INDEX_PATH)
+
+        cwd = Path.cwd()
+
+        self.assertEqual(test_table_basic.label_file_name, 'cassini_iss_index.lbl')
+        self.assertEqual(test_table_basic.label_file_path,
+                         cwd / 'test_files/cassini_iss_index.lbl')
+        self.assertEqual(test_table_basic.table_file_name, 'cassini_iss_index.tab')
+        self.assertEqual(test_table_basic.table_file_path,
+                         cwd / 'test_files/cassini_iss_index.tab')
+
+        self.assertEqual(test_table_basic.is_pds4, False)
+        self.assertEqual(test_table_basic.encoding, 'latin-1')
+        self.assertEqual(test_table_basic.first, 0)
+        self.assertEqual(test_table_basic.rows, 4575)
+        self.assertEqual(test_table_basic.columns, 118)
+        self.assertEqual(test_table_basic.header_bytes, 0)
+        self.assertEqual(test_table_basic.row_bytes, 3057)
+        self.assertEqual(test_table_basic.info.row_bytes, 3057)  # Deprecated
+        self.assertEqual(test_table_basic.fixed_length_row, True)
+        self.assertEqual(test_table_basic.field_delimiter, None)
+        self.assertEqual(len(test_table_basic.column_info_list), 118)
+        self.assertEqual(len(test_table_basic.column_info_dict), 118)
+        self.assertEqual(test_table_basic.dtype0['crlf'], ('|S2', 3055))
 
         # Test strings
         test_file_names = test_table_basic.column_values['FILE_NAME']
@@ -62,10 +96,21 @@ class Test_Pds3Table(unittest.TestCase):
             self.assertEqual(rowdict[i]["START_TIME"], test_start_time_strs[i])
 
         rowvals = test_table_basic.get_column("START_TIME")
+        self.assertTrue(rowvals is test_table_basic.column_values["START_TIME"])
         rowmasks = test_table_basic.get_column_mask("START_TIME")
+        self.assertTrue(rowmasks is test_table_basic.column_masks["START_TIME"])
         for i in range(10):
             self.assertEqual(rowdict[i]["START_TIME"], rowvals[i])
             self.assertFalse(rowmasks[i])
+
+        ####################################
+        # Test string stripping
+        ####################################
+
+        self.assertEqual(test_table_basic.column_values['FILE_NAME'][0], 'N1573186009_1.IMG')
+
+        test_table_no_strip = PdsTable(INDEX_PATH, columns=['FILE_NAME'], nostrip=['FILE_NAME'])
+        self.assertEqual(test_table_no_strip.column_values['FILE_NAME'][0], 'N1573186009_1.IMG     ')
 
         ####################################
         # Test times as seconds (floats)
@@ -378,3 +423,46 @@ class Test_Pds3Table(unittest.TestCase):
 
         test = PdsTable(INDEX_PATH, label_contents=partial_table.pdslabel)
         self.assertTrue(test.pdslabel is partial_table.pdslabel)
+
+        ####################################
+        # Other PdsTable options
+        ####################################
+
+        # table_file
+        self.assertRaises(ValueError, PdsTable, INDEX_PATH, table_file=1)
+
+        # row_range
+        self.assertRaises(ValueError, PdsTable, EDITED_INDEX_PATH, row_range=(99, 98))
+        self.assertRaises(ValueError, PdsTable, EDITED_INDEX_PATH, row_range=(99, 101))
+        PdsTable(EDITED_INDEX_PATH, row_range=(99, 100))
+
+        # table_callback
+        def test_callback(b):
+            return [s.replace(b'2007', b'2009') for s in b]
+
+        test_table_callback = PdsTable(INDEX_PATH, table_callback=test_callback)
+
+        test_start_time_strs = test_table_callback.column_values['START_TIME']
+        start_time_str_test_set = ['2009-312T03:31:12.392',
+                                   '2009-312T03:31:14.372',
+                                   '2009-312T03:31:45.832',
+                                   '2009-312T03:31:46.132']
+        self.assertEqual(start_time_str_test_set[0], test_start_time_strs[0])
+        self.assertEqual(start_time_str_test_set[1], test_start_time_strs[1])
+        self.assertEqual(start_time_str_test_set[2], test_start_time_strs[2])
+        self.assertEqual(start_time_str_test_set[3], test_start_time_strs[3])
+
+        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].colno, 63)
+        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].start_byte, 1504)
+        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].bytes, 22)
+        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].items, 1)
+        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].item_bytes, 22)
+        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].item_offset, 22)
+        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].dtype0, ('S22', 1503))
+        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].dtype1, None)
+
+        ####################################
+        # Bad label file
+        ####################################
+
+        self.assertRaises(ValueError, PdsTable, BAD_ROWS_INDEX_PATH)

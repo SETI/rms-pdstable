@@ -7,7 +7,6 @@ from collections import defaultdict
 import numbers
 import re
 
-from filecache import FCPath
 from pds4_tools.reader.label_objects import Label
 
 from .pds_table_info import PdsColumnInfo, PdsTableInfo
@@ -170,7 +169,7 @@ class Pds4TableInfo(PdsTableInfo):
         if valid_ranges is None:
             valid_ranges = {}
 
-        label_file_path = FCPath(label_file_path)
+        super().__init__(label_file_path)
 
         # Parse the label
         if isinstance(label_contents, Label):
@@ -181,8 +180,7 @@ class Pds4TableInfo(PdsTableInfo):
             raise TypeError('label_contents must be a pds4_tools.Label object, a ' +
                             'dictionary, or None')
         else:
-            local_file_path = label_file_path.retrieve()
-            lbl = Label.from_file(local_file_path)
+            lbl = Label.from_file(self._label_file_path)
             lbl_dict = lbl.to_dict()
             self._label = lbl_dict
 
@@ -338,8 +336,9 @@ class Pds4TableInfo(PdsTableInfo):
             self.column_info_dict[pdscol.name] = pdscol
             self.dtype0[pdscol.name] = pdscol.dtype0
 
-        table_file_path = label_file_path.with_name(self._table_file_name)
-        self._table_file_path = table_file_path.retrieve()
+        table_file_remote_path = (self._label_file_remote_path
+                                  .with_name(self._table_file_name))
+        self._table_file_path = table_file_remote_path.retrieve()
 
 
 ################################################################################

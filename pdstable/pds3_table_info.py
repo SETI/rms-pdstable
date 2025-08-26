@@ -6,7 +6,6 @@
 import numbers
 import warnings
 
-from filecache import FCPath
 from pdsparser import Pds3Label
 
 from .pds_table_info import PdsColumnInfo, PdsTableInfo
@@ -91,13 +90,12 @@ class Pds3TableInfo(PdsTableInfo):
 
         self._header_bytes = 0
 
-        label_file_path = FCPath(label_file_path)
+        super().__init__(label_file_path)
 
         # Parse the label
         if isinstance(label_contents, (Pds3Label, dict)):
             self._label = label_contents
         elif label_contents:
-            # Pds3Label already support FCPath objects
             self._label = Pds3Label(label_contents, method=label_method)
         else:
             self._label = Pds3Label(label_file_path, method=label_method)
@@ -164,8 +162,9 @@ class Pds3TableInfo(PdsTableInfo):
                 self._column_info_dict[pdscol.name] = pdscol
                 self._dtype0[pdscol.name] = pdscol.dtype0
 
-        table_file_path = label_file_path.with_name(self._table_file_name)
-        self._table_file_path = table_file_path.retrieve()
+        table_file_remote_path = (self._label_file_remote_path
+                                  .with_name(self._table_file_name))
+        self._table_file_path = table_file_remote_path.retrieve()
 
 
 ################################################################################
@@ -188,7 +187,8 @@ class Pds3ColumnInfo(PdsColumnInfo):
                 the lower and upper limits of the valid range for a numeric column.
         """
 
-        if invalid is None:
+        if invalid is None:  # pragma: no cover
+            # This can never be reached because we always just pass an empty set
             invalid = set()
 
         self._name = node_dict['NAME']

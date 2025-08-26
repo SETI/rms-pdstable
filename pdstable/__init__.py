@@ -1,45 +1,5 @@
-#!/usr/bin/python
 ################################################################################
-# pdstable.py
-#
-# Classes and methods to deal with PDS index and table files
-#
-# Mark R. Showalter, SETI Institute, December 2011
-# Revised December 22, 2011 (BSW) - add ability to read, parse, and return data
-#                                   that take multiple columns
-# Revised December 23, 2011 (BSW) - add adaptation to seconds for TIME fields
-# Revised January 3, 2012 (BSW) - changed conversion to floats to happen in one
-#                                 step for entire column of TIMEs
-#                               - fixed parsing of vectors that were not getting
-#                                 all 3 values
-#                               - implemented unit tests
-#
-# Revised 1/11/12 (MRS) - Added PdsTable methods dicts_by_row() and
-#                         dicts_by_key(). The former is used by
-#                         instrument.cassini.iss.
-# Revised 1/17/12 (BSW) - Fixed ordering of values when PdsTable __init__ has
-#                         more than one column indicated in the time_format_list
-# 6/14/12 MRS - Added column selections in PdsTable() to reduce memory usage;
-#   added a callback option to PdsTable() for repairing the values in a table
-#   prior to other processing.
-# 8/20/12 MRS - A warning now is raised when a column of a table contains one or
-#   more badly-formatted entries. The column values are left in string format.
-# 4/2/19 MRS & RSF - Many revisions:
-#   - Compatible with Python 3. Strings returned are now of the standard str
-#     type Python 2 (one-byte ASCII) and in Python 3 (4-byte Unicode).
-#   - Still quite fast, because all operations that can be handled via array
-#     operations are still handled via array operations.
-#   - Each returned column now has an associated boolean mask that identifies
-#     invalid values.
-#   - Values in the PDS3 label that identify the valid range or that identify
-#     invalid, missing, etc. values are used to populate each column's mask.
-#   - New input options for replacements, invalid values and valid ranges can be
-#     specified for each column. These can be used to augment information in the
-#     in the PDS3 label.
-#   - Invalid values (e.g., -1.e32) can also be defined globally.
-#   - Lots of new unit tests.
-# 3/15/20 MRS - Added row_range option for quick access to a few rows of an
-#   index.
+# pdstable/__init__.py
 ################################################################################
 
 import os
@@ -58,7 +18,7 @@ from .utils import is_pds4_label, lowercase_value, tai_from_iso, STRING_TYPES
 
 try:
     from ._version import __version__
-except ImportError:
+except ImportError:  # pragma: no cover
     __version__ = 'Version unspecified'
 
 
@@ -165,7 +125,6 @@ class PdsTable:
         if valid_ranges is None:
             valid_ranges = {}
 
-        self._label_filename = label_file
         self._is_pds4_lbl = is_pds4_label(label_file)
 
         # Parse the label
@@ -187,7 +146,7 @@ class PdsTable:
             self._keys = [info.name for info in self._info.column_info_list]
         else:
             self._keys = columns
-        # self.keys is an ordered list containing the name of every column to be
+        # self._keys is an ordered list containing the name of every column to be
         # returned
 
         self._keys_lc = [k.lower() for k in self._keys]
@@ -216,6 +175,9 @@ class PdsTable:
 
             self._first = row_range[0]
             self._rows = row_range[1] - row_range[0]
+            if self._rows <= 0:
+                raise ValueError('row_range must have at least one row')
+
             header_bytes = self._info.header_bytes
             row_bytes = self._info.row_bytes
 
@@ -336,10 +298,10 @@ class PdsTable:
                     # to be applied as ASCII byte strings
 
                     if isinstance(before, (str, np.str_)):
-                        before = before.encode(**self.encoding)
+                        before = before.encode(**self._encoding)
 
                     if isinstance(after, (str, np.str_)):
-                        after  = after.encode(**self.encoding)
+                        after  = after.encode(**self._encoding)
 
                     # Replace values (suppressing FutureWarning)
                     items = items.astype('S')
@@ -393,7 +355,7 @@ class PdsTable:
 
                                 error_count += 1
                                 if not isinstance(item, str):
-                                    item = item.decode(**self.encoding)
+                                    item = item.decode(**self._encoding)
 
                                 if strip:
                                     item = item.strip()
@@ -480,18 +442,32 @@ class PdsTable:
         self._filespec_colname_lc    = None
 
         self._rows_by_filename = None
-        self._filename_keys     = None
-
-    @property
-    def label_file_name(self):
-        """The filename of the label file that was read to create this PdsTable object."""
-        return self._label_filename
+        self._filename_keys    = None
 
     @property
     def pdslabel(self):
-        """The Pds3Label object or a dict for PDS4."""
-
+        """The label of the table as a Pds3Label for PDS3 or dict for PDS4."""
         return self._info.label
+
+    @property
+    def label_file_name(self):
+        """The name of the label file (without the path)."""
+        return self._info.label_file_name
+
+    @property
+    def label_file_path(self):
+        """The local path to the label file."""
+        return self._info.label_file_path
+
+    @property
+    def table_file_name(self):
+        """The name of the table file (without the path)."""
+        return self._info.table_file_name
+
+    @property
+    def table_file_path(self):
+        """The local path to the table file."""
+        return self._info.table_file_path
 
     @property
     def is_pds4(self):
@@ -499,9 +475,9 @@ class PdsTable:
         return self._is_pds4_lbl
 
     @property
-    def info(self):
-        """The Pds3/4TableInfo object that holds the attributes of the table."""
-        return self._info
+    def rows(self):
+        """The number of rows that were read."""
+        return self._rows
 
     @property
     def first(self):
@@ -509,14 +485,16 @@ class PdsTable:
         return self._first
 
     @property
-    def rows(self):
-        """The number of rows that were read."""
-        return self._rows
+    def columns(self):
+        """The number of columns in the table (possibly as restricted by the
+        columns parameter)."""
+        return len(self._column_values)
 
     @property
-    def encoding(self):
-        """The encoding of the table file (e.g., 'utf-8' or 'latin-1')."""
-        return self._encoding
+    def all_columns(self):
+        """The number of columns in the table (possibly as restricted by the
+        columns parameter)."""
+        return self._info.columns
 
     @property
     def column_values(self):
@@ -527,6 +505,67 @@ class PdsTable:
     def column_masks(self):
         """The masks of the columns that were read as a dict indexed by column name."""
         return self._column_masks
+
+    @property
+    def column_info_list(self):
+        """The list of PdsColumnInfo objects for the columns in the table.
+
+        This list includes ALL of the columns, not just the ones restricted by
+        the columns parameter.
+        """
+        return self._info.column_info_list
+
+    @property
+    def column_info_dict(self):
+        """The dict of PdsColumnInfo objects for the columns in the table, keyed by
+        the column name.
+
+        This dict includes ALL of the columns, not just the ones restricted by
+        the columns parameter.
+        """
+        return self._info.column_info_dict
+
+    @property
+    def header_bytes(self):
+        """The number of bytes in the header of the table."""
+        return self._info.header_bytes
+
+    @property
+    def encoding(self):
+        """The encoding of the table file (e.g., 'utf-8' or 'latin-1')."""
+        return self._encoding['encoding']
+
+    @property
+    def fixed_length_row(self):
+        """True if the table has fixed-length rows."""
+        return self._info.fixed_length_row
+
+    @property
+    def field_delimiter(self):
+        """The field delimiter for the table."""
+        return self._info.field_delimiter
+
+    @property
+    def row_bytes(self):
+        """The number of bytes in a single row of the table."""
+        return self._info.row_bytes
+
+    @property
+    def dtype0(self):
+        """The dtype dictionary for the table, keyed by the column name.
+
+        Each value is a tuple of the string representation of the dtype used to isolate
+        the column as a string (Snnn) and the starting byte of the column in a row.
+        """
+        return self._info.dtype0
+
+    @property
+    def info(self):
+        """The Pds3/4TableInfo object that holds the attributes of the table.
+
+        DEPRECATED.
+        """
+        return self._info
 
     ############################################################################
     # Support for extracting rows and columns

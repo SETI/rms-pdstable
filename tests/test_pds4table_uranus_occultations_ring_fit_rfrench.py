@@ -2,6 +2,7 @@
 # UNIT TESTS
 ################################################################################
 
+from pathlib import Path
 import unittest
 
 import numpy as np
@@ -23,6 +24,17 @@ class Test_Pds4Table(unittest.TestCase):
         test_csv_table_basic = PdsTable(label_file=INDEX_PATH,
                                         table_file=CSV_TABLE_FILE_ORDER)
 
+        cwd = Path.cwd()
+
+        self.assertEqual(test_csv_table_basic.label_file_name,
+                         INDEX_PATH.split('/')[-1])
+        self.assertEqual(test_csv_table_basic.label_file_path, cwd / INDEX_PATH)
+        self.assertEqual(test_csv_table_basic.table_file_name,
+                         'uranus_occultation_ring_fit_rfrench_input_stars_20201201.csv')
+        self.assertEqual(test_csv_table_basic.table_file_path,
+                         cwd /
+                         ('test_files/uranus_occultation_ring_fit_rfrench_'
+                          'input_stars_20201201.csv'))
         # Test strings
         test_star_names = test_csv_table_basic.column_values['Star Name']
         star_name_test_set = np.array(['Bper', 'SSgr', 'U0', 'U0201'])

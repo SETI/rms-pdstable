@@ -5,6 +5,8 @@
 # and Pds3ColumnInfo and Pds4ColumnInfo.
 ################################################################################
 
+from filecache import FCPath
+
 
 ################################################################################
 # Class PdsTableInfo
@@ -13,10 +15,39 @@
 class PdsTableInfo:
     """Class to hold the attributes of a PDS-labeled table."""
 
+    def __init__(self, label_file_path):
+
+        self._label_file_remote_path = FCPath(label_file_path)
+        self._label_file_path = self._label_file_remote_path.retrieve()
+        self._label_file_name = self._label_file_path.name
+
+        self._label = None
+        self._table_file_name = None
+        self._table_file_path = None
+        self._header_bytes = 0
+        self._fixed_length_row = False
+        self._field_delimiter = None
+        self._rows = 0
+        self._columns = 0
+        self._row_bytes = 0
+        self._column_info_list = []
+        self._column_info_dict = {}
+        self._dtype0 = {}
+
     @property
     def label(self):
         """The label of the table as a Pds3Label for PDS3 or dict for PDS4."""
         return self._label
+
+    @property
+    def label_file_name(self):
+        """The name of the label file (without the path)."""
+        return self._label_file_name
+
+    @property
+    def label_file_path(self):
+        """The local path to the label file."""
+        return self._label_file_path
 
     @property
     def table_file_name(self):
@@ -98,7 +129,7 @@ class PdsColumnInfo:
 
     @property
     def start_byte(self):
-        """The starting byte of the column in the row."""
+        """The starting byte of the column in the row (1-based)."""
         return self._start_byte
 
     @property
