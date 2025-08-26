@@ -185,7 +185,7 @@ class Pds4TableInfo(PdsTableInfo):
 
         # Get the file area (table file) info from the label dictionary
         file_areas = None
-        for prod_tag, prod_component in lbl_dict.items():
+        for prod_tag, prod_component in self._label.items():
             if prod_tag not in _PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING:
                 continue
             file_area_tags = _PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING[prod_tag]
