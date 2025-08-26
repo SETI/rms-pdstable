@@ -392,13 +392,6 @@ class Pds4ColumnInfo(PdsColumnInfo):
         except KeyError:
             raise ValueError('unsupported data type: ' + self._data_type)
 
-        # Handle the case like "START_TIME" with ASCII_String instead of ASCII_Time as
-        # the data type
-        if self._name.endswith('_TIME') or self._name.endswith('_DATE'):
-            self._data_type = 'time'
-            self._dtype2 = 'S'
-            self._scalar_func = tai_from_iso
-
         # Identify validity criteria
         invalid_set = set()
         if valid_range is not None:
