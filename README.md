@@ -40,8 +40,8 @@ pip install rms-pdstable
 # Getting Started
 
 The `pdstable` module provides the `PdsTable` class, which can be used to read both
-PDS3 and PDS4 labels and their associated tables. A `PdsTable` object can be created
-easily:
+PDS3 (`.lbl`) and PDS4 (`.lblx` or `.xml`) labels and their associated tables. A `PdsTable`
+object can be created easily:
 
 ```python
 from pdstable import PdsTable
@@ -63,7 +63,7 @@ The entire table can be returned as a series of dictionaries, one per row. The
 dictionary keys are the names of the columns:
 
 ```python
-as_dict = p3.dicts_by_row()
+as_dicts = p3.dicts_by_row()
 ```
 
 PDS3 labels can only point to a single table. However, PDS4 labels can point to

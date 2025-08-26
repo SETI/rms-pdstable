@@ -108,8 +108,9 @@ class PdsTableInfo:
     def dtype0(self):
         """The dtype dictionary for the table, keyed by the column name.
 
-        Each value is a tuple of the string representation of the dtype used to isolate
-        the column as a string (Snnn) and the starting byte of the column in a row.
+        Each value is a tuple of (dtype_string, start_byte) where dtype_string is the
+        string representation of the dtype (e.g., 'S10' for a 10-character string)
+        and start_byte is the starting byte position of the column in a row.
         """
         return self._dtype0
 
@@ -188,8 +189,9 @@ class PdsColumnInfo:
     def dtype0(self):
         """The dtype of the entire column as a string.
 
-        The value is a tuple of the string representation of the dtype used to isolate
-        the column as a string (Snnn) and the starting byte of the column in a row.
+        Each value is a tuple of (dtype_string, start_byte) where dtype_string is the
+        string representation of the dtype (e.g., 'S10' for a 10-character string)
+        and start_byte is the starting byte position of the column in a row.
         """
         return self._dtype0
 

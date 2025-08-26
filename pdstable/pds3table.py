@@ -127,14 +127,19 @@ class Pds3TableInfo(PdsTableInfo):
         table_dict = self._label[key[1:]]
 
         # Save key info about the table
-        interchange_format = (table_dict.get('INTERCHANGE_FORMAT', '')
-                              or table_dict['INTERCHANGE_FORMAT_1'])
+        interchange_format = (table_dict.get('INTERCHANGE_FORMAT')
+                              or table_dict.get('INTERCHANGE_FORMAT_1'))
+        if not interchange_format:
+            raise ValueError('Table interchange format not specified in label')
         if interchange_format != 'ASCII':
             raise IOError('PDS table is not in ASCII format')
 
-        self._rows = table_dict['ROWS']
-        self._columns = table_dict['COLUMNS']
-        self._row_bytes = table_dict['ROW_BYTES']
+        try:
+            self._rows = table_dict['ROWS']
+            self._columns = table_dict['COLUMNS']
+            self._row_bytes = table_dict['ROW_BYTES']
+        except KeyError as e:
+            raise ValueError(f'Table definition is missing required field: {e}')
 
         # Save the key info about each column in a list and a dictionary
         self._column_info_list = []
@@ -196,8 +201,11 @@ class Pds3ColumnInfo(PdsColumnInfo):
         self._name = node_dict['NAME']
         self._colno = column_no
 
-        self._start_byte = node_dict['START_BYTE']
-        self._bytes      = node_dict['BYTES']
+        try:
+            self._start_byte = node_dict['START_BYTE']
+            self._bytes      = node_dict['BYTES']
+        except KeyError as e:
+            raise ValueError(f'Column definition is missing required field: {e}')
 
         self._items = node_dict.get('ITEMS', 1)
         self._item_bytes = node_dict.get('ITEM_BYTES', self._bytes)

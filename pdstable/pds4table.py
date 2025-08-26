@@ -184,7 +184,7 @@ class Pds4TableInfo(PdsTableInfo):
             self._label = lbl.to_dict()
 
         # Get the file area (table file) info from the label dictionary
-        file_areas = None
+        file_areas = []
         for prod_tag, prod_component in self._label.items():
             if prod_tag not in _PDS4_PRODUCT_TO_FILE_AREA_TAGS_MAPPING:
                 continue
@@ -194,10 +194,7 @@ class Pds4TableInfo(PdsTableInfo):
                     continue
                 if not isinstance(current_file_area, list):
                     current_file_area = [current_file_area]
-                if file_areas is None:
-                    file_areas = current_file_area
-                else:
-                    file_areas += current_file_area
+                file_areas += current_file_area
 
         self._table_file_name = None
 
@@ -251,13 +248,12 @@ class Pds4TableInfo(PdsTableInfo):
         table_area = None
         record_area = None
         columns = None
-        for table_type, rec_field_tags in (_PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING
-                                           .items()):
+        for table_type, (record_tag, field_tag) in \
+                _PDS4_TABLE_TO_RECORD_FIELD_TAGS_MAPPING.items():
             # There will only be one table type in the file area so the search order
             # doesn't matter
             if table_type in file_area:
                 table_tag = table_type
-                record_tag, field_tag = rec_field_tags
                 table_area = file_area[table_type]
                 record_area = table_area.get(record_tag, None)
                 columns = record_area.get(field_tag, None)
@@ -331,9 +327,9 @@ class Pds4TableInfo(PdsTableInfo):
                                     invalid=invalid.get(name, default_invalid),
                                     valid_range=valid_ranges.get(name, None))
 
-            self.column_info_list.append(pdscol)
-            self.column_info_dict[pdscol.name] = pdscol
-            self.dtype0[pdscol.name] = pdscol.dtype0
+            self._column_info_list.append(pdscol)
+            self._column_info_dict[pdscol.name] = pdscol
+            self._dtype0[pdscol.name] = pdscol.dtype0
 
         table_file_remote_path = (self._label_file_remote_path
                                   .with_name(self._table_file_name))
@@ -429,9 +425,11 @@ class Pds4ColumnInfo(PdsColumnInfo):
 
                 valid_max = special_const_area.get('valid_maximum', None)
                 valid_min = special_const_area.get('valid_minimum', None)
-
-                valid_max = self.scalar_func(valid_max) if valid_max else None
-                valid_min = self.scalar_func(valid_min) if valid_min else None
+                if self._scalar_func:
+                    if valid_max is not None:
+                        valid_max = self._scalar_func(valid_max)
+                    if valid_min is not None:
+                        valid_min = self._scalar_func(valid_min)
 
             if valid_min is not None and valid_max is not None:
                 self._valid_range = (valid_min, valid_max)
