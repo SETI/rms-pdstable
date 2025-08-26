@@ -7,13 +7,13 @@ import warnings
 
 import numpy as np
 
-from .pds_table_info import PdsTableInfo, PdsColumnInfo
-from .pds3_table_info import (Pds3TableInfo,
-                              PDS3_VOLUME_COLNAMES_lc,
-                              PDS3_FILE_SPECIFICATION_COLUMN_NAMES_lc)
-from .pds4_table_info import (Pds4TableInfo,
-                              PDS4_BUNDLE_COLNAMES_lc,
-                              PDS4_FILE_SPECIFICATION_COLUMN_NAMES_lc)
+from .pdsxtable import PdsTableInfo, PdsColumnInfo
+from .pds3table import (Pds3TableInfo,
+                        PDS3_VOLUME_COLNAMES_lc,
+                        PDS3_FILE_SPECIFICATION_COLUMN_NAMES_lc)
+from .pds4table import (Pds4TableInfo,
+                        PDS4_BUNDLE_COLNAMES_lc,
+                        PDS4_FILE_SPECIFICATION_COLUMN_NAMES_lc)
 from .utils import is_pds4_label, lowercase_value, tai_from_iso, STRING_TYPES
 
 try:

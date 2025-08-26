@@ -9,7 +9,7 @@ import re
 
 from pds4_tools.reader.label_objects import Label
 
-from .pds_table_info import PdsColumnInfo, PdsTableInfo
+from .pdsxtable import PdsColumnInfo, PdsTableInfo
 from .utils import (tai_from_iso, int_from_base2, int_from_base8, int_from_base16,
                     STRING_TYPES)
 

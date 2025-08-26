@@ -8,7 +8,7 @@ import warnings
 
 from pdsparser import Pds3Label
 
-from .pds_table_info import PdsColumnInfo, PdsTableInfo
+from .pdsxtable import PdsColumnInfo, PdsTableInfo
 from .utils import tai_from_iso, STRING_TYPES
 
 
