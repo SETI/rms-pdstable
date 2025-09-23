@@ -49,8 +49,8 @@ class PdsTable:
         """Constructor for a PdsTable object.
 
         Parameters:
-            label_file (str): The path to the PDS label of the table file. Must be
-                supplied to get proper relative path resolution.
+            label_file (str or Path or FCPath): The path to the PDS label of the table
+                file. Must be supplied to get proper relative path resolution.
             label_contents (list or Pds3Label, optional): The contents of the label as a
                 list of strings if we shouldn't read it from the file. Alternatively, a
                 Pds3Label object to avoid label parsing entirely. Note: this param is for

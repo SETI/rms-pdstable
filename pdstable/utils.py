@@ -17,12 +17,13 @@ def is_pds4_label(label_name):
     """Check if the given label is a PDS4 label.
 
     Parameters:
-        label_name (str): The name of the label file to check.
+        label_name (str or Path or FCPath): The name of the label file to check.
 
     Returns:
         bool: True if the label is a PDS4 label, False otherwise.
     """
 
+    label_name = str(label_name)
     for ext in _PDS4_LBL_EXTENSIONS:
         if label_name.endswith(ext):
             return True
