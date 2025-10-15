@@ -1253,11 +1253,12 @@ class PdsTable:
         dicts_by_row = self.dicts_by_row()
         return dicts_by_row[k]
 
-    def _create_index_rows_by_filename_key(self):
+    def index_rows_by_filename_key(self):
         """Create a dictionary of row indices keyed by the file basename associated
         with the row.
 
         The key has the file extension stripped away and is converted to lower case.
+        The result is available in the filename_keys attribute.
         """
 
         if self._rows_by_filename is not None:
@@ -1286,6 +1287,19 @@ class PdsTable:
         self._rows_by_filename = rows_by_filename
         self._filename_keys = filename_keys
 
+    @property
+    def filename_keys(self):
+        """The list of filename keys for the table.
+
+        Returns:
+            list: A list of filename keys.
+        """
+
+        if self._filename_keys is None:
+            self.index_rows_by_filename_key()
+
+        return self._filename_keys
+
     def row_indices_by_filename_key(self, key):
         """Quick lookup of the row indices associated with a filename key.
 
@@ -1297,7 +1311,7 @@ class PdsTable:
         """
 
         # Create the index if necessary
-        self._create_index_rows_by_filename_key()
+        self.index_rows_by_filename_key()
 
         return self._rows_by_filename[key.lower()]
 
@@ -1313,7 +1327,7 @@ class PdsTable:
         """
 
         # Create the index if necessary
-        self._create_index_rows_by_filename_key()
+        self.index_rows_by_filename_key()
 
         indices = self._rows_by_filename[key.lower()]
 
