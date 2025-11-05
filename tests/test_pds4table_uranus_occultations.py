@@ -64,6 +64,9 @@ class Test_Pds4Table(unittest.TestCase):
             self.assertEqual(rowdict[i]['Start Time UTC'], rowvals[i])
             self.assertFalse(rowmasks[i])
 
+        # Test strings with whitespace preserved
+        self.assertEqual(rowdict[22]['Star ID'], 'u0   ')
+
         ####################################
         # Test times as seconds (floats)
         ####################################

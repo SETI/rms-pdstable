@@ -2,7 +2,7 @@
 <?xml-model href="https://pds.nasa.gov/pds4/pds/v1/PDS4_PDS_1E00.sch"
     schematypens="http://purl.oclc.org/dsdl/schematron"?>
 
-<Product_Ancillary 
+<Product_Ancillary
 	xmlns="http://pds.nasa.gov/pds4/pds/v1"
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:pds="http://pds.nasa.gov/pds4/pds/v1"
@@ -44,7 +44,7 @@
             <offset unit="byte">1353</offset>
             <records>2244</records>
             <description>
-               Table of metadata. Each record (row) in the table supports a single radial profile. The table supports 
+               Table of metadata. Each record (row) in the table supports a single radial profile. The table supports
                all of the Uranus Earth based occultation data bundles provided to the PDS by Richard French, et al.
             </description>
             <record_delimiter>Carriage-Return Line-Feed</record_delimiter>
@@ -96,7 +96,7 @@
                     <name>Star ID</name>
                     <field_number>6</field_number>
                     <field_location unit="byte">368</field_location>
-                    <data_type>ASCII_String</data_type>
+                    <data_type>ASCII_Short_String_Preserved</data_type>
                     <field_length unit="byte">5</field_length>
                     <description>The shorthand star identifier.</description>
                 </Field_Character>
@@ -198,30 +198,30 @@
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">4</field_length>
                     <description>Indicates the overall quality of the data. Possible values are:
-                    	
-                    	0  Not observable - observations at the predicted occultation event time for this 
-                    	   ring were either not recorded (for example, the star was below the horizon) or 
+
+                    	0  Not observable - observations at the predicted occultation event time for this
+                    	   ring were either not recorded (for example, the star was below the horizon) or
                     	   the occultation chord did not intersect the ring.
-                    	
+
                     	1  High-SNR profile with sharp edges matched by square-well model fit.
-                    	
-                    	2  Moderate-SNR profile with well-defined midtime from square-well model fit, 
+
+                    	2  Moderate-SNR profile with well-defined midtime from square-well model fit,
                     	   but possible systematic deviations of observed ring profile from model fit.
-                    	   
-                    	3  Clear ring detection but less-reliable ring width and or mid-time due to noise 
+
+                    	3  Clear ring detection but less-reliable ring width and or mid-time due to noise
                     	   or substantial convolution by star diameter and/or instrumental time constant.
-                    	   
-                    	4  Unreliable  detection - some hint of a ring occultation, fitted by square-well 
+
+                    	4  Unreliable  detection - some hint of a ring occultation, fitted by square-well
                     	   model, but ~50% chance it is just noise.
-                    	   
-                    	5  No detection - Data were recorded at the expected location of a ring occultation, 
-                    	   but no ring was observed, either because ring event was obscured by noise or (for 
-                    	   the lambda ring) the optical depth of the ring at the observed longitude was below 
+
+                    	5  No detection - Data were recorded at the expected location of a ring occultation,
+                    	   but no ring was observed, either because ring event was obscured by noise or (for
+                    	   the lambda ring) the optical depth of the ring at the observed longitude was below
                     	   detectability, even if the overall SNR of the data is high.
-                    	   
-                    	6  Is not an indication of data quality. Indicates the product is a profile of the 
+
+                    	6  Is not an indication of data quality. Indicates the product is a profile of the
                     	   entire ring system based on the equator system of the planet.
-                    	                    	
+
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -267,8 +267,8 @@
                         the central wavelength of the observation and D is the average distance
                         between the observer and the occulting ring. This is an average value for
                         the entire occultation and is a measure of the limit on the radial
-                        resolution of ring structure due to diffraction. Note that the actual 
-                        overall resolution is affected as well by the projected diameter of 
+                        resolution of ring structure due to diffraction. Note that the actual
+                        overall resolution is affected as well by the projected diameter of
                         the occulted star and the instrumental time constant, if any.</description>
                 </Field_Character>
                 <Field_Character>
@@ -303,18 +303,18 @@
                     <field_location unit="byte">673</field_location>
                     <data_type>ASCII_String</data_type>
                     <field_length unit="byte">11</field_length>
-                    <description>time_constant_type distinguishes between three types of instrumental time constant assumed in a 
-                    	square-well model. 
-                    	
+                    <description>time_constant_type distinguishes between three types of instrumental time constant assumed in a
+                    	square-well model.
+
                     	Possible values are:
                     	  none - No instrumental time constant, in which case time_constant and sigma_time_constant are both zero.
-                    	  
-                    	  single pole - A single pole filter with impulse response given by 
-                	                    h(t) = (t/t_c^2)exp(-t/t_c) for t greater than 0, 0 for t less than 0, 
+
+                    	  single pole - A single pole filter with impulse response given by
+                	                    h(t) = (t/t_c^2)exp(-t/t_c) for t greater than 0, 0 for t less than 0,
                                       where t_c is the time constant. See Eq. 9 Elliot et al. (1984) Astron. J. 1587-1603.
-                       
-                       double pole - double pole filter. was used               
-                                      
+
+                       double pole - double pole filter. was used
+
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -361,7 +361,7 @@
                     <field_length unit="byte">7</field_length>
                     <unit>kilometer</unit>
                     <description>Indicates the nominal radial distance over which changes in ring
-                       properties can be detected within a data product. Note: this value may be larger 
+                       properties can be detected within a data product. Note: this value may be larger
                        than the radial_sampling_interval value, because a data product can be over-sampled.
                     </description>
                 </Field_Character>
@@ -372,8 +372,8 @@
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>kilometer</unit>
-                    <description>Indicates the smallest radial spacing between consecutive 
-                      points in a ring profile. In practice, this may be somewhat smaller 
+                    <description>Indicates the smallest radial spacing between consecutive
+                      points in a ring profile. In practice, this may be somewhat smaller
                       than the radial_resolution because a profile may be over-sampled.</description>
                 </Field_Character>
                 <Field_Character>
@@ -383,8 +383,8 @@
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">7</field_length>
                     <unit>kilometer</unit>
-                    <description>Indicates the largest radial spacing between consecutive 
-                      points in a ring profile. In practice, this may be somewhat smaller 
+                    <description>Indicates the largest radial spacing between consecutive
+                      points in a ring profile. In practice, this may be somewhat smaller
                       than the radial_resolution because a profile may be over-sampled.
                     </description>
                 </Field_Character>
@@ -395,9 +395,9 @@
                     <data_type>ASCII_Date_Time_YMD_UTC</data_type>
                     <field_length unit="byte">25</field_length>
                     <unit>second</unit>
-                    <description>Provides a date and time in UTC format. Given in a label when time 
-                    	values in a table are given as elapsed seconds offset from a reference time. 
-                    	Unless there are compelling reasons to do otherwise, reference_time_utc should 
+                    <description>Provides a date and time in UTC format. Given in a label when time
+                    	values in a table are given as elapsed seconds offset from a reference time.
+                    	Unless there are compelling reasons to do otherwise, reference_time_utc should
                     	correspond to the start of a day.
                    </description>
                 </Field_Character>
@@ -409,14 +409,14 @@
                     <field_length unit="byte">11</field_length>
                     <unit>second</unit>
                     <description>
-                      minimum_observed_event_time gives the smallest value for observed_event_time in 
-        	            the associated data file. It is given in numeric seconds as an offset 
+                      minimum_observed_event_time gives the smallest value for observed_event_time in
+        	            the associated data file. It is given in numeric seconds as an offset
                       from the specified UTC reference time.
-                   	
-                    	
+
+
                     	observed_event_time indicates the instant at which photons were received at the
                       instrument. provides a date and time in UTC format. Given in a label when time values in
-                      a table are given as elapsed seconds offset from a reference time. Generally, reference_time_utc should 
+                      a table are given as elapsed seconds offset from a reference time. Generally, reference_time_utc should
                       correspond to the start of a day.
                     </description>
                 </Field_Character>
@@ -428,14 +428,14 @@
                     <field_length unit="byte">11</field_length>
                     <unit>second</unit>
                     <description>
-                      maximum_observed_event_time gives the largest value for observed_event_time in 
-        	            the associated data file. It is given in numeric seconds as an offset 
+                      maximum_observed_event_time gives the largest value for observed_event_time in
+        	            the associated data file. It is given in numeric seconds as an offset
                       from the specified UTC reference time.
-                   	
-                    	
+
+
                     	observed_event_time indicates the instant at which photons were received at the
                       instrument. provides a date and time in UTC format. Given in a label when time values in
-                      a table are given as elapsed seconds offset from a reference time. Generally, reference_time_utc should 
+                      a table are given as elapsed seconds offset from a reference time. Generally, reference_time_utc should
                       correspond to the start of a day.
                     </description>
                 </Field_Character>
@@ -446,7 +446,7 @@
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">15</field_length>
                     <unit>second</unit>
-                    <description>observed_event_start_tdb indicates the value for earliest time 
+                    <description>observed_event_start_tdb indicates the value for earliest time
                        in the described data, and is given in elapsed seconds since the J2000 epoch.
                     </description>
                 </Field_Character>
@@ -457,7 +457,7 @@
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">15</field_length>
                     <unit>second</unit>
-                    <description>observed_event_stop_tdb indicates the value for latest time 
+                    <description>observed_event_stop_tdb indicates the value for latest time
                       in the described data, and is given in elapsed seconds since the J2000 epoch.
                     </description>
                 </Field_Character>
@@ -540,11 +540,11 @@
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">8</field_length>
                     <unit>degree</unit>
-                    <description>minimum_ring_longitude specifes one boundary for the ring longitude range 
-                    	in the data; normally the smallest value. However, for ranges that cross the prime meridian, 
-                    	the minimum ring longitude will have a value greater than the maximum ring longitude. Values 
+                    <description>minimum_ring_longitude specifes one boundary for the ring longitude range
+                    	in the data; normally the smallest value. However, for ranges that cross the prime meridian,
+                    	the minimum ring longitude will have a value greater than the maximum ring longitude. Values
                     	range from 0 to 360 in units of degrees.
-                    	
+
                     	ring_longitude specifies the inertial longitude of a ring feature relative to the prime
                       meridian. In planetary ring systems, the prime meridian is the ascending node of the planet's
                       invariable plane on the Earth's mean equator of J2000. Longitudes are measured in the
@@ -561,11 +561,11 @@
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">8</field_length>
                     <unit>degree</unit>
-                    <description>maximum_ring_longitude specifes one boundary for the ring longitude range 
-                    	in the data; normally the largest value. However, for ranges that cross the prime meridian, 
-                    	the maximum ring longitude will have a value smaller than the minimum ring longitude. Values 
+                    <description>maximum_ring_longitude specifes one boundary for the ring longitude range
+                    	in the data; normally the largest value. However, for ranges that cross the prime meridian,
+                    	the maximum ring longitude will have a value smaller than the minimum ring longitude. Values
                     	range from 0 to 360 in units of degrees.
-                    	
+
                     	ring_longitude specifies the inertial longitude of a ring feature relative to the prime
                       meridian. In planetary ring systems, the prime meridian is the ascending node of the planet's
                       invariable plane on the Earth's mean equator of J2000. Longitudes are measured in the
@@ -582,14 +582,14 @@
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">8</field_length>
                     <unit>degree</unit>
-                    <description>Specifes the smallest value for observed_ring_azimuth in the data file. 
+                    <description>Specifes the smallest value for observed_ring_azimuth in the data file.
                     	Values range from 0 to 360 in units of degrees.
-                    
+
                     	observed_ring_azimuth is an angle measured at a point in the ring plane, starting
                       from the direction of a photon heading to the observer, and ending at the direction of a local
                       radial vector. This angle is projected into the ring plane and measured in the prograde
                       direction. Note that, as seen from the observer, it equals 90 degrees along the right ansa
-                      and 270 degrees along the left ansa. Values range from 0 to 360 in units of degrees.                    	
+                      and 270 degrees along the left ansa. Values range from 0 to 360 in units of degrees.
                     </description>
                 </Field_Character>
                 <Field_Character>
@@ -599,9 +599,9 @@
                     <data_type>ASCII_Real</data_type>
                     <field_length unit="byte">8</field_length>
                     <unit>degree</unit>
-                    <description>Specifes the largest value for observed_ring_azimuth in the data file. 
+                    <description>Specifes the largest value for observed_ring_azimuth in the data file.
                     	Values range from 0 to 360 in units of degrees.
-                    
+
                       observed_ring_azimuth is an angle measured at a point in the ring plane, starting
                       from the direction of a photon heading to the observer, and ending at the direction of a local
                       radial vector. This angle is projected into the ring plane and measured in the prograde
@@ -619,7 +619,7 @@
                     <description>observed_ring_elevation is an angle measured at a point in the ring plane, starting
                       from the ring plane to the direction of a photon heading to the observer. This angle is
                       positive on the side of the ring plane defined by positive angular momentum, and negative
-                      on the opposite side. Values range from -90 to +90 in units of degrees. This angle is constant 
+                      on the opposite side. Values range from -90 to +90 in units of degrees. This angle is constant
                       for stellar occultations, but may vary significantly during radio occultations.
                       Note: The direction of positive angular momentum points toward the IAU-defined north side
                       of the ring plane for Jupiter, Saturn and Neptune, but IAU-defined south side of the ring
@@ -656,7 +656,7 @@
                        nearly opaque rings. It specifies the rough value for the smallest normal ring opacity that can
                        be detected in the data at the resolution provided, incorporating both statistical effects and
                        calibration uncertainties.
-                       
+
                        -1.0 indicates the signal was too poor to allow the calculation of the value.
                     </description>
                 </Field_Character>
@@ -670,7 +670,7 @@
                        nearly opaque rings. It specifies the rough value for the largest normal ring opacity that can
                        be detected in the data at the resolution provided, incorporating both statistical effects and
                        calibration uncertainties.
-                       
+
                        -1.0 indicates the signal was too poor to allow the calculation of the value.
                     </description>
                 </Field_Character>            </Record_Character>
