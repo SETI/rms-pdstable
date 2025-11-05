@@ -10,7 +10,11 @@ import re
 from pds4_tools.reader.label_objects import Label
 
 from .pdsxtable import PdsColumnInfo, PdsTableInfo
-from .utils import (tai_from_iso, int_from_base2, int_from_base8, int_from_base16,
+from .utils import (int_from_base2,
+                    int_from_base8,
+                    int_from_base16,
+                    string_collapsed,
+                    tai_from_iso,
                     STRING_TYPES)
 
 
@@ -120,8 +124,14 @@ PDS4_CHR_DATA_TYPE_MAPPING = {
     'ASCII_LIDVID_LID': ('string', 'U', None),
     'ASCII_MD5_Checksum': ('string', 'U', None),
     'ASCII_String': ('string', 'U', None),
+    'ASCII_Short_String_Collapsed': ('string', 'U', string_collapsed),
+    'ASCII_Short_String_Preserved': ('string_preserved', 'U', None),
+    'ASCII_Text_Collapsed': ('string', 'U', string_collapsed),
+    'ASCII_Text_Preserved': ('string_preserved', 'U', None),
     'ASCII_VID': ('string', 'U', None),
     'UTF8_String': ('string', 'U', None),
+    'UTF8_Short_String_Collapsed': ('string', 'U', string_collapsed),
+    'UTF8_Short_String_Preserved': ('string_preserved', 'U', None),
     'ASCII_Boolean': ('boolean', 'bool', None),
     'ASCII_Numeric_Base2': ('int', 'int', int_from_base2),
     'ASCII_Numeric_Base8': ('int', 'int', int_from_base8),

@@ -313,7 +313,10 @@ class PdsTable:
                 # Handle the data type...
 
                 # Handle a string
-                if data_type == 'string' or (data_type == 'time' and key not in times):
+                if data_type == 'string_preserved':
+                    items = items.astype('U')  # No strip
+
+                elif data_type == 'string' or (data_type == 'time' and key not in times):
                     items = items.astype('U')
 
                     if strip:
