@@ -79,6 +79,18 @@ def int_from_base16(string):
     return int(string, 16)
 
 
+def string_collapsed(s):
+    """Collapse a string by removing whitespace and converting to lowercase.
+
+    Parameters:
+        s (str): The string to collapse.
+
+    Returns:
+        str: The collapsed string.
+    """
+    return s.strip()
+
+
 def lowercase_value(value):
     """Convert a table value to lower case.
 
