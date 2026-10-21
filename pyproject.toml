@@ -55,7 +55,12 @@ pythonpath = [
 testpaths = ["tests"]
 addopts = ["-n", "auto", "--cov=src/pdstable", "--strict-markers", "--strict-config"]
 markers = []
-filterwarnings = ["error"]
+filterwarnings = [
+  "error",
+  # pds4_tools reads a PDS4 label with ElementTree.iterparse and never closes the
+  # iterator; Python 3.15 reports that as a ResourceWarning when it is collected.
+  "ignore:unclosed iterparse iterator:ResourceWarning",
+]
 
 [tool.setuptools]
 [tool.setuptools.packages.find]
