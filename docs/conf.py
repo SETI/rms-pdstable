@@ -8,7 +8,12 @@
 import datetime
 import importlib.metadata
 import os
+import builtins
 import sys
+
+from sphinx.addnodes import pending_xref
+from sphinx.ext.intersphinx import missing_reference
+
 sys.path.insert(0, os.path.abspath('../src'))
 
 # Verify the source path exists
@@ -89,15 +94,12 @@ napoleon_use_admonition_for_references = False
 napoleon_use_ivar = True
 napoleon_use_param = True
 napoleon_use_rtype = True
-# Preprocessing lets the short type names the docstrings use resolve to their full
-# targets through napoleon_type_aliases.
-napoleon_preprocess_types = True
-napoleon_type_aliases = {
-    'Path': 'pathlib.Path',
-    'FCPath': 'filecache.file_cache_path.FCPath',
-    'Pds3Label': 'pdsparser.Pds3Label',
-    'callable': 'collections.abc.Callable',
-}
+# The docstring types use annotation syntax (`str | Path | None`, `list[str]`), which
+# Sphinx's Python domain splits into one cross-reference per name. Napoleon's own type
+# preprocessing would instead wrap the whole expression in a single reference, so it
+# stays off.
+napoleon_preprocess_types = False
+napoleon_type_aliases = None
 napoleon_attr_annotations = True
 
 # Intersphinx settings
@@ -133,3 +135,58 @@ myst_enable_extensions = [
 # Generate anchor targets for Markdown headings so intra-document links in
 # CONTRIBUTING.md (its table of contents) resolve.
 myst_heading_anchors = 2
+
+# The docstrings name types by the short names the code imports, while the inventories
+# record them by module. Each short name is rewritten to the target that intersphinx
+# knows before intersphinx looks it up.
+_SHORT_NAMES = {
+    'Any'      : 'typing.Any',
+    'Callable' : 'collections.abc.Callable',
+    'FCPath'   : 'filecache.file_cache_path.FCPath',
+    'Path'     : 'pathlib.Path',
+    'Pds3Label': 'pdsparser.Pds3Label',
+    # Sphinx leaves None unlinked inside a type field, though it links None in a
+    # signature; routing it through here links it in both places.
+    'None'     : 'None',
+}
+
+# Names of the builtin classes, such as bytes and set.
+_BUILTIN_TYPES = {name for name, obj in vars(builtins).items() if isinstance(obj, type)}
+
+
+def _resolve_short_name(app, env, node, contnode):
+    """Resolve a short type name through intersphinx under its full name."""
+
+    if node.get('reftarget') not in _SHORT_NAMES:
+        return None
+    node['reftarget'] = _SHORT_NAMES[node['reftarget']]
+    resolved = missing_reference(app, env, node, contnode)
+    if resolved is None and node.get('reftype') != 'obj':
+        # A type field looks a name up as a class, but the Python inventory records
+        # some typing names, such as typing.Any, as data.
+        node['reftype'] = 'obj'
+        resolved = missing_reference(app, env, node, contnode)
+    return resolved
+
+
+def _prefer_builtin_types(app, doctree):
+    """Make a builtin type name in a type field resolve to the builtin.
+
+    Sphinx resolves the names in a type field by a fuzzy search that matches any object
+    whose name ends with the given text, so `bytes` would link to the
+    PdsColumnInfo.bytes property. An exact search finds no such object here, so the
+    name falls through to intersphinx and links to the builtin class.
+    """
+
+    for node in doctree.findall(pending_xref):
+        if (node.get('refdomain') == 'py' and node.get('reftarget') in _BUILTIN_TYPES
+                and 'refspecific' in node):
+            # The Python domain checks only whether the attribute is present
+            del node['refspecific']
+
+
+def setup(app):
+    """Connect the handlers that link the docstring type names."""
+
+    app.connect('doctree-read', _prefer_builtin_types)
+    app.connect('missing-reference', _resolve_short_name, priority=400)

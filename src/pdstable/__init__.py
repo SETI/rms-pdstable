@@ -3,9 +3,12 @@
 ##########################################################################################
 
 import os
+from pathlib import Path
+from typing import Any
 import warnings
 
 import numpy as np
+from pdsparser import Pds3Label
 
 from .pdsxtable import PdsTableInfo, PdsColumnInfo
 from .pds3table import (Pds3TableInfo,
@@ -49,56 +52,61 @@ class PdsTable:
         """Constructor for a PdsTable object.
 
         Parameters:
-            label_file (str or Path or FCPath): The path to the PDS label of the table
-                file. Must be supplied to get proper relative path resolution.
-            label_contents (list or Pds3Label, optional): The contents of the label as a
-                list of strings if we shouldn't read it from the file. Alternatively, a
-                Pds3Label object to avoid label parsing entirely. Note: this param is for
-                PDS3 labels only; it is ignored for PDS4.
-            columns (list, optional): An optional list of the names of the columns to
-                return. If the list is empty, then every column is returned.
-            times (list, optional): An optional list of the names of time columns to be
-                stored as floats in units of seconds TAI rather than as strings.
-            nostrip (list, optional): An optional list of the names of string columns that
-                are not to be stripped of surrounding whitespace.
-            callbacks (dict, optional): An optional dictionary that returns a callback
-                function given the name of a column. If a callback is provided for any
-                column, then the function is called on the string value of that column
-                before it is parsed. This can be used to update known syntax errors in a
-                particular table.
+            label_file (str | Path | FCPath): The path to the PDS label of the table file.
+                Must be supplied to get proper relative path resolution.
+            label_contents (list[str] | dict[str, Any] | Pds3Label | None, optional): The
+                contents of the label as a list of strings if we shouldn't read it from
+                the file. Alternatively, a parsed label as a dict, or a Pds3Label object,
+                to avoid label parsing entirely. Note: this param is for PDS3 labels only;
+                it is ignored for PDS4.
+            columns (list[str] | None, optional): An optional list of the names of the
+                columns to return. If the list is empty, then every column is returned.
+            times (list[str] | None, optional): An optional list of the names of time
+                columns to be stored as floats in units of seconds TAI rather than as
+                strings.
+            nostrip (list[str] | None, optional): An optional list of the names of string
+                columns that are not to be stripped of surrounding whitespace.
+            callbacks (dict[str, Callable[[str], str]] | None, optional): An optional
+                dictionary that returns a callback function given the name of a column. If
+                a callback is provided for any column, then the function is called on the
+                string value of that column before it is parsed. This can be used to
+                update known syntax errors in a particular table.
             ascii (bool, optional): True to interpret the callbacks as translating
                 ASCII byte strings; False to interpret them as translating the default str
                 type (Unicode).
-            replacements (dict, optional): An optional dictionary that returns a
-                replacement dictionary given the name of a column. If a replacement
-                dictionary is provided for any column, then any value in that column (as a
-                string or as its native value) that matches a key in the dictionary is
-                replaced by the value resulting from the dictionary lookup.
-            invalid (dict, optional): An optional dictionary keyed by column name. The
-                returned value must be a list or set of values that are to be treated as
-                invalid, missing, or unknown. An optional entry keyed by "default" can be
-                a list or set of values that are invalid by default; these are used for
-                any column whose name does not appear as a key in the dictionary.
-            valid_ranges (dict, optional): An optional dictionary keyed by column name.
-                The returned value must be a tuple or list containing the minimum and
-                maximum numeric values in that column.
-            table_callback (callable, optional): An optional function to be called after
-                reading the data table contents before processing them. Note that this
-                callback must handle bytestrings.
+            replacements (dict[str, dict[Any, Any]] | None, optional): An optional
+                dictionary that returns a replacement dictionary given the name of a
+                column. If a replacement dictionary is provided for any column, then any
+                value in that column (as a string or as its native value) that matches a
+                key in the dictionary is replaced by the value resulting from the
+                dictionary lookup.
+            invalid (dict[str, list[Any] | set[Any]] | None, optional): An optional
+                dictionary keyed by column name. The returned value must be a list or set
+                of values that are to be treated as invalid, missing, or unknown. An
+                optional entry keyed by "default" can be a list or set of values that are
+                invalid by default; these are used for any column whose name does not
+                appear as a key in the dictionary.
+            valid_ranges (dict[str, tuple[float, float] | list[float]] | None, optional):
+                An optional dictionary keyed by column name. The returned value must be a
+                tuple or list containing the minimum and maximum numeric values in that
+                column.
+            table_callback (Callable[[list[bytes]], list[bytes]] | None, optional): An
+                optional function to be called after reading the data table contents
+                before processing them. Note that this callback must handle bytestrings.
             merge_masks (bool, optional): True to return a single mask value for each
                 column, regardless of how many items might be in that column. False to
                 return a separate mask value for each value in a column.
             filename_keylen (int, optional): Number of characters in the filename to use
                 as the key of the index if this table is to be indexed by filename. Zero
                 to use the entire file basename after stripping off the extension.
-            row_range (tuple or list, optional): A tuple or list of integers containing
-                the index of the first row to read and the first row to omit. If not
-                specified, then all the rows are read.
-            table_file (str or int, optional): Specify a table file name to be read or an
-                integer (1-based) representing the order in which the table appears in the
-                label file. If the provided table name doesn't exist in the label or the
-                integer is out of the range, an error will be raised. Only relevant for
-                PDS4 labels.
+            row_range (tuple[int, int] | list[int] | None, optional): A tuple or list of
+                integers containing the index of the first row to read and the first row
+                to omit. If not specified, then all the rows are read.
+            table_file (str | int | None, optional): Specify a table file name to be read
+                or an integer (1-based) representing the order in which the table appears
+                in the label file. If the provided table name doesn't exist in the label
+                or the integer is out of the range, an error will be raised. Only relevant
+                for PDS4 labels.
             label_method (str, optional): The method to use to parse the label. Valid
                 values are 'strict' (default) or 'fast'. The 'fast' method is faster but
                 may not be as accurate. Only relevant for PDS3 labels.
@@ -451,69 +459,69 @@ class PdsTable:
         self._filename_keys    = None
 
     @property
-    def pdslabel(self):
+    def pdslabel(self) -> Pds3Label | dict[str, Any]:
         """The label of the table as a Pds3Label for PDS3 or dict for PDS4."""
         return self._info.label
 
     @property
-    def label_file_name(self):
+    def label_file_name(self) -> str:
         """The name of the label file (without the path)."""
         return self._info.label_file_name
 
     @property
-    def label_file_path(self):
+    def label_file_path(self) -> Path:
         """The local path to the label file."""
         return self._info.label_file_path
 
     @property
-    def table_file_name(self):
+    def table_file_name(self) -> str:
         """The name of the table file (without the path)."""
         return self._info.table_file_name
 
     @property
-    def table_file_path(self):
+    def table_file_path(self) -> Path:
         """The local path to the table file."""
         return self._info.table_file_path
 
     @property
-    def is_pds4(self):
+    def is_pds4(self) -> bool:
         """True if the read label was a PDS4 label, False otherwise."""
         return self._is_pds4_lbl
 
     @property
-    def rows(self):
+    def rows(self) -> int:
         """The number of rows that were read."""
         return self._rows
 
     @property
-    def first(self):
+    def first(self) -> int:
         """The index of the first row that was read (0-based)."""
         return self._first
 
     @property
-    def columns(self):
+    def columns(self) -> int:
         """The number of columns in the table (possibly as restricted by the columns
         parameter)."""
         return len(self._column_values)
 
     @property
-    def all_columns(self):
+    def all_columns(self) -> int:
         """The number of columns in the table (possibly as restricted by the columns
         parameter)."""
         return self._info.columns
 
     @property
-    def column_values(self):
+    def column_values(self) -> dict[str, np.ndarray | list[tuple]]:
         """The values of the columns that were read as a dict indexed by column name."""
         return self._column_values
 
     @property
-    def column_masks(self):
+    def column_masks(self) -> dict[str, np.ndarray]:
         """The masks of the columns that were read as a dict indexed by column name."""
         return self._column_masks
 
     @property
-    def column_info_list(self):
+    def column_info_list(self) -> list[PdsColumnInfo]:
         """The list of PdsColumnInfo objects for the columns in the table.
 
         This list includes ALL of the columns, not just the ones restricted by the columns
@@ -522,7 +530,7 @@ class PdsTable:
         return self._info.column_info_list
 
     @property
-    def column_info_dict(self):
+    def column_info_dict(self) -> dict[str, PdsColumnInfo]:
         """The dict of PdsColumnInfo objects for the columns in the table, keyed by the
         column name.
 
@@ -532,32 +540,32 @@ class PdsTable:
         return self._info.column_info_dict
 
     @property
-    def header_bytes(self):
+    def header_bytes(self) -> int:
         """The number of bytes in the header of the table."""
         return self._info.header_bytes
 
     @property
-    def encoding(self):
+    def encoding(self) -> str:
         """The encoding of the table file (e.g., 'utf-8' or 'latin-1')."""
         return self._encoding['encoding']
 
     @property
-    def fixed_length_row(self):
+    def fixed_length_row(self) -> bool:
         """True if the table has fixed-length rows."""
         return self._info.fixed_length_row
 
     @property
-    def field_delimiter(self):
+    def field_delimiter(self) -> bytes | None:
         """The field delimiter for the table."""
         return self._info.field_delimiter
 
     @property
-    def row_bytes(self):
+    def row_bytes(self) -> int:
         """The number of bytes in a single row of the table."""
         return self._info.row_bytes
 
     @property
-    def dtype0(self):
+    def dtype0(self) -> dict[str, tuple[str, int]]:
         """The dtype dictionary for the table, keyed by the column name.
 
         Each value is a tuple of (dtype_string, start_byte) where dtype_string is the
@@ -568,7 +576,7 @@ class PdsTable:
         return self._info.dtype0
 
     @property
-    def info(self):
+    def info(self) -> PdsTableInfo:
         """The Pds3/4TableInfo object that holds the attributes of the table.
 
         DEPRECATED.
@@ -587,14 +595,14 @@ class PdsTable:
         value, which is True if the column value is invalid; False otherwise.
 
         Parameters:
-            lowercase (tuple or bool): A tuple of two booleans. If the first is True, then
-                the dictionary is also keyed by column names converted to lower case. If
-                the second is True, then keys with "_lower" appended return values
-                converted to lower case. If a single boolean is provided, it will be
-                duplicated for both parameters.
+            lowercase (bool | tuple[bool, bool], optional): A tuple of two booleans. If
+                the first is True, then the dictionary is also keyed by column names
+                converted to lower case. If the second is True, then keys with "_lower"
+                appended return values converted to lower case. If a single boolean is
+                provided, it will be duplicated for both parameters.
 
         Returns:
-            list: A list of dictionaries, one for each row in the table.
+            list[dict[str, Any]]: A list of dictionaries, one for each row in the table.
         """
 
         # Duplicate the lowercase value if only one is provided
@@ -655,7 +663,8 @@ class PdsTable:
             name (str): The name of the column to retrieve.
 
         Returns:
-            list: The values in the specified column.
+            numpy.ndarray | list[tuple]: The values in the specified column. A column with
+            multiple items that are not all arrays is returned as a list of tuples.
         """
 
         return self._column_values[name]
@@ -667,7 +676,7 @@ class PdsTable:
             name (str): The name of the column to retrieve masks for.
 
         Returns:
-            list: The masks for the specified column.
+            numpy.ndarray: The masks for the specified column.
         """
 
         return self._column_masks[name]
@@ -676,7 +685,7 @@ class PdsTable:
         """Get the list of column names that were actually loaded.
 
         Returns:
-            list: A list of column names.
+            list[str]: A list of column names.
         """
 
         return list(self._keys)
@@ -690,22 +699,22 @@ class PdsTable:
         """Find indices of rows where each named parameter equals the specified value.
 
         Parameters:
-            lowercase (tuple or bool): Whether to enable testing of the column name and
-                value converted to lower case. This is a tuple of two booleans. If the
-                first is True, then we also allow testing of an entry in `params` with a
-                ``_lower`` suffix. If the second boolean is True, then such a column also
-                converts the value to match lower case. If a single boolean is provided,
-                it will be duplicated for both parameters.
-            limit (int, optional): If not zero or None, this is the maximum number of
-                matching rows that are returned.
-            substrings (list, optional): A list of column names for which a match
-                occurs if the given parameter value is embedded within the string; an
-                exact match is not required.
-            **params: Named parameters where each parameter name corresponds to a column
-                name and the value is what to search for in that column.
+            lowercase (bool | tuple[bool, bool], optional): Whether to enable testing of
+                the column name and value converted to lower case. This is a tuple of two
+                booleans. If the first is True, then we also allow testing of an entry in
+                `params` with a ``_lower`` suffix. If the second boolean is True, then
+                such a column also converts the value to match lower case. If a single
+                boolean is provided, it will be duplicated for both parameters.
+            limit (int | None, optional): If not zero or None, this is the maximum number
+                of matching rows that are returned.
+            substrings (list[str] | None, optional): A list of column names for which a
+                match occurs if the given parameter value is embedded within the string;
+                an exact match is not required.
+            **params (Any): Named parameters where each parameter name corresponds to a
+                column name and the value is what to search for in that column.
 
         Returns:
-            list: A list of row indices that match the search criteria.
+            list[int]: A list of row indices that match the search criteria.
         """
 
         if substrings is None:
@@ -770,17 +779,17 @@ class PdsTable:
         """Find the first row where each named parameter equals the specified value.
 
         Parameters:
-            lowercase (tuple or bool): Whether to enable testing of the column name and
-                value converted to lower case. This is a tuple of two booleans. If the
-                first is True, then we also allow testing of an entry in `params` with a
-                ``_lower`` suffix. If the second boolean is True, then such a column also
-                converts the value to match lower case. If a single boolean is provided,
-                it will be duplicated for both parameters.
-            substrings (list, optional): A list of column names for which a match
-                occurs if the given parameter value is embedded within the string; an
-                exact match is not required.
-            **params: Named parameters where each parameter name corresponds to a column
-                name and the value is what to search for in that column.
+            lowercase (bool | tuple[bool, bool], optional): Whether to enable testing of
+                the column name and value converted to lower case. This is a tuple of two
+                booleans. If the first is True, then we also allow testing of an entry in
+                `params` with a ``_lower`` suffix. If the second boolean is True, then
+                such a column also converts the value to match lower case. If a single
+                boolean is provided, it will be duplicated for both parameters.
+            substrings (list[str] | None, optional): A list of column names for which a
+                match occurs if the given parameter value is embedded within the string;
+                an exact match is not required.
+            **params (Any): Named parameters where each parameter name corresponds to a
+                column name and the value is what to search for in that column.
 
         Returns:
             int: The index of the first matching row.
@@ -805,18 +814,18 @@ class PdsTable:
         the specified value.
 
         Parameters:
-            lowercase (tuple or bool): Whether to enable testing of the column name and
-                value converted to lower case. This is a tuple of two booleans. If the
-                first is True, then we also allow testing of an entry in `params` with a
-                ``_lower`` suffix. If the second boolean is True, then such a column also
-                converts the value to match lower case. If a single boolean is provided,
-                it will be duplicated for both parameters.
-            **params: Named parameters where each parameter name corresponds to a column
-                name and the value is what to search for in that column.
+            lowercase (bool | tuple[bool, bool], optional): Whether to enable testing of
+                the column name and value converted to lower case. This is a tuple of two
+                booleans. If the first is True, then we also allow testing of an entry in
+                `params` with a ``_lower`` suffix. If the second boolean is True, then
+                such a column also converts the value to match lower case. If a single
+                boolean is provided, it will be duplicated for both parameters.
+            **params (Any): Named parameters where each parameter name corresponds to a
+                column name and the value is what to search for in that column.
 
         Returns:
-            list: A list of dictionaries representing the matching rows. Each dictionary
-            is keyed by column name.
+            list[dict[str, Any]]: A list of dictionaries representing the matching rows.
+            Each dictionary is keyed by column name.
         """
 
         indices = self.find_row_indices(lowercase=lowercase, **params)
@@ -828,18 +837,18 @@ class PdsTable:
         equals the specified value.
 
         Parameters:
-            lowercase (tuple or bool): Whether to enable testing of the column name and
-                value converted to lower case. This is a tuple of two booleans. If the
-                first is True, then we also allow testing of an entry in `params` with a
-                ``_lower`` suffix. If the second boolean is True, then such a column also
-                converts the value to match lower case. If a single boolean is provided,
-                it will be duplicated for both parameters.
-            **params: Named parameters where each parameter name corresponds to a column
-                name and the value is what to search for in that column.
+            lowercase (bool | tuple[bool, bool], optional): Whether to enable testing of
+                the column name and value converted to lower case. This is a tuple of two
+                booleans. If the first is True, then we also allow testing of an entry in
+                `params` with a ``_lower`` suffix. If the second boolean is True, then
+                such a column also converts the value to match lower case. If a single
+                boolean is provided, it will be duplicated for both parameters.
+            **params (Any): Named parameters where each parameter name corresponds to a
+                column name and the value is what to search for in that column.
 
         Returns:
-            dict: A dictionary representing the first matching row. The dictionary is
-            keyed by column name.
+            dict[str, Any]: A dictionary representing the first matching row. The
+            dictionary is keyed by column name.
 
         Raises:
             ValueError: If no matching row is found.
@@ -963,15 +972,15 @@ class PdsTable:
 
         Parameters:
             bundle_name (str): The bundle name to search for.
-            filespec (str, optional): The file specification name to search for. If None,
-                `bundle_name` is treated as the `filespec`.
-            limit (int, optional): Maximum number of matching rows to return.
+            filespec (str | None, optional): The file specification name to search for. If
+                None, `bundle_name` is treated as the `filespec`.
+            limit (int | None, optional): Maximum number of matching rows to return.
             substring (bool, optional): If True, a match occurs whenever the given
                 `filespec` appears inside what is tabulated in the file, so a complete
                 match is not required.
 
         Returns:
-            list: A list of row indices that match the search criteria.
+            list[int]: A list of row indices that match the search criteria.
         """
 
         return self.find_row_indices_by_volume_filespec(bundle_name, filespec,
@@ -994,15 +1003,15 @@ class PdsTable:
 
         Parameters:
             volume_id (str): The volume ID to search for.
-            filespec (str, optional): The file specification name to search for. If None,
-                `volume_id` is treated as the `filespec`.
-            limit (int, optional): Maximum number of matching rows to return.
+            filespec (str | None, optional): The file specification name to search for. If
+                None, `volume_id` is treated as the `filespec`.
+            limit (int | None, optional): Maximum number of matching rows to return.
             substring (bool, optional): If True, a match occurs whenever the given
                 `filespec` appears inside what is tabulated in the file, so a complete
                 match is not required.
 
         Returns:
-            list: A list of row indices that match the search criteria.
+            list[int]: A list of row indices that match the search criteria.
         """
 
         dicts_by_row = self.dicts_by_row(lowercase=(True, True))
@@ -1075,8 +1084,8 @@ class PdsTable:
 
         Parameters:
             bundle_name (str): The bundle name to search for.
-            filespec (str, optional): The file specification name to search for. If None,
-                `bundle_name` is treated as the `filespec`.
+            filespec (str | None, optional): The file specification name to search for. If
+                None, `bundle_name` is treated as the `filespec`.
             substring (bool, optional): If True, a match occurs whenever the given
                 `filespec` appears inside what is tabulated in the file, so a complete
                 match is not required.
@@ -1108,8 +1117,8 @@ class PdsTable:
 
         Parameters:
             volume_id (str): The volume ID to search for.
-            filespec (str, optional): The file specification name to search for. If None,
-                `volume_id` is treated as the `filespec`.
+            filespec (str | None, optional): The file specification name to search for. If
+                None, `volume_id` is treated as the `filespec`.
             substring (bool, optional): If True, a match occurs whenever the given
                 `filespec` appears inside what is tabulated in the file, so a complete
                 match is not required.
@@ -1156,14 +1165,14 @@ class PdsTable:
 
         Parameters:
             bundle_name (str): The bundle name to search for.
-            filespec (str, optional): The file specification name to search for. If None,
-                `bundle_name` is treated as the `filespec`.
-            limit (int, optional): Maximum number of matching rows to return.
+            filespec (str | None, optional): The file specification name to search for. If
+                None, `bundle_name` is treated as the `filespec`.
+            limit (int | None, optional): Maximum number of matching rows to return.
             substring (bool, optional): If True, a match occurs whenever the given
                 `filespec` appears inside what is tabulated in the file.
 
         Returns:
-            list: A list of dictionaries representing the matching rows.
+            list[dict[str, Any]]: A list of dictionaries representing the matching rows.
         """
 
         return self.find_rows_by_volume_filespec(bundle_name, filespec, limit=limit,
@@ -1189,14 +1198,14 @@ class PdsTable:
 
         Parameters:
             volume_id (str): The volume ID to search for.
-            filespec (str, optional): The file specification name to search for. If None,
-                `volume_id` is treated as the `filespec`.
-            limit (int, optional): Maximum number of matching rows to return.
+            filespec (str | None, optional): The file specification name to search for. If
+                None, `volume_id` is treated as the `filespec`.
+            limit (int | None, optional): Maximum number of matching rows to return.
             substring (bool, optional): If True, a match occurs whenever the given
                 `filespec` appears inside what is tabulated in the file.
 
         Returns:
-            list: A list of dictionaries representing the matching rows.
+            list[dict[str, Any]]: A list of dictionaries representing the matching rows.
         """
 
         indices = self.find_row_indices_by_volume_filespec(volume_id, filespec,
@@ -1223,14 +1232,14 @@ class PdsTable:
 
         Parameters:
             bundle_name (str): The bundle name to search for.
-            filespec (str, optional): The file specification name to search for. If None,
-                `bundle_name` is treated as the `filespec`.
+            filespec (str | None, optional): The file specification name to search for. If
+                None, `bundle_name` is treated as the `filespec`.
             substring (bool, optional): If True, a match occurs whenever the given
                 `filespec` appears inside what is tabulated in the file, so a complete
                 match is not required.
 
         Returns:
-            dict: A dictionary representing the first matching row.
+            dict[str, Any]: A dictionary representing the first matching row.
 
         Raises:
             ValueError: If no matching row is found.
@@ -1255,14 +1264,14 @@ class PdsTable:
 
         Parameters:
             volume_id (str): The volume ID to search for.
-            filespec (str, optional): The file specification name to search for. If None,
-                `volume_id` is treated as the `filespec`.
+            filespec (str | None, optional): The file specification name to search for. If
+                None, `volume_id` is treated as the `filespec`.
             substring (bool, optional): If True, a match occurs whenever the given
                 `filespec` appears inside what is tabulated in the file, so a complete
                 match is not required.
 
         Returns:
-            dict: A dictionary representing the first matching row.
+            dict[str, Any]: A dictionary representing the first matching row.
 
         Raises:
             ValueError: If no matching row is found.
@@ -1308,12 +1317,8 @@ class PdsTable:
         self._filename_keys = filename_keys
 
     @property
-    def filename_keys(self):
-        """The list of filename keys for the table.
-
-        Returns:
-            list: A list of filename keys.
-        """
+    def filename_keys(self) -> list[str]:
+        """The list of filename keys for the table."""
 
         if self._filename_keys is None:
             self.index_rows_by_filename_key()
@@ -1327,7 +1332,7 @@ class PdsTable:
             key (str): The filename key to look up.
 
         Returns:
-            list: A list of row indices associated with the filename key.
+            list[int]: A list of row indices associated with the filename key.
         """
 
         # Create the index if necessary
@@ -1342,7 +1347,8 @@ class PdsTable:
             key (str): The filename key to look up.
 
         Returns:
-            list: A list of dictionaries representing the rows associated with the `key`.
+            list[dict[str, Any]]: A list of dictionaries representing the rows associated
+            with the `key`.
         """
 
         # Create the index if necessary

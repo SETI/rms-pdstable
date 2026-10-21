@@ -89,10 +89,17 @@ history, user requests, or issue numbers in a docstring.
 
 Sphinx builds are warning-as-error (`-W`) and nitpicky (`-n`) in CI, in the check script, and in
 `read-docs.sh`. `docs/conf.py` also sets `nitpicky = True`, so the ReadTheDocs build is nitpicky
-too. The docstrings name types by short names (`Path`, `FCPath`, `Pds3Label`, `callable`);
-`napoleon_type_aliases` in `docs/conf.py` maps each to a target intersphinx can resolve, so a new
-short name needs an entry there. Never add a `nitpick_ignore_regex` entry for a symbol this
-project owns, or for a third-party class that intersphinx can resolve. Narrative docs are `.rst`;
+too. Never add a `nitpick_ignore_regex` entry for a symbol this project owns, or for a
+third-party class that intersphinx can resolve.
+
+Docstring types use annotation syntax, as in rms-polymath: `str | Path | FCPath`,
+`list[str] | None, optional`, `dict[str, Any]`, `Callable[[str], str]`, `numpy.ndarray`. Sphinx
+links each name separately, so `napoleon_preprocess_types` stays off. Short names (`Any`,
+`Callable`, `FCPath`, `Path`, `Pds3Label`) resolve through `_SHORT_NAMES` in `docs/conf.py`, so a
+new short name needs an entry there; NumPy types are written in full (`numpy.ndarray`). A
+handler there also makes builtin names such as `bytes` link to the builtin rather than to the
+`PdsColumnInfo.bytes` property. Properties carry an inline return annotation instead, which
+Sphinx renders beside the property name. Narrative docs are `.rst`;
 Markdown is only for README/CONTRIBUTING via MyST. Every API symbol named in prose must use a
 Sphinx role (`:class:`, `:meth:`, `:func:`, `:mod:`, `:attr:`, `:data:`). American spelling, one
 space after a sentence-ending period, no time-anchored words ("new", "legacy", "now").

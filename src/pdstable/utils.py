@@ -17,7 +17,7 @@ def is_pds4_label(label_name):
     """Check if the given label is a PDS4 label.
 
     Parameters:
-        label_name (str or Path or FCPath): The name of the label file to check.
+        label_name (str | Path | FCPath): The name of the label file to check.
 
     Returns:
         bool: True if the label is a PDS4 label, False otherwise.
@@ -94,11 +94,11 @@ def lowercase_value(value):
     Handles strings and tuples; leaves ints and floats unchanged.
 
     Parameters:
-        value: The value to convert to lowercase. Can be a string, tuple, numpy array, or
-        other type.
+        value (Any): The value to convert to lowercase. Can be a string, tuple, numpy
+            array, or other type.
 
     Returns:
-        The value converted to lowercase where applicable. Strings are converted to
+        Any: The value converted to lowercase where applicable. Strings are converted to
         lowercase, tuples have their string elements converted to lowercase, numpy arrays
         have their string elements converted to lowercase, and other types are returned
         unchanged.

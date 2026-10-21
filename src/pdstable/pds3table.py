@@ -51,23 +51,24 @@ class Pds3TableInfo(PdsTableInfo):
         """Load a PDS table based on its associated label file.
 
         Parameters:
-            label_file_path (str or Path or FCPath): Path to the PDS3 label file. Even if
-                the label contents is provided in `label_list`, `label_file_path` must
-                be specified because it is needed to locate the table file. If this
-                parameter is an FCPath object, it will be downloaded from the remote
-                source.
-            label_contents (list or dict or Pds3Label, optional): An option to override
-                the parsing of the label. If this is a list, it is interpreted as
-                containing all the records of the PDS label. If it is a dict, it is
-                treated as a parsed label keyed by label item. If it is a Pds3Label
-                object, it is assumed to be the label file that was already parsed. If
-                None, the label file specified by `label_file_path` is read and parsed.
-            invalid (dict, optional): An optional dictionary keyed by column name. The
-                returned value must be a list or set of values that are to be treated as
-                invalid, missing, or unknown.
-            valid_ranges (dict, optional): An optional dictionary keyed by column name.
-                The returned value must be a tuple or list containing the minimum and
-                maximum numeric values in that column.
+            label_file_path (str | Path | FCPath): Path to the PDS3 label file. Even if
+                the label contents is provided in `label_list`, `label_file_path` must be
+                specified because it is needed to locate the table file. If this parameter
+                is an FCPath object, it will be downloaded from the remote source.
+            label_contents (list[str] | dict[str, Any] | Pds3Label | None, optional): An
+                option to override the parsing of the label. If this is a list, it is
+                interpreted as containing all the records of the PDS label. If it is a
+                dict, it is treated as a parsed label keyed by label item. If it is a
+                Pds3Label object, it is assumed to be the label file that was already
+                parsed. If None, the label file specified by `label_file_path` is read and
+                parsed.
+            invalid (dict[str, list[Any] | set[Any]] | None, optional): An optional
+                dictionary keyed by column name. The returned value must be a list or set
+                of values that are to be treated as invalid, missing, or unknown.
+            valid_ranges (dict[str, tuple[float, float] | list[float]] | None, optional):
+                An optional dictionary keyed by column name. The returned value must be a
+                tuple or list containing the minimum and maximum numeric values in that
+                column.
             label_method (str, optional): The method to use to parse the label. One of:
 
                 * "strict" performs strict parsing, which requires that the label conform
@@ -189,13 +190,14 @@ class Pds3ColumnInfo(PdsColumnInfo):
         """Constructor for a Pds3ColumnInfo.
 
         Parameters:
-            node_dict (dict): The dictionary associated with the pdsparser.PdsNode
-                object defining the column.
+            node_dict (dict[str, Any]): The dictionary from the parsed label that defines
+                the column.
             column_no (int): The index number of this column, starting at zero.
-            invalid (set, optional): An optional set of discrete values that are to be
-                treated as invalid, missing, or unknown.
-            valid_range (tuple or list, optional): An optional tuple or list identifying
-                the lower and upper limits of the valid range for a numeric column.
+            invalid (set[Any] | None, optional): An optional set of discrete values that
+                are to be treated as invalid, missing, or unknown.
+            valid_range (tuple[float, float] | list[float] | None, optional): An optional
+                tuple or list identifying the lower and upper limits of the valid range
+                for a numeric column.
 
         Raises:
             ValueError: If a required column field is missing or the column's DATA_TYPE

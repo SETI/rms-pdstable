@@ -75,7 +75,7 @@ def get_column(self, name, *, masked=False):
         masked (bool, optional): True to replace each invalid value with None.
 
     Returns:
-        list or numpy.ndarray: The values in the column, one per row of the table.
+        numpy.ndarray | list[tuple]: The values in the column, one per row of the table.
     """
 ```
 

@@ -151,27 +151,27 @@ class Pds4TableInfo(PdsTableInfo):
         """Load a PDS4 table based on its associated label file.
 
         Parameters:
-            label_file_path (str or Path or FCPath): Path to the PDS4 label file. Even if
-                the label contents is provided in `label_list`, `label_file_path` must
-                be specified because it is needed to locate the table file. If this
-                parameter is an FCPath object, it will be downloaded from the remote
-                source.
-            label_contents (pds4_tools.Label or dict, optional): An option to override
-                the parsing of the label. If this is a dict, it is treated as the complete
-                structure of the parsed label. If it is a pds4_tools.Label object, it is
-                assumed to be the label file that was already parsed. If None, the label
-                file specified by `label_file_path` is read and parsed.
-            invalid (dict, optional): An optional dictionary keyed by column name. The
-                returned value must be a list or set of values that are to be treated as
-                invalid, missing, or unknown.
-            valid_ranges (dict, optional): An optional dictionary keyed by column name.
-                The returned value must be a tuple or list containing the minimum and
-                maximum numeric values in that column.
-            table_file (str or int, optional): Specify a table file name to be read or an
-                integer (1-based) representing the order in which the table appears in the
-                label file. A string is treated as a regular expression. If the provided
-                table name doesn't exist in the label or the integer is out of the range,
-                an error will be raised.
+            label_file_path (str | Path | FCPath): Path to the PDS4 label file. Even if
+                the label contents is provided in `label_list`, `label_file_path` must be
+                specified because it is needed to locate the table file. If this parameter
+                is an FCPath object, it will be downloaded from the remote source.
+            label_contents (Label | dict[str, Any] | None, optional): An option to
+                override the parsing of the label. If this is a dict, it is treated as the
+                complete structure of the parsed label. If it is a pds4_tools.Label
+                object, it is assumed to be the label file that was already parsed. If
+                None, the label file specified by `label_file_path` is read and parsed.
+            invalid (dict[str, list[Any] | set[Any]] | None, optional): An optional
+                dictionary keyed by column name. The returned value must be a list or set
+                of values that are to be treated as invalid, missing, or unknown.
+            valid_ranges (dict[str, tuple[float, float] | list[float]] | None, optional):
+                An optional dictionary keyed by column name. The returned value must be a
+                tuple or list containing the minimum and maximum numeric values in that
+                column.
+            table_file (str | int | None, optional): Specify a table file name to be read
+                or an integer (1-based) representing the order in which the table appears
+                in the label file. A string is treated as a regular expression. If the
+                provided table name doesn't exist in the label or the integer is out of
+                the range, an error will be raised.
         """
 
         super().__init__(label_file_path)
@@ -357,13 +357,14 @@ class Pds4ColumnInfo(PdsColumnInfo):
         """Constructor for a Pds4ColumnInfo.
 
         Parameters:
-            node_dict (dict): The dictionary associated with the column info obtained
-                from a pds4_tools.Label object.
+            node_dict (dict[str, Any]): The dictionary associated with the column info
+                obtained from a pds4_tools.Label object.
             column_no (int): The index number of this column, starting at zero.
-            invalid (set, optional): An optional set of discrete values that are to be
-                treated as invalid, missing or unknown.
-            valid_range (tuple or list, optional): An optional tuple or list identifying
-                the lower and upper limits of the valid range for a numeric column.
+            invalid (set[Any] | None, optional): An optional set of discrete values that
+                are to be treated as invalid, missing or unknown.
+            valid_range (tuple[float, float] | list[float] | None, optional): An optional
+                tuple or list identifying the lower and upper limits of the valid range
+                for a numeric column.
         """
 
         super().__init__()

@@ -5,7 +5,12 @@
 # and Pds3ColumnInfo and Pds4ColumnInfo.
 ################################################################################
 
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
+
 from filecache import FCPath
+from pdsparser import Pds3Label
 
 
 ################################################################################
@@ -39,73 +44,73 @@ class PdsTableInfo:
         self._dtype0 = {}
 
     @property
-    def label(self):
+    def label(self) -> Pds3Label | dict[str, Any]:
         """The label of the table as a Pds3Label for PDS3 or dict for PDS4."""
         return self._label
 
     @property
-    def label_file_name(self):
+    def label_file_name(self) -> str:
         """The name of the label file (without the path)."""
         return self._label_file_name
 
     @property
-    def label_file_path(self):
+    def label_file_path(self) -> Path:
         """The local path to the label file."""
         return self._label_file_path
 
     @property
-    def table_file_name(self):
+    def table_file_name(self) -> str:
         """The name of the table file (without the path)."""
         return self._table_file_name
 
     @property
-    def table_file_path(self):
+    def table_file_path(self) -> Path:
         """The local path to the table file."""
         return self._table_file_path
 
     @property
-    def header_bytes(self):
+    def header_bytes(self) -> int:
         """The number of bytes in the header of the table."""
         return self._header_bytes
 
     @property
-    def fixed_length_row(self):
+    def fixed_length_row(self) -> bool:
         """True if the table has fixed-length rows."""
         return self._fixed_length_row
 
     @property
-    def field_delimiter(self):
+    def field_delimiter(self) -> bytes | None:
         """The field delimiter for the table."""
         return self._field_delimiter
 
     @property
-    def rows(self):
+    def rows(self) -> int:
         """The number of rows in the table."""
         return self._rows
 
     @property
-    def columns(self):
+    def columns(self) -> int:
         """The number of columns in the table."""
         return self._columns
 
     @property
-    def row_bytes(self):
+    def row_bytes(self) -> int:
         """The number of bytes in a single row of the table."""
         return self._row_bytes
 
     @property
-    def column_info_list(self):
+    def column_info_list(self) -> 'list[PdsColumnInfo]':
         """The list of PdsColumnInfo objects for the columns in the table."""
         return self._column_info_list
 
     @property
-    def column_info_dict(self):
+    def column_info_dict(self) -> 'dict[str, PdsColumnInfo]':
         """The dict of PdsColumnInfo objects for the columns in the table, keyed by
         the column name."""
         return self._column_info_dict
 
     @property
-    def dtype0(self):
+    def dtype0(self) -> dict[str, tuple[str, int]]:
         """The dtype dictionary for the table, keyed by the column name.
 
         Each value is a tuple of (dtype_string, start_byte) where dtype_string is the
@@ -143,42 +148,42 @@ class PdsColumnInfo:
         self._invalid_values = None
 
     @property
-    def name(self):
+    def name(self) -> str:
         """The name of the column."""
         return self._name
 
     @property
-    def colno(self):
+    def colno(self) -> int:
         """The index number of the column, starting at zero."""
         return self._colno
 
     @property
-    def start_byte(self):
+    def start_byte(self) -> int | None:
         """The starting byte of the column in the row (1-based)."""
         return self._start_byte
 
     @property
-    def bytes(self):
+    def bytes(self) -> int | None:
         """The number of bytes in the column."""
         return self._bytes
 
     @property
-    def items(self):
+    def items(self) -> int | None:
         """The number of items in the column (PDS3 only)."""
         return self._items
 
     @property
-    def item_bytes(self):
+    def item_bytes(self) -> int | None:
         """The number of bytes in an item of the column (PDS3 only)."""
         return self._item_bytes
 
     @property
-    def item_offset(self):
+    def item_offset(self) -> int | None:
         """The incremental offset of each item within the column."""
         return self._item_offset
 
     @property
-    def data_type(self):
+    def data_type(self) -> str:
         """The data type of the column.
 
         Possible values are 'int', 'float', 'time', and 'string'.
@@ -186,7 +191,7 @@ class PdsColumnInfo:
         return self._data_type
 
     @property
-    def dtype0(self):
+    def dtype0(self) -> tuple[str, int] | None:
         """The dtype of the entire column as a string.
 
         Each value is a tuple of (dtype_string, start_byte) where dtype_string is the
@@ -196,7 +201,7 @@ class PdsColumnInfo:
         return self._dtype0
 
     @property
-    def dtype1(self):
+    def dtype1(self) -> dict[str, tuple[str, int]] | None:
         """The dtype of a multiple-item column.
 
         If items == 0, this value is None. Otherwise, it is a dict keyed by 'item_0',
@@ -207,7 +212,7 @@ class PdsColumnInfo:
         return self._dtype1
 
     @property
-    def dtype2(self):
+    def dtype2(self) -> str:
         """The dtype of the column with the actual data type.
 
         Possible values are 'int', 'float', 'S', and 'U'.
@@ -215,18 +220,18 @@ class PdsColumnInfo:
         return self._dtype2
 
     @property
-    def scalar_func(self):
+    def scalar_func(self) -> Callable[[str], Any] | None:
         """The scalar function used to convert the column's string value to its data
         value."""
         return self._scalar_func
 
     @property
-    def valid_range(self):
+    def valid_range(self) -> tuple[float, float] | list[float] | None:
         """The valid range of the column as a tuple (lower, upper) or None."""
         return self._valid_range
 
     @property
-    def invalid_values(self):
+    def invalid_values(self) -> set[Any]:
         """The set of invalid value markers for the column.
 
         If the column's value equals one of these markers, the column value is considered

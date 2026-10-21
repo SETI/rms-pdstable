@@ -6,6 +6,7 @@ from pathlib import Path
 import warnings
 
 import numpy as np
+from pdsparser import Pds3Label
 import pytest
 
 from pdstable import PdsTable
@@ -409,9 +410,14 @@ def test_pds3_table_cassini_iss() -> None:
     test = PdsTable(INDEX_PATH, label_contents=partial_table.pdslabel)
     assert test.pdslabel is partial_table.pdslabel
 
-    test = PdsTable(INDEX_PATH, label_contents=partial_table.pdslabel.content)
-    assert test.pdslabel is not partial_table.pdslabel
-    assert test.pdslabel.content == partial_table.pdslabel.content
+    # A PDS3 table's label is a Pds3Label
+    partial_label = partial_table.pdslabel
+    assert isinstance(partial_label, Pds3Label)
+    test = PdsTable(INDEX_PATH, label_contents=partial_label.content)
+    test_label = test.pdslabel
+    assert test_label is not partial_label
+    assert isinstance(test_label, Pds3Label)
+    assert test_label.content == partial_label.content
 
     ####################################
     # Other PdsTable options
