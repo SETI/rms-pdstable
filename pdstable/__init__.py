@@ -1,6 +1,6 @@
-################################################################################
+##########################################################################################
 # pdstable/__init__.py
-################################################################################
+##########################################################################################
 
 import os
 import warnings
@@ -38,8 +38,8 @@ class PdsTable:
         (4) No row or record offsets in the label's pointer to the table file.
         (5) STRUCTURE fields in the label are not supported.
         (6) Columns containing multiple items are not loaded.
-        (7) Time fields are represented as character strings unless explicitly
-            listed for conversion.
+        (7) Time fields are represented as character strings unless explicitly listed for
+            conversion.
     """
     def __init__(self, label_file, *, label_contents=None, times=None, columns=None,
                        nostrip=None, callbacks=None, ascii=False, replacements=None,
@@ -147,8 +147,7 @@ class PdsTable:
             self._keys = [info.name for info in self._info.column_info_list]
         else:
             self._keys = columns
-        # self._keys is an ordered list containing the name of every column to be
-        # returned
+        # self._keys is an ordered list containing the name of every column to be returned
 
         self._keys_lc = [k.lower() for k in self._keys]
 
@@ -165,14 +164,14 @@ class PdsTable:
 
             # Check line count
             if len(lines) != self._info.rows:
-                raise ValueError(f'row count mismatch in {label_file}: ' +
-                                 f'{len(lines)} rows in file; ' +
+                raise ValueError(f'row count mismatch in {label_file}: '
+                                 f'{len(lines)} rows in file; '
                                  f'label says {self._info.rows} rows')
 
         else:
             if not self._info.fixed_length_row:
-                raise ValueError('Cannot specify row range for the table '
-                                 'without fixed length rows.')
+                raise ValueError('Cannot specify row range for the table without fixed '
+                                 'length rows.')
 
             self._first = row_range[0]
             self._rows = row_range[1] - row_range[0]
@@ -190,7 +189,7 @@ class PdsTable:
                 lines = lines[:self._rows]
 
             if len(lines) != self._rows:
-                raise ValueError(f'row count mismatch: {len(lines)} row(s) read; ' +
+                raise ValueError(f'row count mismatch: {len(lines)} row(s) read; '
                                  f'{self._rows} row(s) requested')
 
         if table_callback is not None:
@@ -202,9 +201,9 @@ class PdsTable:
         if self._info.fixed_length_row:
             table = np.array(lines)
             try:
-                table.dtype = np.dtype(self._info.dtype0)
+                table = table.view(np.dtype(self._info.dtype0))
             except ValueError:
-                raise ValueError('Error in row description:\n' +
+                raise ValueError('Error in row description:\n'
                                  'old dtype = ' + str(table.dtype) +
                                  ';\nnew dtype = ' + str(np.dtype(self._info.dtype0)))
         # For a table file that doesn't have fixed length row, like a .csv file:
@@ -233,7 +232,7 @@ class PdsTable:
             if self._info.fixed_length_row and column_info.items > 1:
 
                 # Replace the column substring with a list of sub-substrings
-                column.dtype = np.dtype(column_info.dtype1)
+                column = column.view(np.dtype(column_info.dtype1))
 
                 items = []
                 masks = []
@@ -241,8 +240,8 @@ class PdsTable:
                     item = column[f'item_{i}']
                     items.append(item)
                     masks.append(False)
-                # items is now a list containing one 1-D array for each item in
-                # this column.
+                # items is now a list containing one 1-D array for each item in this
+                # column.
 
                 self._column_values[key] = items
             else:
@@ -295,8 +294,8 @@ class PdsTable:
                     if not isinstance(after,  STRING_TYPES):
                         continue
 
-                    # The file is read as binary, so the replacements have
-                    # to be applied as ASCII byte strings
+                    # The file is read as binary, so the replacements have to be applied
+                    # as ASCII byte strings
 
                     if isinstance(before, (str, np.str_)):
                         before = before.encode(**self._encoding)
@@ -422,13 +421,12 @@ class PdsTable:
             # Report errors as warnings
             if error_count:
                 if error_count == 1:
-                    template = (f'Illegally formatted {column_info.data_type} ' +
-                                f'value in column {column_info.name}: ' +
-                                f'{error_example.strip()}')
+                    template = (f'Illegally formatted {column_info.data_type} value in '
+                                f'column {column_info.name}: {error_example.strip()}')
                 else:
-                    template = (f'{str(error_count)} illegally formatted ' +
-                                f'{column_info.data_type} values in column ' +
-                                f'{column_info.name}; first example is ' +
+                    template = (f'{str(error_count)} illegally formatted '
+                                f'{column_info.data_type} values in column '
+                                f'{column_info.name}; first example is '
                                 f'"{error_example.strip()}"')
 
                 warnings.warn(template)
@@ -490,14 +488,14 @@ class PdsTable:
 
     @property
     def columns(self):
-        """The number of columns in the table (possibly as restricted by the
-        columns parameter)."""
+        """The number of columns in the table (possibly as restricted by the columns
+        parameter)."""
         return len(self._column_values)
 
     @property
     def all_columns(self):
-        """The number of columns in the table (possibly as restricted by the
-        columns parameter)."""
+        """The number of columns in the table (possibly as restricted by the columns
+        parameter)."""
         return self._info.columns
 
     @property
@@ -514,18 +512,18 @@ class PdsTable:
     def column_info_list(self):
         """The list of PdsColumnInfo objects for the columns in the table.
 
-        This list includes ALL of the columns, not just the ones restricted by
-        the columns parameter.
+        This list includes ALL of the columns, not just the ones restricted by the columns
+        parameter.
         """
         return self._info.column_info_list
 
     @property
     def column_info_dict(self):
-        """The dict of PdsColumnInfo objects for the columns in the table, keyed by
-        the column name.
+        """The dict of PdsColumnInfo objects for the columns in the table, keyed by the
+        column name.
 
-        This dict includes ALL of the columns, not just the ones restricted by
-        the columns parameter.
+        This dict includes ALL of the columns, not just the ones restricted by the columns
+        parameter.
         """
         return self._info.column_info_dict
 
@@ -573,23 +571,23 @@ class PdsTable:
         """
         return self._info
 
-    ############################################################################
+    ######################################################################################
     # Support for extracting rows and columns
-    ############################################################################
+    ######################################################################################
 
     def dicts_by_row(self, lowercase=(False, False)):
         """Returns a list of dictionaries, one for each row in the table.
 
-        Each dictionary contains all of the column values in that particular row.
-        The dictionary keys are the column names; append "_mask" to the key to get
-        the mask value, which is True if the column value is invalid; False otherwise.
+        Each dictionary contains all of the column values in that particular row. The
+        dictionary keys are the column names; append "_mask" to the key to get the mask
+        value, which is True if the column value is invalid; False otherwise.
 
         Parameters:
-            lowercase (tuple or bool): A tuple of two booleans. If the first is
-                True, then the dictionary is also keyed by column names converted to
-                lower case. If the second is True, then keys with "_lower" appended
-                return values converted to lower case. If a single boolean is provided,
-                it will be duplicated for both parameters.
+            lowercase (tuple or bool): A tuple of two booleans. If the first is True, then
+                the dictionary is also keyed by column names converted to lower case. If
+                the second is True, then keys with "_lower" appended return values
+                converted to lower case. If a single boolean is provided, it will be
+                duplicated for both parameters.
 
         Returns:
             list: A list of dictionaries, one for each row in the table.
@@ -679,9 +677,9 @@ class PdsTable:
 
         return list(self._keys)
 
-    ############################################################################
+    ######################################################################################
     # Support for finding rows by specified column values
-    ############################################################################
+    ######################################################################################
 
     def find_row_indices(self, lowercase=(False, False), *,
                                limit=None, substrings=None, **params):
@@ -847,9 +845,9 @@ class PdsTable:
         dicts_by_row = self.dicts_by_row()
         return dicts_by_row[k]
 
-    ############################################################################
+    ######################################################################################
     # Support for finding rows by filename
-    ############################################################################
+    ######################################################################################
 
     def filename_key(self, filename):
         """Convert a filename to a key for indexing the rows.
@@ -876,8 +874,8 @@ class PdsTable:
         This is an alias for the volume_column_index() method.
 
         Returns:
-            int: The index of the column containing volume IDs or bundle names,
-            or -1 if none.
+            int: The index of the column containing volume IDs or bundle names, or -1 if
+            none.
         """
 
         return self.volume_column_index()
@@ -950,56 +948,54 @@ class PdsTable:
 
         The search is case-insensitive.
 
-        If the table does not contain the bundle name or if the given value of
-        bundle_name is blank or not supplied, the search is performed on the filespec
-        alone, ignoring the bundle name. Also, if only one argument is specified,
-        it is treated as the filespec.
+        If the table does not contain the bundle name or if the given value of bundle_name
+        is blank or not supplied, the search is performed on the filespec alone, ignoring
+        the bundle name. Also, if only one argument is specified, it is treated as the
+        filespec.
 
-        The search ignores the extension of filespec so it does not matter
-        whether the column contains paths to labels or data files. It also works
-        in tables that contain columns of file names without directory paths.
+        The search ignores the extension of filespec so it does not matter whether the
+        column contains paths to labels or data files. It also works in tables that
+        contain columns of file names without directory paths.
 
         Parameters:
             bundle_name (str): The bundle name to search for.
-            filespec (str, optional): The file specification name to search for.
-                If None, bundle_name is treated as the filespec.
+            filespec (str, optional): The file specification name to search for. If None,
+                bundle_name is treated as the filespec.
             limit (int, optional): Maximum number of matching rows to return.
             substring (bool, optional): If True, a match occurs whenever the given
-                filespec appears inside what is tabulated in the file, so a complete
-                match is not required.
+                filespec appears inside what is tabulated in the file, so a complete match
+                is not required.
 
         Returns:
             list: A list of row indices that match the search criteria.
         """
 
         return self.find_row_indices_by_volume_filespec(bundle_name, filespec,
-                                                        limit=limit,
-                                                        substring=substring)
+                                                        limit=limit, substring=substring)
 
-    def find_row_indices_by_volume_filespec(self, volume_id, filespec=None, *,
-                                                  limit=None, substring=False):
+    def find_row_indices_by_volume_filespec(self, volume_id, filespec=None, *, limit=None,
+                                            substring=False):
         """Find the row indices of the table with the specified volume_id and
         file_specification_name.
 
         The search is case-insensitive.
 
-        If the table does not contain the volume ID or if the given value of
-        volume_id is blank or not supplied, the search is performed on the filespec
-        alone, ignoring the volume ID. Also, if only one argument is specified,
-        it is treated as the filespec.
+        If the table does not contain the volume ID or if the given value of volume_id is
+        blank or not supplied, the search is performed on the filespec alone, ignoring the
+        volume ID. Also, if only one argument is specified, it is treated as the filespec.
 
-        The search ignores the extension of filespec so it does not matter
-        whether the column contains paths to labels or data files. It also works
-        in tables that contain columns of file names without directory paths.
+        The search ignores the extension of filespec so it does not matter whether the
+        column contains paths to labels or data files. It also works in tables that
+        contain columns of file names without directory paths.
 
         Parameters:
             volume_id (str): The volume ID to search for.
-            filespec (str, optional): The file specification name to search for.
-                If None, volume_id is treated as the filespec.
+            filespec (str, optional): The file specification name to search for. If None,
+                volume_id is treated as the filespec.
             limit (int, optional): Maximum number of matching rows to return.
             substring (bool, optional): If True, a match occurs whenever the given
-                filespec appears inside what is tabulated in the file, so a complete
-                match is not required.
+                filespec appears inside what is tabulated in the file, so a complete match
+                is not required.
 
         Returns:
             list: A list of row indices that match the search criteria.
@@ -1058,7 +1054,7 @@ class PdsTable:
                                          **{filespec_colname: filespec})
 
     def find_row_index_by_bundle_filespec(self, bundle_name, filespec=None, *,
-                                                substring=False):
+                                          substring=False):
         """Find the first row index with the specified bundle_name and
         file_specification_name.
 
@@ -1066,22 +1062,21 @@ class PdsTable:
 
         The search is case-insensitive.
 
-        If the table does not contain the bundle name or if the given value of
-        bundle_name is blank, the search is performed on the filespec alone,
-        ignoring the bundle name. Also, if only one argument is specified, it is
-        treated as the filespec.
+        If the table does not contain the bundle name or if the given value of bundle_name
+        is blank, the search is performed on the filespec alone, ignoring the bundle name.
+        Also, if only one argument is specified, it is treated as the filespec.
 
-        The search ignores the extension of filespec so it does not matter
-        whether the column contains paths to labels or data files. It also works
-        in tables that contain columns of file names without directory paths.
+        The search ignores the extension of filespec so it does not matter whether the
+        column contains paths to labels or data files. It also works in tables that
+        contain columns of file names without directory paths.
 
         Parameters:
             bundle_name (str): The bundle name to search for.
-            filespec (str, optional): The file specification name to search for.
-                If None, bundle_name is treated as the filespec.
+            filespec (str, optional): The file specification name to search for. If None,
+                bundle_name is treated as the filespec.
             substring (bool, optional): If True, a match occurs whenever the given
-                filespec appears inside what is tabulated in the file, so a
-                complete match is not required.
+                filespec appears inside what is tabulated in the file, so a complete match
+                is not required.
 
         Returns:
             int: The index of the first matching row.
@@ -1094,28 +1089,27 @@ class PdsTable:
                                                       substring=substring)
 
     def find_row_index_by_volume_filespec(self, volume_id, filespec=None,
-                                                substring=False):
+                                          substring=False):
         """Find the first row index with the specified volume_id and
         file_specification_name.
 
         The search is case-insensitive.
 
-        If the table does not contain the volume ID or if the given value of
-        volume_id is blank, the search is performed on the filespec alone,
-        ignoring the volume ID. Also, if only one argument is specified, it is
-        treated as the filespec.
+        If the table does not contain the volume ID or if the given value of volume_id is
+        blank, the search is performed on the filespec alone, ignoring the volume ID.
+        Also, if only one argument is specified, it is treated as the filespec.
 
-        The search ignores the extension of filespec so it does not matter
-        whether the column contains paths to labels or data files. It also works
-        in tables that contain columns of file names without directory paths.
+        The search ignores the extension of filespec so it does not matter whether the
+        column contains paths to labels or data files. It also works in tables that
+        contain columns of file names without directory paths.
 
         Parameters:
             volume_id (str): The volume ID to search for.
-            filespec (str, optional): The file specification name to search for.
-                If None, volume_id is treated as the filespec.
+            filespec (str, optional): The file specification name to search for. If None,
+                `volume_id` is treated as the filespec.
             substring (bool, optional): If True, a match occurs whenever the given
-                filespec appears inside what is tabulated in the file, so a
-                complete match is not required.
+                `filespec` appears inside what is tabulated in the file, so a complete
+                match is not required.
 
         Returns:
             int: The index of the first matching row.
@@ -1124,8 +1118,7 @@ class PdsTable:
             ValueError: If no matching row is found.
         """
 
-        indices = self.find_row_indices_by_volume_filespec(volume_id, filespec,
-                                                           limit=1,
+        indices = self.find_row_indices_by_volume_filespec(volume_id, filespec, limit=1,
                                                            substring=substring)
         if indices:
             return indices[0]
@@ -1137,71 +1130,69 @@ class PdsTable:
         else:
             raise ValueError(f'row not found: filespec={filespec}')
 
-    def find_rows_by_bundle_filespec(self, bundle_name, filespec=None, *,
-                                           limit=None, substring=False):
+    def find_rows_by_bundle_filespec(self, bundle_name, filespec=None, *, limit=None,
+                                     substring=False):
         """Find the rows of the table with the specified bundle_name and
         file_specification_name.
 
-        This is an alias for the find_rows_by_volume_filespec() method.
+        This is an alias for meth:`~find_rows_by_volume_filespec`.
 
         The search is case-insensitive.
 
-        If the table does not contain the bundle name or if the given value of
-        bundle_name is blank or not supplied, the search is performed on the filespec
-        alone, ignoring the bundle name. Also, if only one argument is specified,
-        it is treated as the filespec.
+        If the table does not contain the bundle name or if the given value of bundle_name
+        is blank or not supplied, the search is performed on the filespec alone, ignoring
+        the bundle name. Also, if only one argument is specified, it is treated as the
+        filespec.
 
-        The search ignores the extension of filespec so it does not matter
-        whether the column contains paths to labels or data files. It also works
-        in tables that contain columns of file names without directory paths.
+        The search ignores the extension of filespec so it does not matter whether the
+        column contains paths to labels or data files. It also works in tables that
+        contain columns of file names without directory paths.
 
-        If input parameter substring is True, then a match occurs whenever the
-        given filespec appears inside what is tabulated in the file, so a
-        complete match is not required.
+        If input parameter substring is True, then a match occurs whenever the given
+        filespec appears inside what is tabulated in the file, so a complete match is not
+        required.
 
         Parameters:
             bundle_name (str): The bundle name to search for.
-            filespec (str, optional): The file specification name to search for.
-                If None, bundle_name is treated as the filespec.
+            filespec (str, optional): The file specification name to search for. If None,
+                `bundle_name` is treated as the `filespec`.
             limit (int, optional): Maximum number of matching rows to return.
             substring (bool, optional): If True, a match occurs whenever the given
-                filespec appears inside what is tabulated in the file.
+                `filespec` appears inside what is tabulated in the file.
 
         Returns:
             list: A list of dictionaries representing the matching rows.
         """
 
-        return self.find_rows_by_volume_filespec(bundle_name, filespec,
-                                                 limit=limit,
+        return self.find_rows_by_volume_filespec(bundle_name, filespec, limit=limit,
                                                  substring=substring)
 
-    def find_rows_by_volume_filespec(self, volume_id, filespec=None, *,
-                                           limit=None, substring=False):
+    def find_rows_by_volume_filespec(self, volume_id, filespec=None, *, limit=None,
+                                     substring=False):
         """Find the rows of the table with the specified volume_id and
         file_specification_name.
 
         The search is case-insensitive.
 
-        If the table does not contain the volume ID or if the given value of
-        volume_id is blank, the search is performed on the filespec alone,
-        ignoring the volume ID. Also, if only one argument is specified, it is
-        treated as the filespec.
+        If the table does not contain the volume ID or if the given value of volume_id is
+        blank, the search is performed on the filespec alone, ignoring the volume ID.
+        Also, if only one argument is specified, it is treated as the filespec.
 
-        The search ignores the extension of filespec so it does not matter
-        whether the column contains paths to labels or data files. It also works
-        in tables that contain columns of file names without directory paths.
+        The search ignores the extension of filespec so it does not matter whether the
+        column contains paths to labels or data files. It also works in tables that
+        contain columns of file names without directory paths.
 
-        If input parameter substring is True, then a match occurs whenever the
-        given filespec appears inside what is tabulated in the file, so a
-        complete match is not required.
+        If input parameter substring is True, then a match occurs whenever the given
+        filespec appears inside what is tabulated in the file, so a complete match is not
+        required.
 
         Parameters:
             volume_id (str): The volume ID to search for.
-            filespec (str, optional): The file specification name to search for.
-                If None, volume_id is treated as the filespec.
+            filespec (str, optional): The file specification name to search for. If None,
+                `volume_id` is treated as the filespec.
             limit (int, optional): Maximum number of matching rows to return.
             substring (bool, optional): If True, a match occurs whenever the given
-                filespec appears inside what is tabulated in the file.
+                `filespec` appears inside what is tabulated in the file.
 
         Returns:
             list: A list of dictionaries representing the matching rows.
@@ -1213,36 +1204,33 @@ class PdsTable:
         dicts_by_row = self.dicts_by_row()
         return [dicts_by_row[k] for k in indices]
 
-    def find_row_by_bundle_filespec(self, bundle_name, filespec=None,
-                                          substring=False):
+    def find_row_by_bundle_filespec(self, bundle_name, filespec=None, substring=False):
         """See find_row_by_volume_filespec."""
 
         return self.find_row_by_volume_filespec(bundle_name, filespec,
                                                 substring=substring)
 
-    def find_row_by_volume_filespec(self, volume_id, filespec=None, *,
-                                          substring=False):
+    def find_row_by_volume_filespec(self, volume_id, filespec=None, *, substring=False):
         """Find the first row of the table with the specified volume_id and
         file_specification_name.
 
         The search is case-insensitive.
 
-        If the table does not contain the volume ID or if the given value of
-        volume_id is blank, the search is performed on the filespec alone,
-        ignoring the volume ID. Also, if only one argument is specified, it is
-        treated as the filespec.
+        If the table does not contain the volume ID or if the given value of volume_id is
+        blank, the search is performed on the filespec alone, ignoring the volume ID.
+        Also, if only one argument is specified, it is treated as the filespec.
 
-        The search ignores the extension of filespec so it does not matter
-        whether the column contains paths to labels or data files. It also works
-        in tables that contain columns of file names without directory paths.
+        The search ignores the extension of filespec so it does not matter whether the
+        column contains paths to labels or data files. It also works in tables that
+        contain columns of file names without directory paths.
 
         Parameters:
             volume_id (str): The volume ID to search for.
-            filespec (str, optional): The file specification name to search for.
-                If None, volume_id is treated as the filespec.
+            filespec (str, optional): The file specification name to search for. If None,
+                `volume_id` is treated as the filespec.
             substring (bool, optional): If True, a match occurs whenever the given
-                filespec appears inside what is tabulated in the file, so a
-                complete match is not required.
+                `filespec` appears inside what is tabulated in the file, so a complete
+                match is not required.
 
         Returns:
             dict: A dictionary representing the first matching row.
@@ -1257,11 +1245,11 @@ class PdsTable:
         return dicts_by_row[k]
 
     def index_rows_by_filename_key(self):
-        """Create a dictionary of row indices keyed by the file basename associated
-        with the row.
+        """Create a dictionary of row indices keyed by the file basename associated with
+        the row.
 
-        The key has the file extension stripped away and is converted to lower case.
-        The result is available in the filename_keys attribute.
+        The key has the file extension stripped away and is converted to lower case. The
+        result is available in the filename_keys attribute.
         """
 
         if self._rows_by_filename is not None:
@@ -1325,8 +1313,7 @@ class PdsTable:
             key (str): The filename key to look up.
 
         Returns:
-            list: A list of dictionaries representing the rows associated with the
-            filename key.
+            list: A list of dictionaries representing the rows associated with the `key`.
         """
 
         # Create the index if necessary
