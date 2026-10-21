@@ -798,7 +798,7 @@ class PdsTable:
         if matches:
             return matches[0]
 
-        raise ValueError('row not found: ' + str(params))
+        raise ValueError(f'row not found: {params}')
 
     def find_rows(self, lowercase=(False, False), **params):
         """Return a list of dicts representing rows where each named parameter equals
