@@ -151,27 +151,27 @@ class Pds4TableInfo(PdsTableInfo):
         """Load a PDS4 table based on its associated label file.
 
         Parameters:
-            label_file_path (str or Path or FCPath): Path to the PDS4 label file. Even if
+            label_file_path (str | Path | FCPath): Path to the PDS4 label file. Even if
                 the label contents is provided in `label_list`, `label_file_path` must be
-                be specificed because it is needed to locate the table file. If this
-                parameter is an FCPath object, it will be downloaded from the remote
-                source.
-            label_contents (pds4_tools.Label or dict, optional): An option to override
-                the parsing of the label. If this is a dict, it is treated as the complete
-                structure of the parsed label. If it is a pds4_tools.Label object, it is
-                assumed to be the label file that was already parsed. If None, the label
-                file specified by `label_file_path` is read and parsed.
-            invalid (dict, optional): An optional dictionary keyed by column name. The
-                returned value must be a list or set of values that are to be treated as
-                invalid, missing, or unknown.
-            valid_ranges (dict, optional): An optional dictionary keyed by column name.
-                The returned value must be a tuple or list containing the minimum and
-                maximum numeric values in that column.
-            table_file (str or int, optional): Specify a table file name to be read or an
-                integer (1-based) representing the order in which the table appears in the
-                label file. A string is treated as a regular expression. If the provided
-                table name doesn't exist in the label or the integer is out of the range,
-                an error will be raised.
+                specified because it is needed to locate the table file. If this parameter
+                is an FCPath object, it will be downloaded from the remote source.
+            label_contents (Label | dict[str, Any] | None, optional): An option to
+                override the parsing of the label. If this is a dict, it is treated as the
+                complete structure of the parsed label. If it is a pds4_tools.Label
+                object, it is assumed to be the label file that was already parsed. If
+                None, the label file specified by `label_file_path` is read and parsed.
+            invalid (dict[str, list[Any] | set[Any]] | None, optional): An optional
+                dictionary keyed by column name. The returned value must be a list or set
+                of values that are to be treated as invalid, missing, or unknown.
+            valid_ranges (dict[str, tuple[float, float] | list[float]] | None, optional):
+                An optional dictionary keyed by column name. The returned value must be a
+                tuple or list containing the minimum and maximum numeric values in that
+                column.
+            table_file (str | int | None, optional): Specify a table file name to be read
+                or an integer (1-based) representing the order in which the table appears
+                in the label file. A string is treated as a regular expression. If the
+                provided table name doesn't exist in the label or the integer is out of
+                the range, an error will be raised.
         """
 
         super().__init__(label_file_path)
@@ -213,9 +213,9 @@ class Pds4TableInfo(PdsTableInfo):
 
         try:
             table_name_li = [f['File']['file_name'] for f in file_areas]
-        except KeyError:
+        except KeyError as e:
             raise ValueError('"File/file_name" element not found in PDS4 label for '
-                             'one of the File_Area classes')
+                             'one of the File_Area classes') from e
 
         if table_file is None:
             if len(file_areas) > 1:
@@ -285,14 +285,14 @@ class Pds4TableInfo(PdsTableInfo):
 
         try:
             self._rows = int(table_area['records'])
-        except (KeyError, ValueError):
+        except (KeyError, ValueError) as e:
             raise ValueError('Missing or bad "records" element for '
-                             f'"{self._table_file_name}" in "{label_file_path}"')
+                             f'"{self._table_file_name}" in "{label_file_path}"') from e
         try:
             self._columns = int(record_area['fields'])
-        except (KeyError, ValueError):
+        except (KeyError, ValueError) as e:
             raise ValueError('Missing or bad "fields" element for '
-                             f'"{self._table_file_name}" in "{label_file_path}"')
+                             f'"{self._table_file_name}" in "{label_file_path}"') from e
 
         try:
             # for a table with fixed row length
@@ -323,7 +323,7 @@ class Pds4TableInfo(PdsTableInfo):
             name = col['name']
             colname[name].append(idx)
 
-        for name, idx_li in colname.items():
+        for idx_li in colname.values():
             # append _{num} if there are duplicated names
             if len(idx_li) > 1:
                 for num, i in enumerate(idx_li):
@@ -335,7 +335,7 @@ class Pds4TableInfo(PdsTableInfo):
 
             pdscol = Pds4ColumnInfo(col, field_num,
                                     invalid=invalid.get(name, default_invalid),
-                                    valid_range=valid_ranges.get(name, None))
+                                    valid_range=valid_ranges.get(name))
 
             self._column_info_list.append(pdscol)
             self._column_info_dict[pdscol.name] = pdscol
@@ -357,13 +357,14 @@ class Pds4ColumnInfo(PdsColumnInfo):
         """Constructor for a Pds4ColumnInfo.
 
         Parameters:
-            node_dict (dict): The dictionary associated with the column info obtained
-                from a pds4_tools.Label object.
+            node_dict (dict[str, Any]): The dictionary associated with the column info
+                obtained from a pds4_tools.Label object.
             column_no (int): The index number of this column, starting at zero.
-            invalid (set, optional): An optional set of discrete values that are to be
-                treated as invalid, missing or unknown.
-            valid_range (tuple or list, optional): An optional tuple or list identifying
-                the lower and upper limits of the valid range for a numeric column.
+            invalid (set[Any] | None, optional): An optional set of discrete values that
+                are to be treated as invalid, missing or unknown.
+            valid_range (tuple[float, float] | list[float] | None, optional): An optional
+                tuple or list identifying the lower and upper limits of the valid range
+                for a numeric column.
         """
 
         super().__init__()
@@ -399,8 +400,8 @@ class Pds4ColumnInfo(PdsColumnInfo):
             (self._data_type,
              self._dtype2,
              self._scalar_func) = PDS4_CHR_DATA_TYPE_MAPPING[self._data_type]
-        except KeyError:
-            raise ValueError('unsupported data type: ' + self._data_type)
+        except KeyError as e:
+            raise ValueError('unsupported data type: ' + self._data_type) from e
 
         # Identify validity criteria
         invalid_set = set()
@@ -439,7 +440,7 @@ class Pds4ColumnInfo(PdsColumnInfo):
             else:
                 self._valid_range = None
 
-        if isinstance(invalid, (numbers.Real,) + STRING_TYPES):
+        if isinstance(invalid, (numbers.Real, *STRING_TYPES)):
             invalid_set.add(invalid)
         else:
             invalid_set |= invalid

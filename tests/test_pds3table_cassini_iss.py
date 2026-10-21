@@ -3,491 +3,483 @@
 ################################################################################
 
 from pathlib import Path
-import unittest
 import warnings
 
 import numpy as np
+from pdsparser import Pds3Label
+import pytest
 
 from pdstable import PdsTable
 
+INDEX_PATH = "test_files/cassini_iss_index.lbl"
+EDITED_INDEX_PATH = "test_files/cassini_iss_index_edited.lbl"
 
-class Test_Pds3Table(unittest.TestCase):
 
-    def runTest(self):
+def test_pds3_table_cassini_iss() -> None:
 
-        # Testing different values parsed correctly...
-        INDEX_PATH = "test_files/cassini_iss_index.lbl"
-        EDITED_INDEX_PATH = "test_files/cassini_iss_index_edited.lbl"
+    # Testing different values parsed correctly...
 
-        test_table_some_cols = PdsTable(INDEX_PATH, columns=['FILE_NAME', 'START_TIME'])
+    test_table_some_cols = PdsTable(INDEX_PATH, columns=['FILE_NAME', 'START_TIME'])
 
-        self.assertEqual(test_table_some_cols.columns, 2)
-        self.assertEqual(test_table_some_cols.all_columns, 118)
-        self.assertEqual(len(test_table_some_cols.column_values), 2)
-        self.assertEqual(len(test_table_some_cols.column_masks), 2)
-        self.assertEqual(len(test_table_some_cols.column_info_list), 118)
-        self.assertEqual(len(test_table_some_cols.column_info_dict), 118)
+    assert test_table_some_cols.columns == 2
+    assert test_table_some_cols.all_columns == 118
+    assert len(test_table_some_cols.column_values) == 2
+    assert len(test_table_some_cols.column_masks) == 2
+    assert len(test_table_some_cols.column_info_list) == 118
+    assert len(test_table_some_cols.column_info_dict) == 118
 
-        test_table_basic = PdsTable(INDEX_PATH)
+    test_table_basic = PdsTable(INDEX_PATH)
 
-        cwd = Path.cwd()
+    cwd = Path.cwd()
 
-        self.assertEqual(test_table_basic.label_file_name, 'cassini_iss_index.lbl')
-        self.assertEqual(test_table_basic.label_file_path,
-                         cwd / 'test_files/cassini_iss_index.lbl')
-        self.assertEqual(test_table_basic.table_file_name, 'cassini_iss_index.tab')
-        self.assertEqual(test_table_basic.table_file_path,
-                         cwd / 'test_files/cassini_iss_index.tab')
+    assert test_table_basic.label_file_name == 'cassini_iss_index.lbl'
+    assert test_table_basic.label_file_path == cwd / 'test_files/cassini_iss_index.lbl'
+    assert test_table_basic.table_file_name == 'cassini_iss_index.tab'
+    assert test_table_basic.table_file_path == cwd / 'test_files/cassini_iss_index.tab'
 
-        self.assertEqual(test_table_basic.is_pds4, False)
-        self.assertEqual(test_table_basic.encoding, 'latin-1')
-        self.assertEqual(test_table_basic.first, 0)
-        self.assertEqual(test_table_basic.rows, 4575)
-        self.assertEqual(test_table_basic.columns, 118)
-        self.assertEqual(test_table_basic.header_bytes, 0)
-        self.assertEqual(test_table_basic.row_bytes, 3057)
-        self.assertEqual(test_table_basic.info.row_bytes, 3057)  # Deprecated
-        self.assertEqual(test_table_basic.fixed_length_row, True)
-        self.assertEqual(test_table_basic.field_delimiter, None)
-        self.assertEqual(len(test_table_basic.column_info_list), 118)
-        self.assertEqual(len(test_table_basic.column_info_dict), 118)
-        self.assertEqual(test_table_basic.dtype0['crlf'], ('|S2', 3055))
+    assert test_table_basic.is_pds4 is False
+    assert test_table_basic.encoding == 'latin-1'
+    assert test_table_basic.first == 0
+    assert test_table_basic.rows == 4575
+    assert test_table_basic.columns == 118
+    assert test_table_basic.header_bytes == 0
+    assert test_table_basic.row_bytes == 3057
+    assert test_table_basic.info.row_bytes == 3057  # Deprecated
+    assert test_table_basic.fixed_length_row is True
+    assert test_table_basic.field_delimiter is None
+    assert len(test_table_basic.column_info_list) == 118
+    assert len(test_table_basic.column_info_dict) == 118
+    assert test_table_basic.dtype0['crlf'] == ('|S2', 3055)
 
-        # Test strings
-        test_file_names = test_table_basic.column_values['FILE_NAME']
-        file_name_test_set = np.array(['N1573186009_1.IMG',
-                                       'W1573186009_1.IMG',
-                                       'N1573186041_1.IMG',
-                                       'W1573186041_1.IMG'])
-        self.assertTrue(np.all(file_name_test_set == test_file_names[0:4]))
+    # Test strings
+    test_file_names = test_table_basic.column_values['FILE_NAME']
+    file_name_test_set = np.array(['N1573186009_1.IMG',
+                                   'W1573186009_1.IMG',
+                                   'N1573186041_1.IMG',
+                                   'W1573186041_1.IMG'])
+    assert np.all(file_name_test_set == test_file_names[0:4])
 
-        # Test floats
-        test_cbody_dists = test_table_basic.column_values['CENTRAL_BODY_DISTANCE']
-        cent_body_dist_test_set = np.array([2869736.9, 2869736, 2869707,
-                                            2869706.9])
-        self.assertTrue(np.all(cent_body_dist_test_set == test_cbody_dists[0:4]))
+    # Test floats
+    test_cbody_dists = test_table_basic.column_values['CENTRAL_BODY_DISTANCE']
+    cent_body_dist_test_set = np.array([2869736.9, 2869736, 2869707,
+                                        2869706.9])
+    assert np.all(cent_body_dist_test_set == test_cbody_dists[0:4])
 
-        # test vectors
-        test_sc_vels = test_table_basic.column_values['SC_TARGET_VELOCITY_VECTOR']
-        sc_vels_test_set = np.array([[1.2223705, -1.1418157, -0.055303727],
-                                     [1.2223749, -1.1418146, -0.055303917],
-                                     [1.2225166, -1.1417793, -0.055309978],
-                                     [1.2225173, -1.1417791, -0.055310007]])
-        self.assertTrue(np.all(sc_vels_test_set == test_sc_vels[0:4]))
+    # test vectors
+    test_sc_vels = test_table_basic.column_values['SC_TARGET_VELOCITY_VECTOR']
+    sc_vels_test_set = np.array([[1.2223705, -1.1418157, -0.055303727],
+                                 [1.2223749, -1.1418146, -0.055303917],
+                                 [1.2225166, -1.1417793, -0.055309978],
+                                 [1.2225173, -1.1417791, -0.055310007]])
+    assert np.all(sc_vels_test_set == test_sc_vels[0:4])
 
-        # Test times as strings
-        test_start_time_strs = test_table_basic.column_values['START_TIME']
-        start_time_str_test_set = ['2007-312T03:31:12.392',
-                                   '2007-312T03:31:14.372',
-                                   '2007-312T03:31:45.832',
-                                   '2007-312T03:31:46.132']
-        self.assertEqual(start_time_str_test_set[0], test_start_time_strs[0])
-        self.assertEqual(start_time_str_test_set[1], test_start_time_strs[1])
-        self.assertEqual(start_time_str_test_set[2], test_start_time_strs[2])
-        self.assertEqual(start_time_str_test_set[3], test_start_time_strs[3])
+    # Test times as strings
+    test_start_time_strs = test_table_basic.column_values['START_TIME']
+    start_time_str_test_set = ['2007-312T03:31:12.392',
+                               '2007-312T03:31:14.372',
+                               '2007-312T03:31:45.832',
+                               '2007-312T03:31:46.132']
+    assert start_time_str_test_set[0] == test_start_time_strs[0]
+    assert start_time_str_test_set[1] == test_start_time_strs[1]
+    assert start_time_str_test_set[2] == test_start_time_strs[2]
+    assert start_time_str_test_set[3] == test_start_time_strs[3]
 
-        self.assertTrue(isinstance(test_start_time_strs, np.ndarray))
-        self.assertTrue(isinstance(test_start_time_strs[0], np.str_))
+    assert isinstance(test_start_time_strs, np.ndarray)
+    assert isinstance(test_start_time_strs[0], np.str_)
 
-        # Test dicts_by_row()
-        rowdict = test_table_basic.dicts_by_row()
-        for i in range(4):
-            self.assertEqual(rowdict[i]["START_TIME"], test_start_time_strs[i])
+    # Test dicts_by_row()
+    rowdict = test_table_basic.dicts_by_row()
+    for i in range(4):
+        assert rowdict[i]["START_TIME"] == test_start_time_strs[i]
 
-        rowvals = test_table_basic.get_column("START_TIME")
-        self.assertTrue(rowvals is test_table_basic.column_values["START_TIME"])
-        rowmasks = test_table_basic.get_column_mask("START_TIME")
-        self.assertTrue(rowmasks is test_table_basic.column_masks["START_TIME"])
-        for i in range(10):
-            self.assertEqual(rowdict[i]["START_TIME"], rowvals[i])
-            self.assertFalse(rowmasks[i])
+    rowvals = test_table_basic.get_column("START_TIME")
+    assert rowvals is test_table_basic.column_values["START_TIME"]
+    rowmasks = test_table_basic.get_column_mask("START_TIME")
+    assert rowmasks is test_table_basic.column_masks["START_TIME"]
+    for i in range(10):
+        assert rowdict[i]["START_TIME"] == rowvals[i]
+        assert not rowmasks[i]
 
-        ####################################
-        # Test string stripping
-        ####################################
+    ####################################
+    # Test string stripping
+    ####################################
 
-        self.assertEqual(test_table_basic.column_values['FILE_NAME'][0],
-                         'N1573186009_1.IMG')
+    assert test_table_basic.column_values['FILE_NAME'][0] == 'N1573186009_1.IMG'
 
-        test_table_no_strip = PdsTable(INDEX_PATH, columns=['FILE_NAME'],
-                                       nostrip=['FILE_NAME'])
-        self.assertEqual(test_table_no_strip.column_values['FILE_NAME'][0],
-                         'N1573186009_1.IMG     ')
+    test_table_no_strip = PdsTable(INDEX_PATH, columns=['FILE_NAME'],
+                                   nostrip=['FILE_NAME'])
+    assert test_table_no_strip.column_values['FILE_NAME'][0] == 'N1573186009_1.IMG     '
 
-        ####################################
-        # Test times as seconds (floats)
-        ####################################
+    ####################################
+    # Test times as seconds (floats)
+    ####################################
 
-        test_table_secs = PdsTable(INDEX_PATH, times=['START_TIME'])
+    test_table_secs = PdsTable(INDEX_PATH, times=['START_TIME'])
 
-        test_start_times = test_table_secs.column_values['START_TIME']
-        start_time_test_set = np.array([247764705.392, 247764707.372,
-                                        247764738.832, 247764739.132])
-        self.assertTrue(np.all(start_time_test_set == test_start_times[0:4]))
-        self.assertTrue(isinstance(start_time_test_set, np.ndarray))
+    test_start_times = test_table_secs.column_values['START_TIME']
+    start_time_test_set = np.array([247764705.392, 247764707.372,
+                                    247764738.832, 247764739.132])
+    assert np.all(start_time_test_set == test_start_times[0:4])
+    assert isinstance(start_time_test_set, np.ndarray)
 
-        # Test dicts_by_row()
-        rowdict = test_table_secs.dicts_by_row()
-        for i in range(4):
-            self.assertEqual(rowdict[i]["START_TIME"], start_time_test_set[i])
+    # Test dicts_by_row()
+    rowdict = test_table_secs.dicts_by_row()
+    for i in range(4):
+        assert rowdict[i]["START_TIME"] == start_time_test_set[i]
 
-        rowvals = test_table_secs.get_column("START_TIME")
-        rowmask = test_table_secs.get_column_mask("START_TIME")
-        for i in range(10):
-            self.assertEqual(rowdict[i]["START_TIME"], rowvals[i])
-            self.assertFalse(rowmask[i])
+    rowvals = test_table_secs.get_column("START_TIME")
+    rowmask = test_table_secs.get_column_mask("START_TIME")
+    for i in range(10):
+        assert rowdict[i]["START_TIME"] == rowvals[i]
+        assert not rowmask[i]
 
-        ####################################
-        # Invalids
-        ####################################
+    ####################################
+    # Invalids
+    ####################################
 
-        test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
-                              invalid={'default': [-1.e32, -2147483648]})
+    test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
+                          invalid={'default': [-1.e32, -2147483648]})
 
-        rowdict = test_table_secs.dicts_by_row()
-        for key in test_table.get_keys():
-            if key.endswith('_mask'):
-                continue
+    rowdict = test_table_secs.dicts_by_row()
+    for key in test_table.get_keys():
+        if key.endswith('_mask'):
+            continue
 
-            rowmasks = test_table_secs.get_column_mask(key)
-            self.assertFalse(np.any(rowmasks))
-            self.assertTrue(isinstance(rowmasks, np.ndarray))
+        rowmasks = test_table_secs.get_column_mask(key)
+        assert not np.any(rowmasks)
+        assert isinstance(rowmasks, np.ndarray)
 
-        results = {
-            'BIAS_STRIP_MEAN': 0,
-            'COMMAND_SEQUENCE_NUMBER': 0,
-            'DARK_STRIP_MEAN': 0,
-            'DETECTOR_TEMPERATURE': 0,
-            'ELECTRONICS_BIAS': 0,
-            'EXPECTED_PACKETS': 0,
-            'EXPOSURE_DURATION': 0,
-            'FILTER_TEMPERATURE': 0,
-            'INSTRUMENT_DATA_RATE': 0,
-            'INST_CMPRS_RATIO': 0,
-            'MISSING_LINES': 1102,
-            'ORDER_NUMBER': 0,
-            'PARALLEL_CLOCK_VOLTAGE_INDEX': 0,
-            'PREPARE_CYCLE_INDEX': 0,
-            'READOUT_CYCLE_INDEX': 0,
-            'RECEIVED_PACKETS': 0,
-            'SENSOR_HEAD_ELEC_TEMPERATURE': 0,
-            'SEQUENCE_NUMBER': 0,
-            'SPACECRAFT_CLOCK_CNT_PARTITION': 0,
-            'START_TIME': 0,
-            'CENTRAL_BODY_DISTANCE': 0,
-            'DECLINATION': 0,
-            'EMISSION_ANGLE': 1563,
-            'INCIDENCE_ANGLE': 1563,
-            'LOWER_LEFT_LATITUDE': 3426,
-            'LOWER_LEFT_LONGITUDE': 3426,
-            'LOWER_RIGHT_LATITUDE': 3279,
-            'LOWER_RIGHT_LONGITUDE': 3279,
-            'MAXIMUM_RING_RADIUS': 110,
-            'MINIMUM_RING_RADIUS': 110,
-            'NORTH_AZIMUTH_CLOCK_ANGLE': 1563,
-            'PHASE_ANGLE': 236,
-            'PIXEL_SCALE': 236,
-            'RIGHT_ASCENSION': 0,
-            'RING_CENTER_LATITUDE': 3612,
-            'RING_CENTER_LONGITUDE': 3612,
-            'RING_EMISSION_ANGLE': 3612,
-            'RING_INCIDENCE_ANGLE': 3612,
-            'SUB_SOLAR_LATITUDE': 236,
-            'SUB_SOLAR_LONGITUDE': 236,
-            'SUB_SPACECRAFT_LATITUDE': 236,
-            'SUB_SPACECRAFT_LONGITUDE': 236,
-            'CENTER_LATITUDE': 1563,
-            'CENTER_LONGITUDE': 1563,
-            'TARGET_DISTANCE': 236,
-            'TARGET_EASTERNMOST_LONGITUDE': 1006,
-            'TARGET_NORTHERNMOST_LATITUDE': 1006,
-            'TARGET_SOUTHERNMOST_LATITUDE': 1006,
-            'TARGET_WESTERNMOST_LONGITUDE': 1006,
-            'TWIST_ANGLE': 0,
-            'UPPER_LEFT_LATITUDE': 3144,
-            'UPPER_LEFT_LONGITUDE': 3144,
-            'UPPER_RIGHT_LATITUDE': 3102,
-            'UPPER_RIGHT_LONGITUDE': 3102,
-        }
+    results = {
+        'BIAS_STRIP_MEAN': 0,
+        'COMMAND_SEQUENCE_NUMBER': 0,
+        'DARK_STRIP_MEAN': 0,
+        'DETECTOR_TEMPERATURE': 0,
+        'ELECTRONICS_BIAS': 0,
+        'EXPECTED_PACKETS': 0,
+        'EXPOSURE_DURATION': 0,
+        'FILTER_TEMPERATURE': 0,
+        'INSTRUMENT_DATA_RATE': 0,
+        'INST_CMPRS_RATIO': 0,
+        'MISSING_LINES': 1102,
+        'ORDER_NUMBER': 0,
+        'PARALLEL_CLOCK_VOLTAGE_INDEX': 0,
+        'PREPARE_CYCLE_INDEX': 0,
+        'READOUT_CYCLE_INDEX': 0,
+        'RECEIVED_PACKETS': 0,
+        'SENSOR_HEAD_ELEC_TEMPERATURE': 0,
+        'SEQUENCE_NUMBER': 0,
+        'SPACECRAFT_CLOCK_CNT_PARTITION': 0,
+        'START_TIME': 0,
+        'CENTRAL_BODY_DISTANCE': 0,
+        'DECLINATION': 0,
+        'EMISSION_ANGLE': 1563,
+        'INCIDENCE_ANGLE': 1563,
+        'LOWER_LEFT_LATITUDE': 3426,
+        'LOWER_LEFT_LONGITUDE': 3426,
+        'LOWER_RIGHT_LATITUDE': 3279,
+        'LOWER_RIGHT_LONGITUDE': 3279,
+        'MAXIMUM_RING_RADIUS': 110,
+        'MINIMUM_RING_RADIUS': 110,
+        'NORTH_AZIMUTH_CLOCK_ANGLE': 1563,
+        'PHASE_ANGLE': 236,
+        'PIXEL_SCALE': 236,
+        'RIGHT_ASCENSION': 0,
+        'RING_CENTER_LATITUDE': 3612,
+        'RING_CENTER_LONGITUDE': 3612,
+        'RING_EMISSION_ANGLE': 3612,
+        'RING_INCIDENCE_ANGLE': 3612,
+        'SUB_SOLAR_LATITUDE': 236,
+        'SUB_SOLAR_LONGITUDE': 236,
+        'SUB_SPACECRAFT_LATITUDE': 236,
+        'SUB_SPACECRAFT_LONGITUDE': 236,
+        'CENTER_LATITUDE': 1563,
+        'CENTER_LONGITUDE': 1563,
+        'TARGET_DISTANCE': 236,
+        'TARGET_EASTERNMOST_LONGITUDE': 1006,
+        'TARGET_NORTHERNMOST_LATITUDE': 1006,
+        'TARGET_SOUTHERNMOST_LATITUDE': 1006,
+        'TARGET_WESTERNMOST_LONGITUDE': 1006,
+        'TWIST_ANGLE': 0,
+        'UPPER_LEFT_LATITUDE': 3144,
+        'UPPER_LEFT_LONGITUDE': 3144,
+        'UPPER_RIGHT_LATITUDE': 3102,
+        'UPPER_RIGHT_LONGITUDE': 3102,
+    }
 
-        rowdict = test_table_secs.dicts_by_row()
-        for key in test_table_secs.get_keys():
-            if key.endswith('_mask'):
-                continue
+    rowdict = test_table_secs.dicts_by_row()
+    for key in test_table_secs.get_keys():
+        if key.endswith('_mask'):
+            continue
 
-            rowvals = test_table.get_column(key)
-            if np.shape(rowvals[0]) != ():
-                continue
-
-            rowmask = test_table.get_column_mask(key)
-            if rowvals.dtype.kind == 'f':
-                countv = np.sum(rowvals == -1.e32)
-                countm = np.sum(rowmask)
-                self.assertEqual(countv, countm)
-                self.assertEqual(countv, results[key])
-
-            elif rowvals.dtype.kind == 'i':
-                countv = np.sum(rowvals == -2147483648)
-                countm = np.sum(rowmask)
-                self.assertEqual(countv, countm)
-                self.assertEqual(countv, results[key])
-
-            else:
-                self.assertEqual(np.sum(rowmask), 0)
-
-        # 22.5 is a common value in column BIAS_STRIP_MEAN
-        test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
-                              invalid={'default': [-1.e32, -2147483648, 22.5]})
-
-        key = 'BIAS_STRIP_MEAN'
-        rowmask = test_table.get_column_mask(key)
-        self.assertEqual(np.sum(rowmask), 511)
-
-        test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
-                              invalid={'default': [-1.e32, -2147483648], key: 22.5})
-
-        rowmask = test_table.get_column_mask(key)
-        self.assertEqual(np.sum(rowmask), 511)
-
-        ####################################
-        # Replacements
-        ####################################
-
-        # Replacement as a number
-        key = 'BIAS_STRIP_MEAN'
-        test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
-                              invalid={'default': [-1.e32, -2147483648]},
-                              replacements={key: {22.5: -1.e32}})
         rowvals = test_table.get_column(key)
-        self.assertEqual(np.sum(rowvals == 22.5), 0)
-        self.assertEqual(np.sum(rowvals == -1.e32), 511)
+        if np.shape(rowvals[0]) != ():
+            continue
 
         rowmask = test_table.get_column_mask(key)
-        self.assertEqual(np.sum(rowmask), 511)
+        if rowvals.dtype.kind == 'f':
+            countv = np.sum(rowvals == -1.e32)
+            countm = np.sum(rowmask)
+            assert countv == countm
+            assert countv == results[key]
 
-        # Replacement as a string
-        test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
+        elif rowvals.dtype.kind == 'i':
+            countv = np.sum(rowvals == -2147483648)
+            countm = np.sum(rowmask)
+            assert countv == countm
+            assert countv == results[key]
+
+        else:
+            assert np.sum(rowmask) == 0
+
+    # 22.5 is a common value in column BIAS_STRIP_MEAN
+    test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
+                          invalid={'default': [-1.e32, -2147483648, 22.5]})
+
+    key = 'BIAS_STRIP_MEAN'
+    rowmask = test_table.get_column_mask(key)
+    assert np.sum(rowmask) == 511
+
+    test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
+                          invalid={'default': [-1.e32, -2147483648], key: 22.5})
+
+    rowmask = test_table.get_column_mask(key)
+    assert np.sum(rowmask) == 511
+
+    ####################################
+    # Replacements
+    ####################################
+
+    # Replacement as a number
+    key = 'BIAS_STRIP_MEAN'
+    test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
+                          invalid={'default': [-1.e32, -2147483648]},
+                          replacements={key: {22.5: -1.e32}})
+    rowvals = test_table.get_column(key)
+    assert np.sum(rowvals == 22.5) == 0
+    assert np.sum(rowvals == -1e+32) == 511
+
+    rowmask = test_table.get_column_mask(key)
+    assert np.sum(rowmask) == 511
+
+    # Replacement as a string
+    test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
+                          invalid={'default': [-1.e32, -2147483648]},
+                          replacements={key: {'       22.5': '     -1.e32'}})
+    rowvals = test_table.get_column(key)
+    assert np.sum(rowvals == 22.5) == 0
+    assert np.sum(rowvals == -1e+32) == 511
+
+    rowmask = test_table.get_column_mask(key)
+    assert np.sum(rowmask) == 511
+
+    # Replacement via a callback
+    def test_callback_as_str(arg: str) -> str | None:
+        if arg.strip() == '22.5':
+            return '-1e32'
+        return arg
+
+    test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
+                          invalid={'default': [-1.e32, -2147483648]},
+                          callbacks={key: test_callback_as_str})
+    rowvals = test_table.get_column(key)
+    assert np.sum(rowvals == 22.5) == 0
+    assert np.sum(rowvals == -1e+32) == 511
+
+    rowmask = test_table.get_column_mask(key)
+    assert np.sum(rowmask) == 511
+
+    # Replacement via an ASCII byte string callback
+    def test_callback_as_bytes(arg: bytes) -> bytes | None:
+        if arg.strip() == b'22.5':
+            return b'-1e32'
+        return arg
+
+    test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
+                          invalid={'default': [-1.e32, -2147483648]},
+                          callbacks={key: test_callback_as_bytes}, ascii=True)
+    rowvals = test_table.get_column(key)
+    assert np.sum(rowvals == 22.5) == 0
+    assert np.sum(rowvals == -1e+32) == 511
+
+    rowmask = test_table.get_column_mask(key)
+    assert np.sum(rowmask) == 511
+
+    ####################################
+    # "UNK" values replace 22.5 in BIAS_STRIP_MEAN
+    # "NULL" in second row of table for CALIBRATION_LAMP_STATE_FLAG
+    # "UNK" in the first row for IMAGE_MID_TIME
+    # Label says INVALID_CONSTANT = 19.5 for DARK_STRIP_MEAN
+    # Label says VALID_RANGE = (2,3) for INST_CMPRS_RATE
+    # Manually disallow negative values for FILTER_TEMPERATURE
+    # Every value of INSTRUMENT_DATA_RATE is exactly 182.783997 except one.
+    ####################################
+
+#     print('')
+#     print('Two UserWarnings should follow...')
+#     print('')
+#     print('25 illegally formatted float values in column BIAS_STRIP_MEAN; ' +
+#           'first example is "UNK"')
+#     print('Illegally formatted time value in column IMAGE_MID_TIME: UNK')
+#     print('')
+
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        test_table = PdsTable(EDITED_INDEX_PATH, times=['IMAGE_MID_TIME'],
                               invalid={'default': [-1.e32, -2147483648]},
-                              replacements={key: {'       22.5': '     -1.e32'}})
-        rowvals = test_table.get_column(key)
-        self.assertEqual(np.sum(rowvals == 22.5), 0)
-        self.assertEqual(np.sum(rowvals == -1.e32), 511)
+                              replacements={'INSTRUMENT_DATA_RATE':
+                                            {182.783997: 1.}},
+                              valid_ranges={'FILTER_TEMPERATURE': [0., 1.e99]})
 
-        rowmask = test_table.get_column_mask(key)
-        self.assertEqual(np.sum(rowmask), 511)
+#     print('')
+#     print('')
 
-        # Replacement via a callback
-        def test_callback_as_str(arg):
-            if arg.strip() == '22.5':
-                return '-1e32'
-            return arg
+    image_mid_time = test_table.get_column('IMAGE_MID_TIME')
+    bias_strip_mean = test_table.get_column('BIAS_STRIP_MEAN')
+    assert type(image_mid_time) is list
+    assert type(image_mid_time) is list
 
-        test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
-                              invalid={'default': [-1.e32, -2147483648]},
-                              callbacks={key: test_callback_as_str})
-        rowvals = test_table.get_column(key)
-        self.assertEqual(np.sum(rowvals == 22.5), 0)
-        self.assertEqual(np.sum(rowvals == -1.e32), 511)
+    assert image_mid_time[0] == 'UNK'
+    assert type(image_mid_time[0]) is str
+    for value in image_mid_time[1:]:
+        assert isinstance(value, float)
 
-        rowmask = test_table.get_column_mask(key)
-        self.assertEqual(np.sum(rowmask), 511)
+    for value in bias_strip_mean:
+        assert value == 'UNK' or isinstance(value, float)
 
-        # Replacement via an ASCII byte string callback
-        def test_callback_as_bytes(arg):
-            if arg.strip() == b'22.5':
-                return b'-1e32'
-            return arg
+    dark_strip_mean = test_table.get_column('DARK_STRIP_MEAN')
+    dsm_mask = test_table.get_column_mask('DARK_STRIP_MEAN')
+    for (value, flag) in zip(dark_strip_mean, dsm_mask, strict=True):
+        assert flag == (value == 19.5)
 
-        test_table = PdsTable(INDEX_PATH, times=['START_TIME'],
-                              invalid={'default': [-1.e32, -2147483648]},
-                              callbacks={key: test_callback_as_bytes}, ascii=True)
-        rowvals = test_table.get_column(key)
-        self.assertEqual(np.sum(rowvals == 22.5), 0)
-        self.assertEqual(np.sum(rowvals == -1.e32), 511)
+    inst_cmprs_rate = test_table.get_column('INST_CMPRS_RATE')
+    icr_mask = test_table.get_column_mask('INST_CMPRS_RATE')
+    for (value, flag) in zip(inst_cmprs_rate, icr_mask, strict=True):
+        assert flag[0] == (value[0] < 2 or value[0] > 3)
+        assert flag[1] == (value[1] < 2 or value[1] > 3)
 
-        rowmask = test_table.get_column_mask(key)
-        self.assertEqual(np.sum(rowmask), 511)
+    filter_temperature = test_table.get_column('FILTER_TEMPERATURE')
+    ft_mask = test_table.get_column_mask('FILTER_TEMPERATURE')
+    for (value, flag) in zip(filter_temperature, ft_mask, strict=True):
+        assert flag == (value < 0.0)
 
-        ####################################
-        # "UNK" values replace 22.5 in BIAS_STRIP_MEAN
-        # "NULL" in second row of table for CALIBRATION_LAMP_STATE_FLAG
-        # "UNK" in the first row for IMAGE_MID_TIME
-        # Label says INVALID_CONSTANT = 19.5 for DARK_STRIP_MEAN
-        # Label says VALID_RANGE = (2,3) for INST_CMPRS_RATE
-        # Manually disallow negative values for FILTER_TEMPERATURE
-        # Every value of INSTRUMENT_DATA_RATE is exactly 182.783997 except one.
-        ####################################
+    instrument_data_rate = test_table.get_column('INSTRUMENT_DATA_RATE')
+    idr_mask = test_table.get_column_mask('INSTRUMENT_DATA_RATE')
+    assert np.sum(instrument_data_rate == 1.0) == 99
+    assert np.all(instrument_data_rate != 182.783997)
+    assert not np.any(idr_mask)
 
-    #     print('')
-    #     print('Two UserWarnings should follow...')
-    #     print('')
-    #     print('25 illegally formatted float values in column BIAS_STRIP_MEAN; ' +
-    #           'first example is "UNK"')
-    #     print('Illegally formatted time value in column IMAGE_MID_TIME: UNK')
-    #     print('')
+    ####################################
+    # Row lookups
+    ####################################
 
-        with warnings.catch_warnings():
-            warnings.simplefilter('ignore')
-            test_table = PdsTable(EDITED_INDEX_PATH, times=['IMAGE_MID_TIME'],
-                                  invalid={'default': [-1.e32, -2147483648]},
-                                  replacements={'INSTRUMENT_DATA_RATE':
-                                                {182.783997: 1.}},
-                                  valid_ranges={'FILTER_TEMPERATURE': [0., 1.e99]})
+    assert test_table_basic.filespec_column_index() == 1
+    assert test_table_basic.volume_column_index() == 2
 
-    #     print('')
-    #     print('')
+    assert test_table_basic.find_row_index_by_volume_filespec('', 'data/1573186009_1573197826/N1573186041_1.IMG') == 2
+    assert test_table_basic.find_row_indices_by_volume_filespec('', 'data/1573186009_1573197826/N1573186041_1.IMG') == [2]
 
-        image_mid_time = test_table.get_column('IMAGE_MID_TIME')
-        bias_strip_mean = test_table.get_column('BIAS_STRIP_MEAN')
-        self.assertEqual(type(image_mid_time), list)
-        self.assertEqual(type(image_mid_time), list)
+    assert test_table_basic.find_row_index_by_volume_filespec('COISS_2039', 'data/1573186009_1573197826/N1573186041_1.IMG') == 2
+    assert test_table_basic.find_row_indices_by_volume_filespec('COISS_2039', 'data/1573186009_1573197826/N1573186041_1.IMG') == [2]
 
-        self.assertEqual(image_mid_time[0], 'UNK')
-        self.assertEqual(type(image_mid_time[0]), str)
-        for value in image_mid_time[1:]:
-            self.assertTrue(isinstance(value, float))
+    assert test_table_basic.find_row_index_by_volume_filespec('coiss_2039', 'data/1573186009_1573197826/N1573186041_1.IMG') == 2
+    assert test_table_basic.find_row_indices_by_volume_filespec('coiss_2039', 'data/1573186009_1573197826/N1573186041_1.IMG') == [2]
 
-        for value in bias_strip_mean:
-            self.assertTrue((value == 'UNK') or isinstance(value, float))
+    ####################################
+    # Row ranges
+    ####################################
 
-        dark_strip_mean = test_table.get_column('DARK_STRIP_MEAN')
-        dsm_mask = test_table.get_column_mask('DARK_STRIP_MEAN')
-        for (value, flag) in zip(dark_strip_mean, dsm_mask):
-            self.assertTrue(flag == (value == 19.5))
+    partial_table = PdsTable(INDEX_PATH, row_range=(2, 4))
+    assert partial_table.rows == 2
 
-        inst_cmprs_rate = test_table.get_column('INST_CMPRS_RATE')
-        icr_mask = test_table.get_column_mask('INST_CMPRS_RATE')
-        for (value, flag) in zip(inst_cmprs_rate, icr_mask):
-            self.assertTrue(flag[0] == (value[0] < 2 or value[0] > 3))
-            self.assertTrue(flag[1] == (value[1] < 2 or value[1] > 3))
+    assert partial_table.filespec_column_index() == 1
+    assert partial_table.volume_column_index() == 2
 
-        filter_temperature = test_table.get_column('FILTER_TEMPERATURE')
-        ft_mask = test_table.get_column_mask('FILTER_TEMPERATURE')
-        for (value, flag) in zip(filter_temperature, ft_mask):
-            self.assertTrue(flag == (value < 0.))
+    assert partial_table.find_row_index_by_volume_filespec('', 'data/1573186009_1573197826/N1573186041_1.IMG') == 0
+    assert partial_table.find_row_indices_by_volume_filespec('', 'data/1573186009_1573197826/N1573186041_1.IMG') == [0]
 
-        instrument_data_rate = test_table.get_column('INSTRUMENT_DATA_RATE')
-        idr_mask = test_table.get_column_mask('INSTRUMENT_DATA_RATE')
-        self.assertTrue(np.sum(instrument_data_rate == 1.) == 99)
-        self.assertTrue(np.all(instrument_data_rate != 182.783997))
-        self.assertTrue(not np.any(idr_mask))
+    assert partial_table.find_row_index_by_volume_filespec('COISS_2039', 'data/1573186009_1573197826/N1573186041_1.IMG') == 0
+    assert partial_table.find_row_indices_by_volume_filespec('COISS_2039', 'data/1573186009_1573197826/N1573186041_1.IMG') == [0]
 
-        ####################################
-        # Row lookups
-        ####################################
+    assert partial_table.find_row_index_by_volume_filespec('coiss_2039', 'data/1573186009_1573197826/N1573186041_1.IMG') == 0
+    assert partial_table.find_row_indices_by_volume_filespec('coiss_2039', 'data/1573186009_1573197826/N1573186041_1.IMG') == [0]
 
-        self.assertEqual(test_table_basic.filespec_column_index(), 1)
-        self.assertEqual(test_table_basic.volume_column_index(), 2)
+    ####################################
+    # PdsLabel input option
+    ####################################
 
-        self.assertEqual(test_table_basic.find_row_index_by_volume_filespec(
-                '', 'data/1573186009_1573197826/N1573186041_1.IMG'), 2)
-        self.assertEqual(test_table_basic.find_row_indices_by_volume_filespec(
-                '', 'data/1573186009_1573197826/N1573186041_1.IMG'), [2])
+    test = PdsTable(INDEX_PATH, label_contents=partial_table.pdslabel)
+    assert test.pdslabel is partial_table.pdslabel
 
-        self.assertEqual(test_table_basic.find_row_index_by_volume_filespec(
-                'COISS_2039', 'data/1573186009_1573197826/N1573186041_1.IMG'), 2)
-        self.assertEqual(test_table_basic.find_row_indices_by_volume_filespec(
-                'COISS_2039', 'data/1573186009_1573197826/N1573186041_1.IMG'), [2])
+    # A PDS3 table's label is a Pds3Label
+    partial_label = partial_table.pdslabel
+    assert isinstance(partial_label, Pds3Label)
+    test = PdsTable(INDEX_PATH, label_contents=partial_label.content)
+    test_label = test.pdslabel
+    assert test_label is not partial_label
+    assert isinstance(test_label, Pds3Label)
+    assert test_label.content == partial_label.content
 
-        self.assertEqual(test_table_basic.find_row_index_by_volume_filespec(
-                'coiss_2039', 'data/1573186009_1573197826/N1573186041_1.IMG'), 2)
-        self.assertEqual(test_table_basic.find_row_indices_by_volume_filespec(
-                'coiss_2039', 'data/1573186009_1573197826/N1573186041_1.IMG'), [2])
+    ####################################
+    # Other PdsTable options
+    ####################################
 
-        ####################################
-        # Row ranges
-        ####################################
+    # table_file
+    with pytest.raises(ValueError):
+        PdsTable(INDEX_PATH, table_file=1)
 
-        partial_table = PdsTable(INDEX_PATH, row_range=(2, 4))
-        self.assertEqual(partial_table.rows, 2)
+    # row_range
+    with pytest.raises(ValueError):
+        PdsTable(EDITED_INDEX_PATH, row_range=(99, 98))
+    with pytest.raises(ValueError):
+        PdsTable(EDITED_INDEX_PATH, row_range=(99, 101))
+    PdsTable(EDITED_INDEX_PATH, row_range=(99, 100))
 
-        self.assertEqual(partial_table.filespec_column_index(), 1)
-        self.assertEqual(partial_table.volume_column_index(), 2)
+    # table_callback
+    def test_callback(b: list[bytes]) -> list[bytes]:
+        return [s.replace(b'2007', b'2009') for s in b]
 
-        self.assertEqual(partial_table.find_row_index_by_volume_filespec(
-                '', 'data/1573186009_1573197826/N1573186041_1.IMG'), 0)
-        self.assertEqual(partial_table.find_row_indices_by_volume_filespec(
-                '', 'data/1573186009_1573197826/N1573186041_1.IMG'), [0])
+    test_table_callback = PdsTable(INDEX_PATH, table_callback=test_callback)
 
-        self.assertEqual(partial_table.find_row_index_by_volume_filespec(
-                'COISS_2039', 'data/1573186009_1573197826/N1573186041_1.IMG'), 0)
-        self.assertEqual(partial_table.find_row_indices_by_volume_filespec(
-                'COISS_2039', 'data/1573186009_1573197826/N1573186041_1.IMG'), [0])
+    test_start_time_strs = test_table_callback.column_values['START_TIME']
+    start_time_str_test_set = ['2009-312T03:31:12.392',
+                               '2009-312T03:31:14.372',
+                               '2009-312T03:31:45.832',
+                               '2009-312T03:31:46.132']
+    assert start_time_str_test_set[0] == test_start_time_strs[0]
+    assert start_time_str_test_set[1] == test_start_time_strs[1]
+    assert start_time_str_test_set[2] == test_start_time_strs[2]
+    assert start_time_str_test_set[3] == test_start_time_strs[3]
 
-        self.assertEqual(partial_table.find_row_index_by_volume_filespec(
-                'coiss_2039', 'data/1573186009_1573197826/N1573186041_1.IMG'), 0)
-        self.assertEqual(partial_table.find_row_indices_by_volume_filespec(
-                'coiss_2039', 'data/1573186009_1573197826/N1573186041_1.IMG'), [0])
+    assert test_table_basic.column_info_dict['START_TIME'].colno == 63
+    assert test_table_basic.column_info_dict['START_TIME'].start_byte == 1504
+    assert test_table_basic.column_info_dict['START_TIME'].bytes == 22
+    assert test_table_basic.column_info_dict['START_TIME'].items == 1
+    assert test_table_basic.column_info_dict['START_TIME'].item_bytes == 22
+    assert test_table_basic.column_info_dict['START_TIME'].item_offset == 22
+    assert test_table_basic.column_info_dict['START_TIME'].dtype0 == ('S22', 1503)
+    assert test_table_basic.column_info_dict['START_TIME'].dtype1 is None
 
-        ####################################
-        # PdsLabel input option
-        ####################################
+    ####################################
+    # Bad label file
+    ####################################
 
-        test = PdsTable(INDEX_PATH, label_contents=partial_table.pdslabel)
-        self.assertIs(test.pdslabel, partial_table.pdslabel)
-
-        test = PdsTable(INDEX_PATH, label_contents=partial_table.pdslabel.content)
-        self.assertIsNot(test.pdslabel, partial_table.pdslabel)
-        self.assertEqual(test.pdslabel.content, partial_table.pdslabel.content)
-
-        ####################################
-        # Other PdsTable options
-        ####################################
-
-        # table_file
-        self.assertRaises(ValueError, PdsTable, INDEX_PATH, table_file=1)
-
-        # row_range
-        self.assertRaises(ValueError, PdsTable, EDITED_INDEX_PATH, row_range=(99, 98))
-        self.assertRaises(ValueError, PdsTable, EDITED_INDEX_PATH, row_range=(99, 101))
-        PdsTable(EDITED_INDEX_PATH, row_range=(99, 100))
-
-        # table_callback
-        def test_callback(b):
-            return [s.replace(b'2007', b'2009') for s in b]
-
-        test_table_callback = PdsTable(INDEX_PATH, table_callback=test_callback)
-
-        test_start_time_strs = test_table_callback.column_values['START_TIME']
-        start_time_str_test_set = ['2009-312T03:31:12.392',
-                                   '2009-312T03:31:14.372',
-                                   '2009-312T03:31:45.832',
-                                   '2009-312T03:31:46.132']
-        self.assertEqual(start_time_str_test_set[0], test_start_time_strs[0])
-        self.assertEqual(start_time_str_test_set[1], test_start_time_strs[1])
-        self.assertEqual(start_time_str_test_set[2], test_start_time_strs[2])
-        self.assertEqual(start_time_str_test_set[3], test_start_time_strs[3])
-
-        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].colno, 63)
-        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].start_byte, 1504)
-        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].bytes, 22)
-        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].items, 1)
-        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].item_bytes, 22)
-        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].item_offset, 22)
-        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].dtype0,
-                         ('S22', 1503))
-        self.assertEqual(test_table_basic.column_info_dict['START_TIME'].dtype1, None)
-
-        ####################################
-        # Bad label file
-        ####################################
-
-        self.assertRaises(ValueError, PdsTable,
-                          EDITED_INDEX_PATH.replace('.lbl', '_bad_rows.lbl'))
-        self.assertRaises(IOError, PdsTable,
-                          EDITED_INDEX_PATH.replace('.lbl', '_not_fixed.lbl'))
-        # This next call needs to test that a warning is raised
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
-            PdsTable(EDITED_INDEX_PATH.replace('.lbl', '_not_simple.lbl'))
-            self.assertEqual(w[0].category, UserWarning)
-            self.assertIn('Simple Pointer', str(w[0].message))
-        warnings.resetwarnings()
-        self.assertRaises(IOError, PdsTable,
-                          EDITED_INDEX_PATH.replace('.lbl', '_no_ptr.lbl'))
-        self.assertRaises(IOError, PdsTable,
-                          EDITED_INDEX_PATH.replace('.lbl', '_not_ascii.lbl'))
-        self.assertRaises(ValueError, PdsTable,
-                          EDITED_INDEX_PATH.replace('.lbl', '_dup_col.lbl'))
-        self.assertRaises(IOError, PdsTable,
-                          EDITED_INDEX_PATH.replace('.lbl', '_bad_data_type.lbl'))
+    with pytest.raises(ValueError):
+        PdsTable(EDITED_INDEX_PATH.replace('.lbl', '_bad_rows.lbl'))
+    with pytest.raises(ValueError, match='fixed-length records'):
+        PdsTable(EDITED_INDEX_PATH.replace('.lbl', '_not_fixed.lbl'))
+    # This label also triggers warnings about illegally formatted values, so record
+    # every warning and look for the one under test among them
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter('always')
+        PdsTable(EDITED_INDEX_PATH.replace('.lbl', '_not_simple.lbl'))
+    simple_pointer_warnings = [x for x in w if 'Simple Pointer' in str(x.message)]
+    assert len(simple_pointer_warnings) == 1
+    assert simple_pointer_warnings[0].category is UserWarning
+    with pytest.raises(ValueError, match='Pointer to a data file was not found'):
+        PdsTable(EDITED_INDEX_PATH.replace('.lbl', '_no_ptr.lbl'))
+    with pytest.raises(ValueError, match='not in ASCII format'):
+        PdsTable(EDITED_INDEX_PATH.replace('.lbl', '_not_ascii.lbl'))
+    with pytest.raises(ValueError):
+        PdsTable(EDITED_INDEX_PATH.replace('.lbl', '_dup_col.lbl'))
+    with pytest.raises(ValueError, match='unsupported data type'):
+        PdsTable(EDITED_INDEX_PATH.replace('.lbl', '_bad_data_type.lbl'))
