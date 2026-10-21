@@ -52,8 +52,8 @@ class Pds3TableInfo(PdsTableInfo):
 
         Parameters:
             label_file_path (str or Path or FCPath): Path to the PDS3 label file. Even if
-                the label contents is provided in `label_list`, `label_file_path` must be
-                be specificed because it is needed to locate the table file. If this
+                the label contents is provided in `label_list`, `label_file_path` must
+                be specified because it is needed to locate the table file. If this
                 parameter is an FCPath object, it will be downloaded from the remote
                 source.
             label_contents (list or dict or Pds3Label, optional): An option to override
@@ -81,6 +81,12 @@ class Pds3TableInfo(PdsTableInfo):
                   above and handles all the most common aspects of the PDS3 standard.
                   However, it is not guaranteed to provide an accurate parsing under all
                   circumstances.
+
+        Raises:
+            ValueError: If the label describes a table that cannot be read: its records
+                are not fixed-length, it has no pointer to a table file, the table is not
+                in ASCII format, a required table or column field is missing, or a column
+                has an unsupported data type.
         """
 
         super().__init__(label_file_path)
@@ -102,7 +108,7 @@ class Pds3TableInfo(PdsTableInfo):
 
         # Get the basic file info...
         if self._label['RECORD_TYPE'] != 'FIXED_LENGTH':
-            raise IOError('PDS table does not contain fixed-length records')
+            raise ValueError('PDS table does not contain fixed-length records')
 
         # PDS3 table always has fixed length rows (for now)
         self._fixed_length_row = True
@@ -117,11 +123,11 @@ class Pds3TableInfo(PdsTableInfo):
                     msg = ('Table file pointer ' + self._label[key + '_fmt'] +
                            ' is not a Simple Pointer and isn\'t fully ' +
                            'supported')
-                    warnings.warn(msg)
+                    warnings.warn(msg, stacklevel=2)
                 break
 
         if self._table_file_name is None:
-            raise IOError('Pointer to a data file was not found in PDS label')
+            raise ValueError('Pointer to a data file was not found in PDS label')
 
         # Locate the root of the table object
         table_dict = self._label[key[1:]]
@@ -132,14 +138,14 @@ class Pds3TableInfo(PdsTableInfo):
         if not interchange_format:
             raise ValueError('Table interchange format not specified in label')
         if interchange_format != 'ASCII':
-            raise IOError('PDS table is not in ASCII format')
+            raise ValueError('PDS table is not in ASCII format')
 
         try:
             self._rows = table_dict['ROWS']
             self._columns = table_dict['COLUMNS']
             self._row_bytes = table_dict['ROW_BYTES']
         except KeyError as e:
-            raise ValueError(f'Table definition is missing required field: {e}')
+            raise ValueError(f'Table definition is missing required field: {e}') from e
 
         # Save the key info about each column in a list and a dictionary
         self._column_info_list = []
@@ -150,14 +156,14 @@ class Pds3TableInfo(PdsTableInfo):
 
         default_invalid = set(invalid.get('default', []))
         counter = 0
-        for key, column_dict in table_dict.items():
+        for column_dict in table_dict.values():
             if not isinstance(column_dict, dict):
                 continue
             if column_dict['OBJECT'] == 'COLUMN':
                 name = column_dict['NAME']
                 pdscol = Pds3ColumnInfo(column_dict, counter,
                                         invalid=invalid.get(name, default_invalid),
-                                        valid_range=valid_ranges.get(name, None))
+                                        valid_range=valid_ranges.get(name))
                 counter += 1
 
                 if name in self._column_info_dict:
@@ -190,6 +196,10 @@ class Pds3ColumnInfo(PdsColumnInfo):
                 treated as invalid, missing, or unknown.
             valid_range (tuple or list, optional): An optional tuple or list identifying
                 the lower and upper limits of the valid range for a numeric column.
+
+        Raises:
+            ValueError: If a required column field is missing or the column's DATA_TYPE
+                is not supported.
         """
 
         super().__init__()
@@ -205,7 +215,7 @@ class Pds3ColumnInfo(PdsColumnInfo):
             self._start_byte = node_dict['START_BYTE']
             self._bytes      = node_dict['BYTES']
         except KeyError as e:
-            raise ValueError(f'Column definition is missing required field: {e}')
+            raise ValueError(f'Column definition is missing required field: {e}') from e
 
         self._items = node_dict.get('ITEMS', 1)
         self._item_bytes = node_dict.get('ITEM_BYTES', self._bytes)
@@ -244,13 +254,13 @@ class Pds3ColumnInfo(PdsColumnInfo):
             self._dtype2 = 'U'
             self._scalar_func = None
         else:
-            raise IOError('unsupported data type: ' + self._data_type)
+            raise ValueError('unsupported data type: ' + self._data_type)
 
         # Identify validity criteria
         self._valid_range = valid_range or node_dict.get('VALID_RANGE', None)
 
-        if isinstance(invalid, (numbers.Real,) + STRING_TYPES):
-            invalid = set([invalid])
+        if isinstance(invalid, (numbers.Real, *STRING_TYPES)):
+            invalid = {invalid}
 
         self._invalid_values = set(invalid)
 

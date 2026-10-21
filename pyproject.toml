@@ -1,24 +1,29 @@
 [build-system]
-requires = ["setuptools", "setuptools_scm[toml]"]
+requires = ["setuptools>=77", "setuptools_scm[toml]"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "rms-pdstable"
 dynamic = ["version"]
-description = "Routines for reading PDS3 tables"
+description = "Routines for reading PDS3 and PDS4 tables"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
+  "numpy",
   "pds4_tools",
   "rms-filecache",
   "rms-julian",
   "rms-pdsparser",
 ]
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+authors = [
+  {name = "Robert S. French", email = "rfrench@seti.org"}
+]
 maintainers = [
   {name = "Robert S. French", email = "rfrench@seti.org"}
 ]
-keywords = ["NASA", "PDS3"]
+keywords = ["NASA", "PDS", "PDS3", "PDS4"]
 classifiers = [
   "Development Status :: 5 - Production/Stable",
   "Natural Language :: English",
@@ -26,9 +31,6 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Astronomy",
   "Topic :: Software Development :: Libraries :: Python Modules",
   "Topic :: Utilities",
-  "License :: OSI Approved :: Apache Software License",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
@@ -39,13 +41,159 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://github.com/SETI/rms-pdstable"
+Documentation = "https://rms-pdstable.readthedocs.io/en/latest"
 Repository = "https://github.com/SETI/rms-pdstable"
 Source = "https://github.com/SETI/rms-pdstable"
 Issues = "https://github.com/SETI/rms-pdstable/issues"
 
+[tool.pytest.ini_options]
+pythonpath = [
+  "src"
+]
+testpaths = ["tests"]
+addopts = ["-n", "auto", "--cov=src/pdstable", "--strict-markers", "--strict-config"]
+markers = []
+filterwarnings = ["error"]
+
 [tool.setuptools]
-packages = ["pdstable"]
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+pdstable = ["py.typed"]
 
 [tool.setuptools_scm]
 local_scheme = "no-local-version"
-write_to = "pdstable/_version.py"
+write_to = "src/pdstable/_version.py"
+
+[project.optional-dependencies]
+dev = [
+  "codespell>=2.4",
+  "coverage>=7.0",
+  "flake8",
+  "mypy>=1.0",
+  "pip-audit>=2.7",
+  "pymarkdownlnt>=0.9.35",
+  "pytest>=7.0",
+  "pytest-cov>=4.0",
+  "pytest-xdist>=3.8.0",
+  "ruff>=0.8",
+  # "bandit[toml]>=1.8",
+  "pyroma>=4.2",
+  # "vulture>=2.14",
+  "rms-pdstable[docs]",
+]
+docs = [
+  "myst-parser",
+  "sphinx",
+  "sphinx-rtd-theme",
+]
+
+# Tool configuration
+
+[tool.coverage.run]
+branch = true
+parallel = true
+# Must match --cov in the pytest addopts above, or fail_under measures something else
+source = ["src/pdstable"]
+omit = ["tests/*", "_version.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+  "pragma: no cover",
+  "def __repr__",
+  "raise NotImplementedError",
+]
+# .claude/rules/python_testing.md targets 90%. The suite measures about 86%, so the
+# floor sits just below that until tests for the uncovered error paths are written;
+# raise it as coverage improves.
+fail_under = 85
+
+[tool.mypy]
+strict = true
+disallow_subclassing_any = false
+
+[[tool.mypy.overrides]]
+module = ["filecache", "julian", "pds4_tools.*", "pdsparser"]
+ignore_missing_imports = true
+
+# The tests are the only code mypy checks. src/ is deliberately unannotated (see
+# .claude/rules/python.md), so every call the tests make into pdstable is a call to an
+# untyped function; no change to the tests can satisfy no-untyped-call. Everything else
+# mypy can say about the tests stays on, including the annotations that every test
+# function is required to carry.
+[[tool.mypy.overrides]]
+module = "tests.*"
+disable_error_code = ["no-untyped-call"]
+
+[tool.ruff]
+target-version = "py311"
+# Must match max-line-length in .flake8
+line-length = 90
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.ruff.lint]
+# Explicit rule set (recommended for library projects). Categories:
+# E, W = pycodestyle errors/warnings; F = Pyflakes; I = isort; UP = pyupgrade;
+# B = bugbear; SIM = simplify; C4 = comprehensions; A = builtins (no shadowing);
+# N = pep8-naming; PT = pytest-style; RUF = Ruff-specific (e.g. unused noqa).
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "C4", "A", "N", "PT", "RUF"]
+# PT011 - pytest.raises is too broad.
+# SIM105 - Use contextlib.suppress for suppressions.
+# SIM108 - Use ternary operator for simple if/else.
+# I001 - Import sorting. The fix collapses the column-aligned imports this
+#   codebase uses (the same alignment .flake8 preserves by ignoring E221 and
+#   friends). Drop this ignore to let ruff normalize imports.
+extend-ignore = ["PT011", "SIM105", "SIM108", "I001"]
+
+[tool.ruff.lint.per-file-ignores]
+# E501: test files are exempt from the line length limit so that expected-value
+#   tables can stay aligned and readable.
+"tests/*" = ["E501"]
+
+# RUF012 wants ClassVar annotations, but annotations are not permitted anywhere
+# under src (see .claude/rules/python.md), so the rule cannot be satisfied.
+"src/*" = ["RUF012"]
+
+[tool.codespell]
+# Two dictionaries: the default typo list, and the British-to-American list that
+# enforces the spelling rule in .claude/rules/doc_python.md.
+builtin = "clear,en-GB_to_en-US"
+# The builtin British list carries a base word but not every inflection.
+# `.codespell-dictionary.txt` adds the inflections, in codespell's `wrong->right`
+# format -- one pair per line, no comments or blank lines, which that parser
+# rejects. The `-` keeps the builtins above: naming a dictionary without it
+# replaces them rather than extending them, and it trails the filename because a
+# value opening with `-` reads as another flag.
+dictionary = ".codespell-dictionary.txt,-"
+# Split on everything that is not an ASCII letter. The default word pattern
+# keeps hyphens and apostrophes, which hides compounds and, because this project
+# quotes strings with single quotes, every string literal.
+regex = "[a-zA-Z]+"
+skip = "*/.git/*,*/_build/*,*/venv/*,*/.venv/*,*.lock,*.png,*.jpg,*.svg,test_files/*"
+
+[tool.pymarkdown.extensions.front-matter]
+# The rules and skills under .claude/ open with a YAML front-matter block, which would
+# otherwise be read as a setext heading.
+enabled = true
+
+[tool.pymarkdown.plugins.md013]
+# Line length (disable so README/CONTRIBUTING can use longer lines).
+enabled = false
+
+[tool.pymarkdown.plugins.md033]
+# Inline HTML (e.g. <br>) allowed in Markdown.
+enabled = false
+
+# Uncomment when enabling bandit in [project.optional-dependencies].dev.
+# [tool.bandit]
+# exclude_dirs = ["tests", "venv", ".venv"]
+# targets = ["src"]
+
+# Uncomment when enabling vulture in [project.optional-dependencies].dev.
+# [tool.vulture]
+# paths = ["src"]
+# exclude = ["tests/"]
+# min_confidence = 70

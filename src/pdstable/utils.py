@@ -24,10 +24,7 @@ def is_pds4_label(label_name):
     """
 
     label_name = str(label_name)
-    for ext in _PDS4_LBL_EXTENSIONS:
-        if label_name.endswith(ext):
-            return True
-    return False
+    return any(label_name.endswith(ext) for ext in _PDS4_LBL_EXTENSIONS)
 
 
 # Needed because the default value of strip is False

@@ -1,3 +1,6 @@
+<!-- pyml disable MD025 -->
+# rms-pdstable
+
 [![GitHub release; latest by date](https://img.shields.io/github/v/release/SETI/rms-pdstable)](https://github.com/SETI/rms-pdstable/releases)
 [![GitHub Release Date](https://img.shields.io/github/release-date/SETI/rms-pdstable)](https://github.com/SETI/rms-pdstable/releases)
 [![Test Status](https://img.shields.io/github/actions/workflow/status/SETI/rms-pdstable/run-tests.yml?branch=main)](https://github.com/SETI/rms-pdstable/actions)
@@ -21,6 +24,8 @@
 ![GitHub License](https://img.shields.io/github/license/SETI/rms-pdstable)
 [![Number of GitHub stars](https://img.shields.io/github/stars/SETI/rms-pdstable)](https://github.com/SETI/rms-pdstable/stargazers)
 ![GitHub forks](https://img.shields.io/github/forks/SETI/rms-pdstable)
+
+<!-- start-after-point -->
 
 # Introduction
 

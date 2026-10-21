@@ -152,8 +152,8 @@ class Pds4TableInfo(PdsTableInfo):
 
         Parameters:
             label_file_path (str or Path or FCPath): Path to the PDS4 label file. Even if
-                the label contents is provided in `label_list`, `label_file_path` must be
-                be specificed because it is needed to locate the table file. If this
+                the label contents is provided in `label_list`, `label_file_path` must
+                be specified because it is needed to locate the table file. If this
                 parameter is an FCPath object, it will be downloaded from the remote
                 source.
             label_contents (pds4_tools.Label or dict, optional): An option to override
@@ -213,9 +213,9 @@ class Pds4TableInfo(PdsTableInfo):
 
         try:
             table_name_li = [f['File']['file_name'] for f in file_areas]
-        except KeyError:
+        except KeyError as e:
             raise ValueError('"File/file_name" element not found in PDS4 label for '
-                             'one of the File_Area classes')
+                             'one of the File_Area classes') from e
 
         if table_file is None:
             if len(file_areas) > 1:
@@ -285,14 +285,14 @@ class Pds4TableInfo(PdsTableInfo):
 
         try:
             self._rows = int(table_area['records'])
-        except (KeyError, ValueError):
+        except (KeyError, ValueError) as e:
             raise ValueError('Missing or bad "records" element for '
-                             f'"{self._table_file_name}" in "{label_file_path}"')
+                             f'"{self._table_file_name}" in "{label_file_path}"') from e
         try:
             self._columns = int(record_area['fields'])
-        except (KeyError, ValueError):
+        except (KeyError, ValueError) as e:
             raise ValueError('Missing or bad "fields" element for '
-                             f'"{self._table_file_name}" in "{label_file_path}"')
+                             f'"{self._table_file_name}" in "{label_file_path}"') from e
 
         try:
             # for a table with fixed row length
@@ -323,7 +323,7 @@ class Pds4TableInfo(PdsTableInfo):
             name = col['name']
             colname[name].append(idx)
 
-        for name, idx_li in colname.items():
+        for idx_li in colname.values():
             # append _{num} if there are duplicated names
             if len(idx_li) > 1:
                 for num, i in enumerate(idx_li):
@@ -335,7 +335,7 @@ class Pds4TableInfo(PdsTableInfo):
 
             pdscol = Pds4ColumnInfo(col, field_num,
                                     invalid=invalid.get(name, default_invalid),
-                                    valid_range=valid_ranges.get(name, None))
+                                    valid_range=valid_ranges.get(name))
 
             self._column_info_list.append(pdscol)
             self._column_info_dict[pdscol.name] = pdscol
@@ -399,8 +399,8 @@ class Pds4ColumnInfo(PdsColumnInfo):
             (self._data_type,
              self._dtype2,
              self._scalar_func) = PDS4_CHR_DATA_TYPE_MAPPING[self._data_type]
-        except KeyError:
-            raise ValueError('unsupported data type: ' + self._data_type)
+        except KeyError as e:
+            raise ValueError('unsupported data type: ' + self._data_type) from e
 
         # Identify validity criteria
         invalid_set = set()
@@ -439,7 +439,7 @@ class Pds4ColumnInfo(PdsColumnInfo):
             else:
                 self._valid_range = None
 
-        if isinstance(invalid, (numbers.Real,) + STRING_TYPES):
+        if isinstance(invalid, (numbers.Real, *STRING_TYPES)):
             invalid_set.add(invalid)
         else:
             invalid_set |= invalid
