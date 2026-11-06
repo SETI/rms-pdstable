@@ -4,6 +4,7 @@
 
 from pathlib import Path
 import re
+from typing import Any
 
 import numpy as np
 import pytest
@@ -154,8 +155,10 @@ def test_pds4_table_ring_fit_rfrench() -> None:
     assert partial_table.filespec_column_index() == -1
     assert partial_table.volume_column_index() == -1
 
-    assert partial_table.find_row_index(**{'Ring name': 'four'}) == 0
-    assert partial_table.find_row_index(**{'Ring name': 'alpha'}) == 1
+    four: dict[str, Any] = {'Ring name': 'four'}
+    alpha: dict[str, Any] = {'Ring name': 'alpha'}
+    assert partial_table.find_row_index(**four) == 0
+    assert partial_table.find_row_index(**alpha) == 1
 
     ####################################
     # PdsLabel input option
@@ -293,7 +296,7 @@ def test_pds4_table_ring_fit_rfrench() -> None:
     assert np.sum(rowmask) == 4
 
     # Replacement via a callback
-    def test_callback_as_str(arg: str) -> str | None:
+    def test_callback_as_str(arg: str) -> str:
         if arg.strip() == '3.0377050292398E-04':
             return '-1e32'
         return arg

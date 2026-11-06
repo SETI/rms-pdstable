@@ -67,7 +67,7 @@ filterwarnings = [
 where = ["src"]
 
 [tool.setuptools.package-data]
-pdstable = ["py.typed"]
+pdstable = ["py.typed", "*.pyi"]
 
 [tool.setuptools_scm]
 local_scheme = "no-local-version"

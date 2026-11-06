@@ -273,7 +273,7 @@ def test_pds3_table_cassini_iss() -> None:
     assert np.sum(rowmask) == 511
 
     # Replacement via a callback
-    def test_callback_as_str(arg: str) -> str | None:
+    def test_callback_as_str(arg: str) -> str:
         if arg.strip() == '22.5':
             return '-1e32'
         return arg
@@ -289,7 +289,7 @@ def test_pds3_table_cassini_iss() -> None:
     assert np.sum(rowmask) == 511
 
     # Replacement via an ASCII byte string callback
-    def test_callback_as_bytes(arg: bytes) -> bytes | None:
+    def test_callback_as_bytes(arg: bytes) -> bytes:
         if arg.strip() == b'22.5':
             return b'-1e32'
         return arg

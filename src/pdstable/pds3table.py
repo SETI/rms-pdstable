@@ -55,11 +55,11 @@ class Pds3TableInfo(PdsTableInfo):
                 the label contents is provided in `label_list`, `label_file_path` must be
                 specified because it is needed to locate the table file. If this parameter
                 is an FCPath object, it will be downloaded from the remote source.
-            label_contents (list[str] | dict[str, Any] | Pds3Label | None, optional): An
-                option to override the parsing of the label. If this is a list, it is
-                interpreted as containing all the records of the PDS label. If it is a
-                dict, it is treated as a parsed label keyed by label item. If it is a
-                Pds3Label object, it is assumed to be the label file that was already
+            label_contents (str | list[str] | dict[str, Any] | Pds3Label, optional):
+                An option to override the parsing of the label. If this is a string or a
+                list, it is interpreted as containing all the records of the PDS label. If
+                it is a dict, it is treated as a parsed label keyed by label item. If it
+                is a Pds3Label object, it is assumed to be the label file that was already
                 parsed. If None, the label file specified by `label_file_path` is read and
                 parsed.
             invalid (dict[str, list[Any] | set[Any]] | None, optional): An optional

@@ -54,11 +54,11 @@ class PdsTable:
         Parameters:
             label_file (str | Path | FCPath): The path to the PDS label of the table file.
                 Must be supplied to get proper relative path resolution.
-            label_contents (list[str] | dict[str, Any] | Pds3Label | None, optional): The
-                contents of the label as a list of strings if we shouldn't read it from
-                the file. Alternatively, a parsed label as a dict, or a Pds3Label object,
-                to avoid label parsing entirely. Note: this param is for PDS3 labels only;
-                it is ignored for PDS4.
+            label_contents (str | list[str] | dict[str, Any] | Pds3Label, optional):
+                The contents of the label as a single string or a list of strings if we
+                shouldn't read it from the file. Alternatively, a parsed label as a dict,
+                or a Pds3Label object, to avoid label parsing entirely. Note: this param
+                is for PDS3 labels only; it is ignored for PDS4.
             columns (list[str] | None, optional): An optional list of the names of the
                 columns to return. If the list is empty, then every column is returned.
             times (list[str] | None, optional): An optional list of the names of time
@@ -66,11 +66,12 @@ class PdsTable:
                 strings.
             nostrip (list[str] | None, optional): An optional list of the names of string
                 columns that are not to be stripped of surrounding whitespace.
-            callbacks (dict[str, Callable[[str], str]] | None, optional): An optional
-                dictionary that returns a callback function given the name of a column. If
-                a callback is provided for any column, then the function is called on the
-                string value of that column before it is parsed. This can be used to
-                update known syntax errors in a particular table.
+            callbacks (dict[str, Callable[..., str | bytes]] | None, optional): An
+                optional dictionary that returns a callback function given the name of a
+                column. If a callback is provided for any column, then the function is
+                called on the string value of that column before it is parsed. This can be
+                used to update known syntax errors in a particular table. The callback
+                receives and returns bytes if `ascii` is True, str otherwise.
             ascii (bool, optional): True to interpret the callbacks as translating
                 ASCII byte strings; False to interpret them as translating the default str
                 type (Unicode).
@@ -80,12 +81,13 @@ class PdsTable:
                 value in that column (as a string or as its native value) that matches a
                 key in the dictionary is replaced by the value resulting from the
                 dictionary lookup.
-            invalid (dict[str, list[Any] | set[Any]] | None, optional): An optional
-                dictionary keyed by column name. The returned value must be a list or set
-                of values that are to be treated as invalid, missing, or unknown. An
-                optional entry keyed by "default" can be a list or set of values that are
-                invalid by default; these are used for any column whose name does not
-                appear as a key in the dictionary.
+            invalid (dict[str, list[Any] | set[Any] | float | str] | None, optional): An
+                optional dictionary keyed by column name. The returned value must be a
+                list or set of values, or a single number or string, that are to be
+                treated as invalid, missing, or unknown. An optional entry keyed by
+                "default" can be a list or set of values that are invalid by default;
+                these are used for any column whose name does not appear as a key in the
+                dictionary.
             valid_ranges (dict[str, tuple[float, float] | list[float]] | None, optional):
                 An optional dictionary keyed by column name. The returned value must be a
                 tuple or list containing the minimum and maximum numeric values in that
