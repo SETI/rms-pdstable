@@ -122,9 +122,6 @@ class Pds3TableInfo(PdsTableInfo):
         if isinstance(label_contents, (Pds3Label, dict)):
             self._label = label_contents
         elif label_contents:
-            # pdsparser expands a ^STRUCTURE line only when it ends in a bare <LF>
-            if isinstance(label_contents, str):
-                label_contents = label_contents.replace('\r\n', '\n')
             self._label = Pds3Label(label_contents, method=label_method, expand=True,
                                     fmt_dirs=[self._label_file_remote_path.parent,
                                               *fmt_dirs])
