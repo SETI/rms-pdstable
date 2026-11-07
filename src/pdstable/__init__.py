@@ -1260,17 +1260,12 @@ class PdsTable:
             none.
         """
 
-        if self.is_pds4:
-            colnames = PDS4_FILE_SPECIFICATION_COLUMN_NAMES_lc
-        else:
-            colnames = PDS3_FILE_SPECIFICATION_COLUMN_NAMES_lc
-
         if self._filespec_colname_index is None:
             self._filespec_colname_index = -1
             self._filespec_colname = ''
             self._filespec_colname_lc = ''
 
-            for guess in colnames:
+            for guess in self._filespec_column_guesses():
                 if guess in self._keys_lc:
                     k = self._keys_lc.index(guess)
                     self._filespec_colname_index = k
@@ -1279,6 +1274,30 @@ class PdsTable:
                     return k
 
         return self._filespec_colname_index
+
+    def _filespec_column_guesses(self):
+        """Return the lower-case names that identify a file specification column.
+
+        Returns:
+            tuple[str, ...]: The names, in order of preference.
+        """
+
+        if self.is_pds4:
+            return PDS4_FILE_SPECIFICATION_COLUMN_NAMES_lc
+        return PDS3_FILE_SPECIFICATION_COLUMN_NAMES_lc
+
+    def _require_filespec_column(self):
+        """Raise ValueError unless the table has a file specification column.
+
+        Raises:
+            ValueError: If no loaded column has one of the names in
+                :meth:`_filespec_column_guesses`.
+        """
+
+        if self.filespec_column_index() < 0:
+            raise ValueError(f'Table "{self.table_file_name}" has no file specification '
+                             'column; the names searched for are: '
+                             f'{", ".join(self._filespec_column_guesses())}')
 
     def find_row_indices_by_bundle_filespec(self, bundle_name, filespec=None, *,
                                             limit=None, substring=False):
@@ -1309,6 +1328,10 @@ class PdsTable:
 
         Returns:
             list[int]: A list of row indices that match the search criteria.
+
+        Raises:
+            ValueError: If the table has no file specification column (see
+                :meth:`filespec_column_index`).
         """
 
         return self.find_row_indices_by_volume_filespec(bundle_name, filespec,
@@ -1340,28 +1363,26 @@ class PdsTable:
 
         Returns:
             list[int]: A list of row indices that match the search criteria.
+
+        Raises:
+            ValueError: If the table has no file specification column (see
+                :meth:`filespec_column_index`).
         """
 
+        self._require_filespec_column()
         dicts_by_row = self.dicts_by_row(lowercase=(True, True))
 
         if filespec is None:
             filespec = volume_id
             volume_id = ''
 
-        # Find the name of the columns containing the VOLUME_ID and
-        # FILE_SPECIFICATION_NAME
-        _ = self.volume_column_index()
-        _ = self.filespec_column_index()
-
-        if self._volume_colname is None:
+        # Without a volume ID or bundle name column, the search uses the filespec alone
+        if self.volume_column_index() < 0:
             volume_colname = ''
         else:
             volume_colname = self._volume_colname_lc + '_lower'
 
-        if self._filespec_colname_lc is None:
-            raise ValueError('FILE SPECIFICATION NAME column not found')
-        else:
-            filespec_colname = self._filespec_colname_lc + '_lower'
+        filespec_colname = self._filespec_colname_lc + '_lower'
 
         example = dicts_by_row[0][self._filespec_colname_lc]
 
@@ -1422,7 +1443,8 @@ class PdsTable:
             int: The index of the first matching row.
 
         Raises:
-            ValueError: If no matching row is found.
+            ValueError: If no matching row is found, or if the table has no file
+                specification column (see :meth:`filespec_column_index`).
         """
 
         return self.find_row_index_by_volume_filespec(bundle_name, filespec,
@@ -1455,7 +1477,8 @@ class PdsTable:
             int: The index of the first matching row.
 
         Raises:
-            ValueError: If no matching row is found.
+            ValueError: If no matching row is found, or if the table has no file
+                specification column (see :meth:`filespec_column_index`).
         """
 
         indices = self.find_row_indices_by_volume_filespec(volume_id, filespec, limit=1,
@@ -1501,6 +1524,10 @@ class PdsTable:
 
         Returns:
             list[dict[str, Any]]: A list of dictionaries representing the matching rows.
+
+        Raises:
+            ValueError: If the table has no file specification column (see
+                :meth:`filespec_column_index`).
         """
 
         return self.find_rows_by_volume_filespec(bundle_name, filespec, limit=limit,
@@ -1534,6 +1561,10 @@ class PdsTable:
 
         Returns:
             list[dict[str, Any]]: A list of dictionaries representing the matching rows.
+
+        Raises:
+            ValueError: If the table has no file specification column (see
+                :meth:`filespec_column_index`).
         """
 
         indices = self.find_row_indices_by_volume_filespec(volume_id, filespec,
@@ -1570,7 +1601,8 @@ class PdsTable:
             dict[str, Any]: A dictionary representing the first matching row.
 
         Raises:
-            ValueError: If no matching row is found.
+            ValueError: If no matching row is found, or if the table has no file
+                specification column (see :meth:`filespec_column_index`).
         """
 
         return self.find_row_by_volume_filespec(bundle_name, filespec,
@@ -1602,7 +1634,8 @@ class PdsTable:
             dict[str, Any]: A dictionary representing the first matching row.
 
         Raises:
-            ValueError: If no matching row is found.
+            ValueError: If no matching row is found, or if the table has no file
+                specification column (see :meth:`filespec_column_index`).
         """
 
         k = self.find_row_index_by_volume_filespec(volume_id, filespec=filespec,
@@ -1616,14 +1649,16 @@ class PdsTable:
 
         The key has the file extension stripped away and is converted to lower case. The
         result is available in the `filename_keys` attribute.
+
+        Raises:
+            ValueError: If the table has no file specification column (see
+                :meth:`filespec_column_index`).
         """
 
         if self._rows_by_filename is not None:
             return
 
-        _ = self.volume_column_index()
-        _ = self.filespec_column_index()
-
+        self._require_filespec_column()
         self._load()
         filespecs = self._column_values[self._filespec_colname]
         masks = self._column_masks[self._filespec_colname]
@@ -1647,7 +1682,7 @@ class PdsTable:
 
     @property
     def filename_keys(self) -> list[str]:
-        """The list of filename keys for the table."""
+        """The filename keys of the table; ValueError if it has no filespec column."""
 
         if self._filename_keys is None:
             self.index_rows_by_filename_key()
@@ -1662,6 +1697,11 @@ class PdsTable:
 
         Returns:
             list[int]: A list of row indices associated with the filename key.
+
+        Raises:
+            KeyError: If no row has the filename key `key`.
+            ValueError: If the table has no file specification column (see
+                :meth:`filespec_column_index`).
         """
 
         # Create the index if necessary
@@ -1678,6 +1718,11 @@ class PdsTable:
         Returns:
             list[dict[str, Any]]: A list of dictionaries representing the rows associated
             with the `key`.
+
+        Raises:
+            KeyError: If no row has the filename key `key`.
+            ValueError: If the table has no file specification column (see
+                :meth:`filespec_column_index`).
         """
 
         # Create the index if necessary
