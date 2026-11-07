@@ -47,7 +47,7 @@ class Pds3TableInfo(PdsTableInfo):
     """The Pds3TableInfo class holds the attributes of a PDS3-labeled table."""
 
     def __init__(self, label_file_path, *, label_contents=None, invalid=None,
-                       valid_ranges=None, label_method='strict'):
+                       valid_ranges=None, label_method='strict', fmt_dirs=None):
         """Load a PDS table based on its associated label file.
 
         Parameters:
@@ -61,7 +61,10 @@ class Pds3TableInfo(PdsTableInfo):
                 it is a dict, it is treated as a parsed label keyed by label item. If it
                 is a Pds3Label object, it is assumed to be the label file that was already
                 parsed. If None, the label file specified by `label_file_path` is read and
-                parsed.
+                parsed. A string, list, or label file has every ^STRUCTURE keyword
+                replaced by the content of the ".FMT" file it names; a Pds3Label or dict
+                must already have been parsed that way, with
+                ``Pds3Label(..., expand=True)``.
             invalid (dict[str, list[Any] | set[Any]] | None, optional): An optional
                 dictionary keyed by column name. The returned value must be a list or set
                 of values that are to be treated as invalid, missing, or unknown.
@@ -82,12 +85,23 @@ class Pds3TableInfo(PdsTableInfo):
                   above and handles all the most common aspects of the PDS3 standard.
                   However, it is not guaranteed to provide an accurate parsing under all
                   circumstances.
+            fmt_dirs (str | Path | FCPath | list[str | Path | FCPath] | None, optional):
+                One or more directories to search for the ".FMT" files named by ^STRUCTURE
+                keywords, after the directory containing the label file.
 
         Raises:
+            FileNotFoundError: If a ".FMT" file named by a ^STRUCTURE keyword is not in
+                the label's directory or any of `fmt_dirs`.
             ValueError: If the label describes a table that cannot be read: its records
                 are not fixed-length, it has no pointer to a table file, the table is not
-                in ASCII format, a required table or column field is missing, or a column
-                has an unsupported data type.
+                in ASCII format, a required table or column field is missing, a column
+                has an unsupported data type, or `label_contents` is a Pds3Label or dict
+                that still contains a ^STRUCTURE keyword.
+
+        Warns:
+            UserWarning: If the table contains an object other than COLUMN, such as a
+                CONTAINER, whose columns are therefore not loaded; or if the number of
+                COLUMN objects differs from the table's COLUMNS value.
         """
 
         super().__init__(label_file_path)
@@ -96,16 +110,27 @@ class Pds3TableInfo(PdsTableInfo):
             invalid = {}
         if valid_ranges is None:
             valid_ranges = {}
+        if fmt_dirs is None:
+            fmt_dirs = []
+        elif not isinstance(fmt_dirs, (list, tuple)):
+            fmt_dirs = [fmt_dirs]
 
         self._header_bytes = 0
 
-        # Parse the label
+        # Parse the label. Label content given as text carries no location, so the label
+        # file's own directory is added to the .FMT search path explicitly.
         if isinstance(label_contents, (Pds3Label, dict)):
             self._label = label_contents
         elif label_contents:
-            self._label = Pds3Label(label_contents, method=label_method)
+            # pdsparser expands a ^STRUCTURE line only when it ends in a bare <LF>
+            if isinstance(label_contents, str):
+                label_contents = label_contents.replace('\r\n', '\n')
+            self._label = Pds3Label(label_contents, method=label_method, expand=True,
+                                    fmt_dirs=[self._label_file_remote_path.parent,
+                                              *fmt_dirs])
         else:
-            self._label = Pds3Label(label_file_path, method=label_method)
+            self._label = Pds3Label(label_file_path, method=label_method, expand=True,
+                                    fmt_dirs=fmt_dirs)
 
         # Get the basic file info...
         if self._label['RECORD_TYPE'] != 'FIXED_LENGTH':
@@ -157,10 +182,17 @@ class Pds3TableInfo(PdsTableInfo):
 
         default_invalid = set(invalid.get('default', []))
         counter = 0
-        for column_dict in table_dict.values():
+        for item_key, column_dict in table_dict.items():
+            if item_key.startswith('^') and item_key.endswith('STRUCTURE'):
+                raise ValueError(f'Table label contains {item_key} = "{column_dict}"; '
+                                 'parse it with Pds3Label(..., expand=True)')
             if not isinstance(column_dict, dict):
                 continue
-            if column_dict['OBJECT'] == 'COLUMN':
+            if column_dict['OBJECT'] != 'COLUMN':
+                warnings.warn(f'Table contains a {column_dict["OBJECT"]} object, which '
+                              'is not supported; its columns are not loaded',
+                              stacklevel=2)
+            else:
                 name = column_dict['NAME']
                 pdscol = Pds3ColumnInfo(column_dict, counter,
                                         invalid=invalid.get(name, default_invalid),
@@ -173,6 +205,10 @@ class Pds3TableInfo(PdsTableInfo):
                 self._column_info_list.append(pdscol)
                 self._column_info_dict[pdscol.name] = pdscol
                 self._dtype0[pdscol.name] = pdscol.dtype0
+
+        if counter != self._columns:
+            warnings.warn(f'Table label says COLUMNS = {self._columns} but describes '
+                          f'{counter} COLUMN objects', stacklevel=2)
 
         table_file_remote_path = (self._label_file_remote_path
                                   .with_name(self._table_file_name))

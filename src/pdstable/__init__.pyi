@@ -98,7 +98,9 @@ class PdsTable:
                  filename_keylen: int = 0,
                  row_range: tuple[int, int] | list[int] | None = None,
                  table_file: str | int | None = None,
-                 label_method: str = 'strict') -> None: ...
+                 label_method: str = 'strict',
+                 fmt_dirs: (str | Path | FCPath | list[str | Path | FCPath]
+                            | None) = None) -> None: ...
 
     @property
     def pdslabel(self) -> Pds3Label | dict[str, Any]: ...

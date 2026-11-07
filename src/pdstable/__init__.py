@@ -39,7 +39,7 @@ class PdsTable:
         (2) Detached PDS labels only.
         (3) Only one data file per label.
         (4) No row or record offsets in the label's pointer to the table file.
-        (5) STRUCTURE fields in the label are not supported.
+        (5) CONTAINER objects in the label are not supported.
         (6) Columns containing multiple items are not loaded.
         (7) Time fields are represented as character strings unless explicitly listed for
             conversion.
@@ -48,7 +48,7 @@ class PdsTable:
                  nostrip=None, callbacks=None, ascii=False,  # noqa: A002
                  replacements=None, invalid=None, valid_ranges=None, table_callback=None,
                  merge_masks=False, filename_keylen=0, row_range=None, table_file=None,
-                 label_method='strict'):
+                 label_method='strict', fmt_dirs=None):
         """Constructor for a PdsTable object.
 
         Parameters:
@@ -112,12 +112,26 @@ class PdsTable:
             label_method (str, optional): The method to use to parse the label. Valid
                 values are 'strict' (default) or 'fast'. The 'fast' method is faster but
                 may not be as accurate. Only relevant for PDS3 labels.
+            fmt_dirs (str | Path | FCPath | list[str | Path | FCPath] | None, optional):
+                One or more directories to search for the ".FMT" files named by
+                ^STRUCTURE keywords in a PDS3 label, after the directory containing the
+                label file. Each ^STRUCTURE keyword is replaced by the columns its ".FMT"
+                file describes. Only relevant for PDS3 labels.
 
         Raises:
+            FileNotFoundError: If a ".FMT" file named by a ^STRUCTURE keyword in a PDS3
+                label is not in the label's directory or any of `fmt_dirs`.
             OSError: If the label or table file cannot be read.
             ValueError: If the label or table contents are invalid or unsupported, for
                 example a column with an unsupported data type, or if `row_range` or
-                `table_file` does not identify rows or a table in the label.
+                `table_file` does not identify rows or a table in the label. Also raised
+                if `label_contents` is a Pds3Label or dict that was parsed without
+                expanding its ^STRUCTURE keywords.
+
+        Warns:
+            UserWarning: If a PDS3 table contains an object other than COLUMN, such as a
+                CONTAINER, whose columns are therefore not loaded; or if the number of
+                COLUMN objects differs from the table's COLUMNS value.
 
         Notes:
             If both a replacement and a callback are provided for the same column, the
@@ -155,7 +169,7 @@ class PdsTable:
                 raise ValueError('table_file is not supported for PDS3 labels')
             self._info = Pds3TableInfo(label_file, label_contents=label_contents,
                                        invalid=invalid, valid_ranges=valid_ranges,
-                                       label_method=label_method)
+                                       label_method=label_method, fmt_dirs=fmt_dirs)
             self._encoding = {'encoding': 'latin-1'}
 
         # Select the columns
