@@ -33,6 +33,7 @@ class PdsTableInfo:
         self._label = None
         self._table_file_name = None
         self._table_file_path = None
+        self._table_file_remote_path = None
         self._header_bytes = 0
         self._fixed_length_row = False
         self._field_delimiter = None
@@ -65,7 +66,9 @@ class PdsTableInfo:
 
     @property
     def table_file_path(self) -> Path:
-        """The local path to the table file."""
+        """The local path to the table file, which is retrieved on first access."""
+        if self._table_file_path is None:
+            self._table_file_path = self._table_file_remote_path.retrieve()
         return self._table_file_path
 
     @property

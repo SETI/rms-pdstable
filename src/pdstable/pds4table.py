@@ -341,9 +341,8 @@ class Pds4TableInfo(PdsTableInfo):
             self._column_info_dict[pdscol.name] = pdscol
             self._dtype0[pdscol.name] = pdscol.dtype0
 
-        table_file_remote_path = (self._label_file_remote_path
-                                  .with_name(self._table_file_name))
-        self._table_file_path = table_file_remote_path.retrieve()
+        self._table_file_remote_path = (self._label_file_remote_path
+                                        .with_name(self._table_file_name))
 
 
 ################################################################################

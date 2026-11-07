@@ -2,7 +2,7 @@
 # pdstable/__init__.pyi
 ##########################################################################################
 
-from collections.abc import Callable
+from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
 from typing import Any
 
@@ -11,6 +11,8 @@ from filecache import FCPath
 from pdsparser import Pds3Label
 
 __version__: str
+
+DEFAULT_CHUNK_ROWS: int
 
 __all__ = ['PdsColumnInfo', 'PdsTable', 'PdsTableInfo']
 
@@ -100,7 +102,22 @@ class PdsTable:
                  table_file: str | int | None = None,
                  label_method: str = 'strict',
                  fmt_dirs: (str | Path | FCPath | list[str | Path | FCPath]
-                            | None) = None) -> None: ...
+                            | None) = None,
+                 defer_load: bool = False) -> None: ...
+
+    def __iter__(self) -> Iterator[dict[str, Any]]: ...
+    def iter_dicts(self, chunk_rows: int = ..., *,
+                   lowercase: _Lowercase = (False, False)
+                   ) -> Generator[dict[str, Any]]: ...
+
+    @staticmethod
+    def rows_from_label(label_file: str | Path | FCPath, *,
+                        label_contents: (str | list[str] | dict[str, Any] | Pds3Label
+                                         | None) = None,
+                        table_file: str | int | None = None,
+                        label_method: str = 'strict',
+                        fmt_dirs: (str | Path | FCPath | list[str | Path | FCPath]
+                                   | None) = None) -> int: ...
 
     @property
     def pdslabel(self) -> Pds3Label | dict[str, Any]: ...

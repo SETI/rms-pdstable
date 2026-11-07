@@ -143,6 +143,8 @@ _SHORT_NAMES = {
     'Any'      : 'typing.Any',
     'Callable' : 'collections.abc.Callable',
     'FCPath'   : 'filecache.file_cache_path.FCPath',
+    'Generator': 'collections.abc.Generator',
+    'Iterator' : 'collections.abc.Iterator',
     'Path'     : 'pathlib.Path',
     'Pds3Label': 'pdsparser.Pds3Label',
     # Sphinx leaves None unlinked inside a type field, though it links None in a

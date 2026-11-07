@@ -71,6 +71,16 @@ dictionary keys are the names of the columns:
 as_dicts = p3.dicts_by_row()
 ```
 
+A large table can instead be streamed one row dictionary at a time, reading and parsing
+only a chunk of rows at once. Construct it with `defer_load=True` so that the whole table
+is not loaded first:
+
+```python
+big = PdsTable('big_index.lbl', defer_load=True)
+for row in big.iter_dicts(chunk_rows=5000):  # or simply: for row in big:
+    print(row['FILE_SPEC'])
+```
+
 PDS3 labels can only point to a single table. However, PDS4 labels can point to
 multiple tables. If multiple tables are present in the label, you must specify
 which table you want to read. This can be done using an integer index or specifying
@@ -86,6 +96,7 @@ increase performance. These include:
 
 - Specifying a subset of columns to parse.
 - Reading only a subset of rows.
+- Streaming rows from a large table without loading all of it.
 - Using a faster but less rigorous label parser for PDS3 labels.
 - Searching for rows with a specific volume or bundle name and/or file specification.
 

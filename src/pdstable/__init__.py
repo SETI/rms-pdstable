@@ -2,6 +2,8 @@
 # pdstable/__init__.py
 ##########################################################################################
 
+import contextlib
+import itertools
 import os
 from pathlib import Path
 from typing import Any
@@ -24,6 +26,9 @@ try:
 except ImportError:  # pragma: no cover
     __version__ = 'Version unspecified'
 
+
+# The default number of rows that PdsTable.iter_dicts reads and parses at a time
+DEFAULT_CHUNK_ROWS = 1000
 
 # This is mainly to make the documentation look good
 __all__ = ['PdsColumnInfo', 'PdsTable', 'PdsTableInfo']
@@ -48,7 +53,7 @@ class PdsTable:
                  nostrip=None, callbacks=None, ascii=False,  # noqa: A002
                  replacements=None, invalid=None, valid_ranges=None, table_callback=None,
                  merge_masks=False, filename_keylen=0, row_range=None, table_file=None,
-                 label_method='strict', fmt_dirs=None):
+                 label_method='strict', fmt_dirs=None, defer_load=False):
         """Constructor for a PdsTable object.
 
         Parameters:
@@ -117,6 +122,15 @@ class PdsTable:
                 ^STRUCTURE keywords in a PDS3 label, after the directory containing the
                 label file. Each ^STRUCTURE keyword is replaced by the columns its ".FMT"
                 file describes. Only relevant for PDS3 labels.
+            defer_load (bool, optional): True to read only the label now, and read the
+                table file when its data is first needed: by :attr:`column_values`,
+                :attr:`column_masks`, :meth:`get_column`, :meth:`get_column_mask`,
+                :meth:`dicts_by_row`, the ``find_*`` methods, or the filename index.
+                Properties that come from the label, such as :attr:`rows`, never read
+                the table file. :meth:`iter_dicts` on a deferred table reads the file a
+                chunk at a time without loading the whole table. Errors and warnings
+                about the table file's contents are then raised by whichever of these
+                first reads it.
 
         Raises:
             FileNotFoundError: If a ".FMT" file named by a ^STRUCTURE keyword in a PDS3
@@ -157,20 +171,11 @@ class PdsTable:
             valid_ranges = {}
 
         self._is_pds4_lbl = is_pds4_label(label_file)
-
-        # Parse the label
-        if self._is_pds4_lbl:
-            self._info = Pds4TableInfo(label_file, invalid=invalid,
-                                       valid_ranges=valid_ranges,
-                                       table_file=table_file)
-            self._encoding = {'encoding': 'utf-8'}
-        else:
-            if table_file is not None:
-                raise ValueError('table_file is not supported for PDS3 labels')
-            self._info = Pds3TableInfo(label_file, label_contents=label_contents,
-                                       invalid=invalid, valid_ranges=valid_ranges,
-                                       label_method=label_method, fmt_dirs=fmt_dirs)
-            self._encoding = {'encoding': 'latin-1'}
+        self._info = PdsTable._table_info(label_file, label_contents=label_contents,
+                                          invalid=invalid, valid_ranges=valid_ranges,
+                                          table_file=table_file,
+                                          label_method=label_method, fmt_dirs=fmt_dirs)
+        self._encoding = {'encoding': 'utf-8' if self._is_pds4_lbl else 'latin-1'}
 
         # Select the columns
         if len(columns) == 0:
@@ -181,23 +186,25 @@ class PdsTable:
 
         self._keys_lc = [k.lower() for k in self._keys]
 
-        # Load the table data in binary
+        # Raise KeyError now, not when the data is loaded, for a column not in the table
+        for key in self._keys:
+            self._info.column_info_dict[key]
+
+        # Options applied whenever lines of the table are parsed
+        self._label_file = label_file
+        self._times = times
+        self._nostrip = nostrip
+        self._callbacks = callbacks
+        self._ascii = ascii
+        self._replacements = replacements
+        self._merge_masks = merge_masks
+        self._table_callback = table_callback
+
+        # Select the rows
+        self._row_range = row_range
         if row_range is None:
             self._first = 0
             self._rows = self._info.rows
-
-            with open(self._info.table_file_path, 'rb') as f:
-                # Skip over the header
-                if self._info.header_bytes != 0:
-                    f.seek(self._info.header_bytes)
-                lines = f.readlines()
-
-            # Check line count
-            if len(lines) != self._info.rows:
-                raise ValueError(f'row count mismatch in {label_file}: '
-                                 f'{len(lines)} rows in file; '
-                                 f'label says {self._info.rows} rows')
-
         else:
             if not self._info.fixed_length_row:
                 raise ValueError('Cannot specify row range for the table without fixed '
@@ -208,22 +215,248 @@ class PdsTable:
             if self._rows <= 0:
                 raise ValueError('row_range must have at least one row')
 
-            header_bytes = self._info.header_bytes
-            row_bytes = self._info.row_bytes
+        # The column data, read by _load() now or when first needed
+        self._column_values = None
+        self._column_masks = None
 
-            with open(self._info.table_file_path, 'rb') as f:
-                f.seek(header_bytes + row_range[0] * row_bytes)
-                lines = f.readlines(header_bytes + self.rows * row_bytes - 1)
+        # Columns whose illegally formatted values iter_dicts has already reported
+        self._warned_columns = set()
 
-            if len(lines) > self._rows:
-                lines = lines[:self._rows]
+        # Cache dicts_by_row and other info when first requested
+        self._filename_keylen = filename_keylen
+        self._dicts_by_row = {}
 
+        self._volume_colname_index   = None
+        self._volume_colname         = None
+        self._volume_colname_lc      = None
+
+        self._filespec_colname_index = None
+        self._filespec_colname       = None
+        self._filespec_colname_lc    = None
+
+        self._rows_by_filename = None
+        self._filename_keys    = None
+
+        if not defer_load:
+            self._load()
+
+    def __iter__(self):
+        """Iterate over the rows of the table as dictionaries.
+
+        This is the same as :meth:`iter_dicts` with its default arguments.
+
+        Returns:
+            Iterator[dict[str, Any]]: One dictionary per row; see :meth:`iter_dicts`.
+        """
+
+        return self.iter_dicts()
+
+    def iter_dicts(self, chunk_rows=DEFAULT_CHUNK_ROWS, *, lowercase=(False, False)):
+        """Iterate over the rows of the table as dictionaries, reading a chunk at a time.
+
+        Each dictionary is identical to the corresponding entry of :meth:`dicts_by_row`
+        with the same `lowercase`. The rows are those selected by the constructor's
+        `row_range`, or every row of the table.
+
+        If the table data has not been loaded (the table was constructed with
+        `defer_load=True` and nothing has needed the data since), the table file is read
+        `chunk_rows` rows at a time, and only the current chunk is held in memory. Each
+        chunk is parsed with the constructor's options; note that `table_callback`
+        therefore receives one chunk of lines at a time rather than the whole table. The
+        file is opened when iteration starts and closed when it ends or the iterator is
+        closed. Nothing is cached, so each iteration reads the file again.
+
+        If the table data has already been loaded, the rows come from memory and
+        `chunk_rows` has no effect.
+
+        Parameters:
+            chunk_rows (int, optional): The number of rows to read and parse at a time.
+            lowercase (bool | tuple[bool, bool], optional): As for :meth:`dicts_by_row`.
+
+        Returns:
+            Generator[dict[str, Any]]: One dictionary per row, in table order.
+
+        Raises:
+            ValueError: Immediately, if `chunk_rows` is less than one. During iteration,
+                if the table file has fewer rows than selected; or, when no `row_range`
+                was given, more rows than the label states, after the last row has been
+                yielded. Rows yielded before the error are valid.
+            OSError: During iteration, if the table file cannot be read.
+
+        Warns:
+            UserWarning: When a chunk contains illegally formatted values in a column.
+                The message gives the count for that chunk and the chunk's rows (0-based
+                row numbers in the table file). Each column is reported at most once per
+                table, however many chunks or iterations contain such values; this does
+                not affect the warnings issued when the whole table is loaded.
+        """
+
+        if chunk_rows < 1:
+            raise ValueError(f'chunk_rows must be at least 1: {chunk_rows}')
+
+        if isinstance(lowercase, bool):
+            lowercase = (lowercase, lowercase)
+
+        if self._column_values is not None:
+            return (self._row_dict(self._column_values, self._column_masks, row,
+                                   lowercase)
+                    for row in range(self._rows))
+
+        return self._stream_dicts(chunk_rows, lowercase)
+
+    def _stream_dicts(self, chunk_rows, lowercase):
+        """Read, parse, and yield the selected rows of the table file a chunk at a time.
+
+        Parameters:
+            chunk_rows (int): The number of rows to read and parse at a time.
+            lowercase (tuple[bool, bool]): As for :meth:`dicts_by_row`.
+
+        Yields:
+            dict[str, Any]: One dictionary per row.
+
+        Raises:
+            ValueError: If the table file does not hold the rows the label or `row_range`
+                calls for.
+        """
+
+        with self._open_table() as f:
+            done = 0
+            while done < self._rows:
+                lines = list(itertools.islice(f, min(chunk_rows, self._rows - done)))
+                if len(lines) == 0:
+                    raise self._row_count_error(done)
+
+                values, masks, errors = self._parse_lines(lines)
+                first = self._first + done
+                for column_info, count, example in errors:
+                    if column_info.name in self._warned_columns:
+                        continue
+                    self._warned_columns.add(column_info.name)
+                    message = self._illegal_values_message(
+                        column_info, count, example, rows=(first, first + len(lines)))
+                    warnings.warn(message, stacklevel=2)
+
+                for row in range(len(lines)):
+                    yield self._row_dict(values, masks, row, lowercase)
+
+                done += len(lines)
+                if len(lines) < chunk_rows and done < self._rows:
+                    raise self._row_count_error(done)
+
+            if self._row_range is None:
+                extra = sum(1 for _ in f)
+                if extra:
+                    raise self._row_count_error(self._rows + extra)
+
+    @contextlib.contextmanager
+    def _open_table(self):
+        """Open the table file, positioned at the first selected row.
+
+        The file is closed when the context exits.
+
+        Yields:
+            BufferedReader: The open table file, in binary mode.
+        """
+
+        with open(self._info.table_file_path, 'rb') as f:
+            offset = self._info.header_bytes
+            if self._first:
+                offset += self._first * self._info.row_bytes
+            f.seek(offset)
+            yield f
+
+    def _row_count_error(self, found):
+        """Return the error for a table file that does not hold the selected rows.
+
+        Parameters:
+            found (int): The number of rows found: in the whole file if no `row_range`
+                was given, otherwise in the selected range.
+
+        Returns:
+            ValueError: The exception to raise.
+        """
+
+        if self._row_range is None:
+            return ValueError(f'row count mismatch in {self._label_file}: '
+                              f'{found} rows in file; '
+                              f'label says {self._info.rows} rows')
+        return ValueError(f'row count mismatch: {found} row(s) read; '
+                          f'{self._rows} row(s) requested')
+
+    @staticmethod
+    def _illegal_values_message(column_info, count, example, rows=None):
+        """Return the warning text for illegally formatted values in one column.
+
+        Parameters:
+            column_info (PdsColumnInfo): The column.
+            count (int): The number of illegally formatted values.
+            example (str): The first illegally formatted value.
+            rows (tuple[int, int] | None, optional): The first row checked and the first
+                row after it, if only part of the table was checked.
+
+        Returns:
+            str: The warning text.
+        """
+
+        where = '' if rows is None else f' in rows {rows[0]}-{rows[1] - 1}'
+        if count == 1:
+            return (f'Illegally formatted {column_info.data_type} value in column '
+                    f'{column_info.name}{where}: {example.strip()}')
+        return (f'{count!s} illegally formatted {column_info.data_type} values in '
+                f'column {column_info.name}{where}; first example is '
+                f'"{example.strip()}"')
+
+    def _load(self):
+        """Read and parse every selected row of the table, unless that is already done.
+
+        Raises:
+            OSError: If the table file cannot be read.
+            ValueError: If the table file does not hold the rows the label or `row_range`
+                calls for, or its contents do not match the label.
+
+        Warns:
+            UserWarning: For each column that contains illegally formatted values.
+        """
+
+        if self._column_values is not None:
+            return
+
+        with self._open_table() as f:
+            lines = list(itertools.islice(f, self._rows))
             if len(lines) != self._rows:
-                raise ValueError(f'row count mismatch: {len(lines)} row(s) read; '
-                                 f'{self._rows} row(s) requested')
+                raise self._row_count_error(len(lines))
+            if self._row_range is None:
+                extra = sum(1 for _ in f)
+                if extra:
+                    raise self._row_count_error(self._rows + extra)
 
-        if table_callback is not None:
-            lines = table_callback(lines)
+        values, masks, errors = self._parse_lines(lines)
+        for column_info, count, example in errors:
+            warnings.warn(self._illegal_values_message(column_info, count, example),
+                          stacklevel=3)
+
+        self._column_values = values
+        self._column_masks = masks
+
+    def _parse_lines(self, lines):
+        """Convert lines of the table file into column values and masks.
+
+        Parameters:
+            lines (list[bytes]): Consecutive rows of the table file, each with its line
+                terminator.
+
+        Returns:
+            tuple[dict[str, Any], dict[str, numpy.ndarray], list[tuple]]: The values
+            and masks of each selected column, keyed by column name; and, for each
+            column with illegally formatted values, a tuple of its
+            :class:`PdsColumnInfo`, the number of such values, and the first of them.
+
+        Raises:
+            ValueError: If the lines do not match the row description in the label.
+        """
+
+        if self._table_callback is not None:
+            lines = self._table_callback(lines)
 
         # For table file with fixed length row:
         # table is now a 1-D array in which the ASCII content of each column
@@ -243,8 +476,9 @@ class PdsTable:
                               for line in lines])
 
         # Extract the substring arrays and save in a dictionary...
-        self._column_values = {}
-        self._column_masks = {}
+        column_values = {}
+        column_masks = {}
+        errors = []
 
         for idx, key in enumerate(self._keys):
             column_info = self._info.column_info_dict[key]
@@ -273,21 +507,21 @@ class PdsTable:
                 # items is now a list containing one 1-D array for each item in this
                 # column.
 
-                self._column_values[key] = items
+                column_values[key] = items
             else:
-                self._column_values[key] = [column]
+                column_values[key] = [column]
 
         # Replace each 1-D array of items from ASCII strings to the proper type
         for key in self._keys:
             column_info  = self._info.column_info_dict[key]
-            column_items = self._column_values[key]
+            column_items = column_values[key]
 
             data_type = column_info.data_type
             dtype     = column_info.dtype2
             func      = column_info.scalar_func
-            callback  = callbacks.get(key)
-            repdict   = replacements.get(key, {})
-            strip     = (key not in nostrip)
+            callback  = self._callbacks.get(key)
+            repdict   = self._replacements.get(key, {})
+            strip     = (key not in self._nostrip)
 
             invalid_values = column_info.invalid_values
             valid_range    = column_info.valid_range
@@ -306,7 +540,7 @@ class PdsTable:
                 if callback:
 
                     # Convert string to input format for callback
-                    if not ascii:
+                    if not self._ascii:
                         items = items.astype('U')
 
                     # Apply the callback row by row
@@ -345,7 +579,8 @@ class PdsTable:
                 if data_type == 'string_preserved':
                     items = items.astype('U')  # No strip
 
-                elif data_type == 'string' or (data_type == 'time' and key not in times):
+                elif (data_type == 'string'
+                      or (data_type == 'time' and key not in self._times)):
                     items = items.astype('U')
 
                     if strip:
@@ -366,7 +601,7 @@ class PdsTable:
                                 items[items == before] = after
 
                         # Convert times if necessary
-                        if key in times:
+                        if key in self._times:
                             items = tai_from_iso(items)
 
                     # If something went wrong, array processing won't work.
@@ -426,8 +661,8 @@ class PdsTable:
 
             # Swap indices for multiple items
             if len(new_column_items) == 1:
-                self._column_values[key] = new_column_items[0]
-                self._column_masks[key]  = new_column_masks[0]
+                column_values[key] = new_column_items[0]
+                column_masks[key]  = new_column_masks[0]
 
             else:
                 all_arrays = np.all([isinstance(c, np.ndarray) for c in new_column_items])
@@ -436,43 +671,103 @@ class PdsTable:
                     array = np.stack(new_column_items, axis=1)
                     if array.dtype.kind in ('S', 'U'):
                         array = [tuple(x) for x in array]
-                    self._column_values[key] = array
+                    column_values[key] = array
                 else:
-                    self._column_values[key] = list(zip(*new_column_items, strict=True))
+                    column_values[key] = list(zip(*new_column_items, strict=True))
 
-                if merge_masks:
-                    self._column_masks[key] = np.any(np.stack(new_column_masks), axis=0)
+                if self._merge_masks:
+                    column_masks[key] = np.any(np.stack(new_column_masks), axis=0)
                 else:
                     mask_array = np.stack(new_column_masks)
-                    self._column_masks[key] = mask_array.swapaxes(0, 1)
+                    column_masks[key] = mask_array.swapaxes(0, 1)
 
-            # Report errors as warnings
             if error_count:
-                if error_count == 1:
-                    template = (f'Illegally formatted {column_info.data_type} value in '
-                                f'column {column_info.name}: {error_example.strip()}')
-                else:
-                    template = (f'{error_count!s} illegally formatted '
-                                f'{column_info.data_type} values in column '
-                                f'{column_info.name}; first example is '
-                                f'"{error_example.strip()}"')
+                errors.append((column_info, error_count, error_example))
 
-                warnings.warn(template, stacklevel=2)
+        return column_values, column_masks, errors
 
-        # Cache dicts_by_row and other info when first requested
-        self._filename_keylen = filename_keylen
-        self._dicts_by_row = {}
 
-        self._volume_colname_index   = None
-        self._volume_colname         = None
-        self._volume_colname_lc      = None
+    @staticmethod
+    def _table_info(label_file, *, label_contents, invalid, valid_ranges, table_file,
+                    label_method, fmt_dirs):
+        """Parse a PDS3 or PDS4 label into the description of its table.
 
-        self._filespec_colname_index = None
-        self._filespec_colname       = None
-        self._filespec_colname_lc    = None
+        The table file itself is not read.
 
-        self._rows_by_filename = None
-        self._filename_keys    = None
+        Parameters:
+            label_file (str | Path | FCPath): The path to the label.
+            label_contents (str | list[str] | dict[str, Any] | Pds3Label | None): The
+                label contents, for PDS3 labels; see :class:`PdsTable`.
+            invalid (dict[str, list[Any] | set[Any] | float | str]): Invalid values by
+                column name.
+            valid_ranges (dict[str, tuple[float, float] | list[float]]): Valid ranges by
+                column name.
+            table_file (str | int | None): The table to select, for PDS4 labels.
+            label_method (str): The PDS3 label parsing method.
+            fmt_dirs (str | Path | FCPath | list[str | Path | FCPath] | None): The
+                directories to search for PDS3 ".FMT" files.
+
+        Returns:
+            PdsTableInfo: The description of the table.
+
+        Raises:
+            ValueError: If `table_file` is given for a PDS3 label, or if the label does
+                not describe a readable table.
+        """
+
+        if is_pds4_label(label_file):
+            return Pds4TableInfo(label_file, invalid=invalid, valid_ranges=valid_ranges,
+                                 table_file=table_file)
+        if table_file is not None:
+            raise ValueError('table_file is not supported for PDS3 labels')
+        return Pds3TableInfo(label_file, label_contents=label_contents, invalid=invalid,
+                             valid_ranges=valid_ranges, label_method=label_method,
+                             fmt_dirs=fmt_dirs)
+
+    @staticmethod
+    def rows_from_label(label_file, *, label_contents=None, table_file=None,
+                        label_method='strict', fmt_dirs=None):
+        """Return the number of rows in a table, as stated by its label.
+
+        Only the label is read, so the table file does not need to exist. The result is
+        the label's row count (ROWS for PDS3, records for PDS4), not the number of rows
+        a :class:`PdsTable` would load with a `row_range`.
+
+        Parameters:
+            label_file (str | Path | FCPath): The path to the PDS3 or PDS4 label of the
+                table file.
+            label_contents (str | list[str] | dict[str, Any] | Pds3Label, optional):
+                The contents of a PDS3 label, to use instead of reading `label_file`; see
+                :class:`PdsTable`. It is ignored for PDS4.
+            table_file (str | int | None, optional): For a PDS4 label, the table to
+                count: a regular expression matching its file name, or its 1-based
+                position in the label. Required if the label describes more than one
+                table. Not supported for PDS3 labels.
+            label_method (str, optional): The method used to parse a PDS3 label, 'strict'
+                (default) or 'fast'. Only relevant for PDS3 labels.
+            fmt_dirs (str | Path | FCPath | list[str | Path | FCPath] | None, optional):
+                Directories to search for the ".FMT" files named by ^STRUCTURE keywords
+                in a PDS3 label, after the directory containing the label. Only relevant
+                for PDS3 labels.
+
+        Returns:
+            int: The number of rows in the table.
+
+        Raises:
+            FileNotFoundError: If the label, or a ".FMT" file it names, cannot be found.
+            ValueError: If `table_file` is given for a PDS3 label, does not identify a
+                table in a PDS4 label, or is omitted for a PDS4 label with more than one
+                table; or if the label does not describe a table that :class:`PdsTable`
+                can read.
+
+        Warns:
+            UserWarning: Under the same conditions as the :class:`PdsTable` constructor.
+        """
+
+        info = PdsTable._table_info(label_file, label_contents=label_contents,
+                                    invalid={}, valid_ranges={}, table_file=table_file,
+                                    label_method=label_method, fmt_dirs=fmt_dirs)
+        return info.rows
 
     @property
     def pdslabel(self) -> Pds3Label | dict[str, Any]:
@@ -518,7 +813,7 @@ class PdsTable:
     def columns(self) -> int:
         """The number of columns in the table (possibly as restricted by the columns
         parameter)."""
-        return len(self._column_values)
+        return len(self._keys)
 
     @property
     def all_columns(self) -> int:
@@ -529,11 +824,13 @@ class PdsTable:
     @property
     def column_values(self) -> dict[str, np.ndarray | list[tuple]]:
         """The values of the columns that were read as a dict indexed by column name."""
+        self._load()
         return self._column_values
 
     @property
     def column_masks(self) -> dict[str, np.ndarray]:
         """The masks of the columns that were read as a dict indexed by column name."""
+        self._load()
         return self._column_masks
 
     @property
@@ -631,46 +928,59 @@ class PdsTable:
         except KeyError:
             pass
 
-        # For each row...
-        row_dicts = []
-        for row in range(self.rows):
-
-            # Create and append the dictionary
-            row_dict = {}
-            for (column_name, items) in self._column_values.items():
-
-                key_set = {column_name}
-                if not self.is_pds4:
-                    key_set = {column_name, column_name.replace(' ', '_')}
-
-                for key in key_set:
-                    value = items[row]
-                    mask  = self._column_masks[key][row]
-
-                    # Key and value unchanged
-                    row_dict[key] = value
-                    row_dict[key + '_mask'] = mask
-
-                    # Key in lower case; value unchanged
-                    if lowercase[0]:
-                        key_lc = key.lower()
-                        row_dict[key_lc] = value
-                        row_dict[key_lc + '_mask'] = mask
-
-                    # Value in lower case
-                    if lowercase[1]:
-                        value_lc = lowercase_value(value)
-
-                        row_dict[key + '_lower'] = value_lc
-                        if lowercase[0]:
-                            row_dict[key_lc + '_lower'] = value_lc
-
-            row_dicts.append(row_dict)
+        self._load()
+        row_dicts = [self._row_dict(self._column_values, self._column_masks, row,
+                                    lowercase)
+                     for row in range(self.rows)]
 
         # Cache results for later re-use
         self._dicts_by_row[lowercase] = row_dicts
 
         return row_dicts
+
+    def _row_dict(self, values, masks, row, lowercase):
+        """Build the dictionary for one row, as returned by :meth:`dicts_by_row`.
+
+        Parameters:
+            values (dict[str, Any]): The column values, keyed by column name.
+            masks (dict[str, numpy.ndarray]): The column masks, keyed by column name.
+            row (int): The index of the row within `values` and `masks`.
+            lowercase (tuple[bool, bool]): As for :meth:`dicts_by_row`.
+
+        Returns:
+            dict[str, Any]: The row's dictionary.
+        """
+
+        row_dict = {}
+        for (column_name, items) in values.items():
+
+            key_set = {column_name}
+            if not self.is_pds4:
+                key_set = {column_name, column_name.replace(' ', '_')}
+
+            for key in key_set:
+                value = items[row]
+                mask  = masks[key][row]
+
+                # Key and value unchanged
+                row_dict[key] = value
+                row_dict[key + '_mask'] = mask
+
+                # Key in lower case; value unchanged
+                if lowercase[0]:
+                    key_lc = key.lower()
+                    row_dict[key_lc] = value
+                    row_dict[key_lc + '_mask'] = mask
+
+                # Value in lower case
+                if lowercase[1]:
+                    value_lc = lowercase_value(value)
+
+                    row_dict[key + '_lower'] = value_lc
+                    if lowercase[0]:
+                        row_dict[key_lc + '_lower'] = value_lc
+
+        return row_dict
 
     def get_column(self, name):
         """Return the values in the specified column as a list.
@@ -683,6 +993,7 @@ class PdsTable:
             multiple items that are not all arrays is returned as a list of tuples.
         """
 
+        self._load()
         return self._column_values[name]
 
     def get_column_mask(self, name):
@@ -695,6 +1006,7 @@ class PdsTable:
             numpy.ndarray: The masks for the specified column.
         """
 
+        self._load()
         return self._column_masks[name]
 
     def get_keys(self):
@@ -1312,6 +1624,7 @@ class PdsTable:
         _ = self.volume_column_index()
         _ = self.filespec_column_index()
 
+        self._load()
         filespecs = self._column_values[self._filespec_colname]
         masks = self._column_masks[self._filespec_colname]
 

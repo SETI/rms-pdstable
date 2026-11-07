@@ -210,9 +210,8 @@ class Pds3TableInfo(PdsTableInfo):
             warnings.warn(f'Table label says COLUMNS = {self._columns} but describes '
                           f'{counter} COLUMN objects', stacklevel=2)
 
-        table_file_remote_path = (self._label_file_remote_path
-                                  .with_name(self._table_file_name))
-        self._table_file_path = table_file_remote_path.retrieve()
+        self._table_file_remote_path = (self._label_file_remote_path
+                                        .with_name(self._table_file_name))
 
 
 ################################################################################
