@@ -49,6 +49,12 @@ jobs:
         run: |
           MYPYPATH=src mypy tests
 
+      # __init__.pyi is the package's only type information, so it must keep matching
+      # the runtime API; this step matches `--stubtest` in scripts/run-all-checks.sh.
+      - name: Stubtest
+        run: |
+          python -m mypy.stubtest pdstable --mypy-config-file pyproject.toml
+
       - name: pip-audit
         run: |
           pip-audit --skip-editable

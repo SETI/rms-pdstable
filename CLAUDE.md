@@ -26,7 +26,8 @@ required to run exactly that set. Run it after any change.
 - Useful flags: `-c/--code`, `-d/--docs`, `-m/--markdown`, `-s/--sequential`, or a single check
   such as `--pytest` / `--ruff-check` / `--sphinx`.
 - `ruff format`, `bandit`, and `vulture` are disabled by default in the script. Leave them
-  disabled. Its mypy check runs on `tests/` only; see the mypy rule below.
+  disabled. Its mypy check runs on `tests/` only; see the mypy rule below. Its stubtest check
+  compares `src/pdstable/__init__.pyi` with the runtime API; see the stub rule below.
 - `codespell` enforces American spelling as well as typos. A word it flags that is correct here
   goes in `ignore-words-list` in `pyproject.toml` with its reason; a one-off goes on its own
   line as `codespell:ignore <word>`.
@@ -49,9 +50,19 @@ required to run exactly that set. Run it after any change.
 - **No type annotations under `src/`, with one exception** — parameter and return types belong in
   the docstrings. The exception is a **property**, which may carry an inline return annotation
   and then keeps a one-line docstring. **Annotate all test functions**, including `-> None`.
-- **Never run `mypy` on `src/`.** It is deliberately unannotated. Run mypy on `tests/` only. The
-  `tests.*` override in `pyproject.toml` disables `no-untyped-call` because every call into
-  `pdstable` is untyped; `tests/__init__.py` exists so that override matches.
+- **One stub, `src/pdstable/__init__.pyi`, carries all of the published type information**,
+  beside the `py.typed` marker. It declares everything `pdstable` exports: `PdsTable`,
+  `PdsTableInfo`, and `PdsColumnInfo`, in full. The only supported import is
+  `from pdstable import ...`, so no other module gets a stub; adding one would make an import
+  such as `from pdstable.pds3table import ...` look supported. A stub replaces its module for
+  type checkers, so anything it omits is invisible downstream. Adding, renaming, or re-signing
+  a public member means updating the stub in the same change; `stubtest` enforces this in the
+  check script and in CI. Signature shapes in the stub are exact. Types come from the
+  docstrings, or from the inline annotation of a property.
+- **Never run `mypy` on `src/`.** It is deliberately unannotated. Run mypy on `tests/` only; the
+  tests see `pdstable` through the stub. The `tests.test_utils` override in `pyproject.toml`
+  disables `no-untyped-call`, because that module tests `pdstable.utils`, which has no stub;
+  `tests/__init__.py` exists so that override matches.
 - The `ascii` keyword of `PdsTable` shadows a builtin and carries `# noqa: A002`; it is public
   API, so do not rename it. Do not disable the `A` (builtins) or `N` (naming) rule categories.
 - At most 5 positional parameters; the rest keyword-only after `*`.

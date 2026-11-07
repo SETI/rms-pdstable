@@ -59,7 +59,7 @@ See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 We follow these standards for all code contributions:
 
 * **Python Style**: Follow PEP 8, with a maximum line length of 90. `ruff check` is the linter of record; do not run `ruff format`, because it removes the column alignment the code uses deliberately
-* **Type Hints**: Do not annotate code under `src/`; give parameter and return types in the docstrings instead. Annotate every test function
+* **Type Hints**: Do not annotate code under `src/`; give parameter and return types in the docstrings instead. The published type information lives in `src/pdstable/__init__.pyi`, so a change to the public API must update that stub as well; `scripts/run-all-checks.sh` runs `stubtest` to check it. Annotate every test function
 * **Docstrings**: Document all modules, classes, and methods with docstrings following the Google style, using `Parameters:` rather than `Args:`
 * **Testing**: Include unit tests for new functionality
 * **Compatibility**: Ensure compatibility with Python 3.11+

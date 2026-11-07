@@ -97,8 +97,8 @@ class PdsTableInfo:
         return self._columns
 
     @property
-    def row_bytes(self) -> int:
-        """The number of bytes in a single row of the table."""
+    def row_bytes(self) -> int | None:
+        """The number of bytes per row (the maximum for a delimited table), if known."""
         return self._row_bytes
 
     @property

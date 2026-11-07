@@ -124,13 +124,13 @@ disallow_subclassing_any = false
 module = ["filecache", "julian", "pds4_tools.*", "pdsparser"]
 ignore_missing_imports = true
 
-# The tests are the only code mypy checks. src/ is deliberately unannotated (see
-# .claude/rules/python.md), so every call the tests make into pdstable is a call to an
-# untyped function; no change to the tests can satisfy no-untyped-call. Everything else
-# mypy can say about the tests stays on, including the annotations that every test
-# function is required to carry.
+# The tests are the only code mypy checks, and they see pdstable through its stub,
+# src/pdstable/__init__.pyi. test_utils exercises pdstable.utils, an internal module
+# with no stub and, like the rest of src/, no annotations (see .claude/rules/python.md),
+# so every call it makes is to an untyped function and no change to the test can
+# satisfy no-untyped-call. Everything else mypy can say about it stays on.
 [[tool.mypy.overrides]]
-module = "tests.*"
+module = "tests.test_utils"
 disable_error_code = ["no-untyped-call"]
 
 [tool.ruff]

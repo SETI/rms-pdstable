@@ -4,7 +4,7 @@
 
 from collections.abc import Callable, Generator, Iterator
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeAlias
 
 import numpy as np
 from filecache import FCPath
@@ -12,11 +12,9 @@ from pdsparser import Pds3Label
 
 __version__: str
 
-DEFAULT_CHUNK_ROWS: int
-
 __all__ = ['PdsColumnInfo', 'PdsTable', 'PdsTableInfo']
 
-_Lowercase = bool | tuple[bool, bool]
+_Lowercase: TypeAlias = bool | tuple[bool, bool]
 
 
 class PdsTableInfo:
@@ -42,7 +40,7 @@ class PdsTableInfo:
     @property
     def columns(self) -> int: ...
     @property
-    def row_bytes(self) -> int: ...
+    def row_bytes(self) -> int | None: ...
     @property
     def column_info_list(self) -> list[PdsColumnInfo]: ...
     @property
@@ -106,7 +104,7 @@ class PdsTable:
                  defer_load: bool = False) -> None: ...
 
     def __iter__(self) -> Iterator[dict[str, Any]]: ...
-    def iter_dicts(self, chunk_rows: int = ..., *,
+    def iter_dicts(self, chunk_rows: int = 1000, *,
                    lowercase: _Lowercase = (False, False)
                    ) -> Generator[dict[str, Any]]: ...
 
@@ -158,7 +156,7 @@ class PdsTable:
     @property
     def field_delimiter(self) -> bytes | None: ...
     @property
-    def row_bytes(self) -> int: ...
+    def row_bytes(self) -> int | None: ...
     @property
     def dtype0(self) -> dict[str, tuple[str, int]]: ...
     @property

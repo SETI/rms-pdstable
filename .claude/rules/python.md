@@ -59,12 +59,13 @@ Apply these rules to ALL new and modified Python code. This project is a Python 
 ### Types
 
 - NEVER use type annotations in the src directory tree, with one exception. Types of input parameters and returns should be indicated in the docstrings. The exception is a property, which may carry an inline return annotation so that the rendered documentation shows the type beside the property name; a property annotated this way keeps a one-line docstring rather than a `Returns:` block.
+- The published type information lives in one stub, `src/pdstable/__init__.pyi`, which declares the whole public API. It is not an exception to the rule above: it is a separate file that type checkers read in place of `__init__.py`. Keep it in step with the code. A public member that is added, renamed, or re-signed MUST be updated in the stub in the same change, using the types its docstring states. Do NOT add stubs for other modules, which are not supported import paths. `mypy.stubtest` checks the stub against the runtime, in the check script and in CI.
 - ALWAYS annotate all test function/method parameters and return values, including `-> None` for functions (and `__init__`) that return nothing.
 - Use modern generic syntax (`list[str]`, `dict[str, int]`, `X | None`) for Python 3.11+.
 
 ### Mypy
 
-- NEVER run `mypy` on the src directory tree. It is deliberately unannotated, so mypy would report only meaningless errors.
+- NEVER run `mypy` on the src directory tree. It is deliberately unannotated, so mypy would report only meaningless errors. The tests see the package through its stub, and `mypy.stubtest` checks the stub.
 - ALWAYS run `mypy` on the tests after changes. Fix all errors before delivering.
 - NEVER add other global type exclusions. "Global type exclusions" means:
   - Module-level `# type: ignore` without a specific error code.

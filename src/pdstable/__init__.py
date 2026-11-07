@@ -28,7 +28,7 @@ except ImportError:  # pragma: no cover
 
 
 # The default number of rows that PdsTable.iter_dicts reads and parses at a time
-DEFAULT_CHUNK_ROWS = 1000
+_DEFAULT_CHUNK_ROWS = 1000
 
 # This is mainly to make the documentation look good
 __all__ = ['PdsColumnInfo', 'PdsTable', 'PdsTableInfo']
@@ -251,7 +251,7 @@ class PdsTable:
 
         return self.iter_dicts()
 
-    def iter_dicts(self, chunk_rows=DEFAULT_CHUNK_ROWS, *, lowercase=(False, False)):
+    def iter_dicts(self, chunk_rows=_DEFAULT_CHUNK_ROWS, *, lowercase=(False, False)):
         """Iterate over the rows of the table as dictionaries, reading a chunk at a time.
 
         Each dictionary is identical to the corresponding entry of :meth:`dicts_by_row`
@@ -873,8 +873,8 @@ class PdsTable:
         return self._info.field_delimiter
 
     @property
-    def row_bytes(self) -> int:
-        """The number of bytes in a single row of the table."""
+    def row_bytes(self) -> int | None:
+        """The number of bytes per row (the maximum for a delimited table), if known."""
         return self._info.row_bytes
 
     @property

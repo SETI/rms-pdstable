@@ -64,6 +64,12 @@ col_vals = p3.get_column("FILE_SPEC")  # All values in the FILE_SPEC column
 col_mask = p3.get_column_mask("FILE_SPEC")  # The mask of invalid values
 ```
 
+The number of rows can also be read from the label alone, without reading the table:
+
+```python
+rows = PdsTable.rows_from_label('label_filename.lbl')
+```
+
 The entire table can be returned as a series of dictionaries, one per row. The
 dictionary keys are the names of the columns:
 

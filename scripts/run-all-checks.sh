@@ -22,6 +22,7 @@
 #   --ruff-format          Run ruff format --check only
 #   --flake8-cont          Run flake8 continuation-line checks only (E12x, E13x)
 #   --mypy                 Run mypy only
+#   --stubtest             Run stubtest only (checks src/pdstable/__init__.pyi)
 #   --pytest               Run pytest only
 #   --pyroma               Run pyroma only
 #   --bandit               Run bandit only
@@ -42,8 +43,8 @@
 #   pyproject.toml [tool.coverage.report] or .coveragerc [report]).
 #
 #   RUN_* (set by this script from CLI or full-run defaults): RUN_RUFF_CHECK,
-#   RUN_RUFF_FORMAT, RUN_FLAKE8_CONT, RUN_MYPY, RUN_PYTEST, RUN_PYROMA,
-#   RUN_BANDIT, RUN_VULTURE, RUN_PIP_AUDIT, RUN_SPHINX,
+#   RUN_RUFF_FORMAT, RUN_FLAKE8_CONT, RUN_MYPY, RUN_STUBTEST, RUN_PYTEST,
+#   RUN_PYROMA, RUN_BANDIT, RUN_VULTURE, RUN_PIP_AUDIT, RUN_SPHINX,
 #   RUN_CODESPELL, RUN_PYMARKDOWN
 #
 #   Per-check toggles (true/false). The defaults match the checks in the
@@ -54,6 +55,7 @@
 #     ENABLE_RUFF_FORMAT  off: it would remove deliberate alignment (default: false)
 #     ENABLE_FLAKE8_CONT  continuation-line indent, E12x/E13x (default: true)
 #     ENABLE_MYPY         mypy on tests/ only (default: true)
+#     ENABLE_STUBTEST     __init__.pyi matches the runtime API (default: true)
 #     ENABLE_PYTEST       (default: true)
 #     ENABLE_PYROMA       (default: true)
 #     ENABLE_BANDIT       (default: false)
@@ -65,7 +67,7 @@
 #
 # Checks (each run separately; -d runs Sphinx and the text checks):
 #   Code:     optional: ruff check, ruff format --check, flake8 continuation-line
-#             indent, mypy, pytest, pyroma, bandit, vulture, pip-audit
+#             indent, mypy, stubtest, pytest, pyroma, bandit, vulture, pip-audit
 #             (see ENABLE_* above). Ruff implements no E12x/E13x rule, so the
 #             continuation-line indent checks come from flake8 instead.
 #   Sphinx:   make -C docs html SPHINXOPTS="-W -n"
@@ -94,6 +96,7 @@ RUN_RUFF_CHECK=false
 RUN_RUFF_FORMAT=false
 RUN_FLAKE8_CONT=false
 RUN_MYPY=false
+RUN_STUBTEST=false
 RUN_PYTEST=false
 RUN_PYROMA=false
 RUN_BANDIT=false
@@ -110,6 +113,7 @@ SCOPE_SPECIFIED=false
 : "${ENABLE_RUFF_FORMAT:=false}"
 : "${ENABLE_FLAKE8_CONT:=true}"
 : "${ENABLE_MYPY:=true}"
+: "${ENABLE_STUBTEST:=true}"
 : "${ENABLE_PYTEST:=true}"
 : "${ENABLE_PYROMA:=true}"
 : "${ENABLE_BANDIT:=false}"
@@ -231,6 +235,7 @@ while [[ $# -gt 0 ]]; do
             RUN_RUFF_FORMAT=true
             RUN_FLAKE8_CONT=true
             RUN_MYPY=true
+            RUN_STUBTEST=true
             RUN_PYTEST=true
             RUN_PYROMA=true
             RUN_BANDIT=true
@@ -269,6 +274,11 @@ while [[ $# -gt 0 ]]; do
             ;;
         --mypy)
             RUN_MYPY=true
+            SCOPE_SPECIFIED=true
+            shift
+            ;;
+        --stubtest)
+            RUN_STUBTEST=true
             SCOPE_SPECIFIED=true
             shift
             ;;
@@ -330,6 +340,7 @@ if [ "$SCOPE_SPECIFIED" = false ]; then
     RUN_RUFF_FORMAT=true
     RUN_FLAKE8_CONT=true
     RUN_MYPY=true
+    RUN_STUBTEST=true
     RUN_PYTEST=true
     RUN_PYROMA=true
     RUN_BANDIT=true
@@ -359,6 +370,7 @@ _code_checks_any_scheduled() {
     [ "$RUN_RUFF_FORMAT" = true ] && [ "$ENABLE_RUFF_FORMAT" = true ] && return 0
     [ "$RUN_FLAKE8_CONT" = true ] && [ "$ENABLE_FLAKE8_CONT" = true ] && return 0
     [ "$RUN_MYPY" = true ] && [ "$ENABLE_MYPY" = true ] && return 0
+    [ "$RUN_STUBTEST" = true ] && [ "$ENABLE_STUBTEST" = true ] && return 0
     [ "$RUN_PYTEST" = true ] && [ "$ENABLE_PYTEST" = true ] && return 0
     [ "$RUN_PYROMA" = true ] && [ "$ENABLE_PYROMA" = true ] && return 0
     [ "$RUN_BANDIT" = true ] && [ "$ENABLE_BANDIT" = true ] && return 0
@@ -367,7 +379,7 @@ _code_checks_any_scheduled() {
     return 1
 }
 
-# ---- Code checks (ruff, mypy, pytest, pyroma, bandit, vulture, pip-audit) ----
+# ---- Code checks (ruff, mypy, stubtest, pytest, pyroma, bandit, vulture, pip-audit) ----
 run_code_checks() {
     local output_file="${1:-}"
     local status_file="${2:-}"
@@ -441,6 +453,19 @@ run_code_checks() {
             print_error "Mypy failed"
             failed=true
             failed_checks="${failed_checks}Code - Mypy"$'\n'
+        fi
+    fi
+
+    # The stub is the package's only type information, so it must keep matching the
+    # runtime: every public name present, every signature the same shape.
+    if [ "$RUN_STUBTEST" = true ] && [ "$ENABLE_STUBTEST" = true ]; then
+        print_info "Running stubtest (__init__.pyi vs the runtime API)..."
+        if python -m mypy.stubtest pdstable --mypy-config-file pyproject.toml; then
+            print_success "Stubtest passed"
+        else
+            print_error "Stubtest failed"
+            failed=true
+            failed_checks="${failed_checks}Code - Stubtest"$'\n'
         fi
     fi
 

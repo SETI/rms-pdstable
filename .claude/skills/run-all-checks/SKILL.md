@@ -26,7 +26,7 @@ Execute all project checks (lint, typecheck, test, Markdown lint, docs) and fix 
 
 Run from **project root** with the project **virtual environment activated** (e.g. `source venv/bin/activate` or create a new venv and then `pip install -e ".[dev]"`).
 
-### Code (ruff, flake8, mypy, pytest, pip-audit)
+### Code (ruff, flake8, mypy, stubtest, pytest, pip-audit)
 
 ```bash
 # Lint (ruff); `ruff format` is disabled because it would remove deliberate alignment
@@ -37,6 +37,9 @@ python -m flake8 --select=E12,E13 src tests
 
 # Type check (mypy on tests only; src/ is deliberately unannotated)
 MYPYPATH=src python -m mypy tests
+
+# The published stub, src/pdstable/__init__.pyi, against the runtime API
+python -m mypy.stubtest pdstable --mypy-config-file pyproject.toml
 
 # Tests (pytest; use -n auto for parallel when tests are independent)
 python -m pytest tests -q
@@ -79,7 +82,7 @@ From project root:
 Options:
 
 - **Default**: Run code checks and docs (Sphinx + PyMarkdown) in parallel.
-- `-c, --code`: Only the code checks (ruff, flake8 continuation-line indent, mypy, pytest, pip-audit).
+- `-c, --code`: Only the code checks (ruff, flake8 continuation-line indent, mypy, stubtest, pytest, pip-audit).
 - `-d, --docs`: Only the Sphinx build and the text checks (codespell, PyMarkdown).
 - `-m, --markdown`: Only the text checks; `--codespell` or `--pymarkdown` for one of them.
 - `-s, --sequential`: Run code and docs sequentially (easier to read output).
@@ -95,6 +98,7 @@ Check Progress:
 - [ ] Ruff check (src, tests)
 - [ ] Flake8 continuation-line indent (src, tests)
 - [ ] Mypy (tests)
+- [ ] Stubtest (src/pdstable/__init__.pyi)
 - [ ] Pytest (tests)
 - [ ] pip-audit (installed dependencies)
 - [ ] codespell (src, tests, docs, scripts, README, CONTRIBUTING)
@@ -176,6 +180,7 @@ All checks pass when:
 - `ruff check` → All checks passed
 - `flake8 --select=E12,E13` → No output
 - `mypy` → Success: no issues found
+- `stubtest` → Success: no issues found
 - `pytest` → All tests pass; coverage meets target if configured
 - `pip-audit` → No known vulnerabilities found
 - `codespell` → No misspellings reported
