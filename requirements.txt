@@ -1,12 +1,5 @@
-coverage
-flake8
-myst-parser
-pds4_tools
-pytest
-pytest-cov
-rms-filecache
-rms-julian
-rms-pdsparser
-sphinx
-sphinxcontrib-napoleon
-sphinx-rtd-theme
+# Install the package in editable mode. For development (tests, lint, type-check, docs) use:
+#   pip install -e ".[dev]"
+# For documentation build only:
+#   pip install -e ".[docs]"
+-e .

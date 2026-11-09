@@ -1,0 +1,187 @@
+
+  OBJECT         = COLUMN
+    NAME         = BIAS_STRIP_MEAN
+    DATA_TYPE    = ASCII_REAL
+    START_BYTE   = 98
+    BYTES        = 11
+    FORMAT       = "F11.6"
+    DESCRIPTION  = "Mean value of the overclocked pixel values from
+                    all lines except the first and last. Not affected
+                    by light or dark current."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = CALIBRATION_LAMP_STATE_FLAG
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 111
+    BYTES        = 4
+    FORMAT       = A4
+    DESCRIPTION  = "Indicates whether calibration lamp was used for
+                    this image. (ISSNA has none, so it's always 'N/A')"
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = COMMAND_FILE_NAME
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 118
+    BYTES        = 64
+    FORMAT       = A64
+    DESCRIPTION  = "The name of the IOI file containing the observation
+                    description for this product - sent from the ISS
+                    Team Lead to IO."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = COMMAND_SEQUENCE_NUMBER
+    DATA_TYPE    = INTEGER
+    START_BYTE   = 184
+    BYTES        = 11
+    FORMAT       = I11
+    DESCRIPTION  = "Numeric identifier for a sequence of commands
+                    sent to the spacecraft. Also known as 'trigger
+                    number'. (Comes from the TRIGGER_NUMBER keyword
+                    in the IOI file.) Note that 1-12 are reserved
+                    for IO use and 8 is reserved for OpNav."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = DARK_STRIP_MEAN
+    DATA_TYPE    = ASCII_REAL
+    START_BYTE   = 196
+    BYTES        = 11
+    FORMAT       = "F11.6"
+    DESCRIPTION  = "Mean value of the extended pixel values from
+                    all lines except the first and last. Not affected
+                    by light, but by dark current and Dark Band problem."
+    INVALID_CONSTANT = 19.5
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = DATA_CONVERSION_TYPE
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 209
+    BYTES        = 5
+    FORMAT       = A5
+    DESCRIPTION  = "The method of conversion used to convert image
+                    from 12 to 8 bits selected for this image. '12BIT'
+                    = no conversion 'TABLE' = conversion by look-up
+                    table '8LSB' = keep only the 8 least significant
+                    bits"
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = DATA_SET_ID
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 217
+    BYTES        = 40
+    FORMAT       = A40
+    DESCRIPTION  = "PDS/Cassini-supplied name for this data set."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = DELAYED_READOUT_FLAG
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 260
+    BYTES        = 4
+    FORMAT       = A4
+    DESCRIPTION  = "Indicator of whether the image may have waited
+                    on the CCD while the other camera was performing
+                    a readout."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = DESCRIPTION
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 267
+    BYTES        = 255
+    FORMAT       = A255
+    DESCRIPTION  = "Descriptive comment up to 255 characters. Populated
+                    by IO telemetry processing, validation and reconciliation
+                    software to describe known limitations of this
+                    product."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = DETECTOR_TEMPERATURE
+    DATA_TYPE    = ASCII_REAL
+    START_BYTE   = 524
+    BYTES        = 11
+    FORMAT       = "F11.6"
+    UNITS        = "CELSIUS DEGREE"
+    DESCRIPTION  = "Temperature of CCD in Celsius degrees."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = EARTH_RECEIVED_START_TIME
+    DATA_TYPE    = TIME
+    START_BYTE   = 536
+    BYTES        = 22
+    FORMAT       = A22
+    DESCRIPTION  = "Earth Received time of the earliest record containing
+                    valid data for this image (UTC)."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = EARTH_RECEIVED_STOP_TIME
+    DATA_TYPE    = TIME
+    START_BYTE   = 559
+    BYTES        = 22
+    FORMAT       = A22
+    DESCRIPTION  = "Earth Received time of the latest record containing
+                    valid data for this image (UTC)."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = ELECTRONICS_BIAS
+    DATA_TYPE    = INTEGER
+    START_BYTE   = 582
+    BYTES        = 11
+    FORMAT       = I11
+    DESCRIPTION  = "Commanded electronics bias to ensure that all
+                    DN values are greater than zero. (Comes from the
+                    VIDEO_OFFSET keyword in the IOI file.)"
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = EXPECTED_MAXIMUM
+    DATA_TYPE    = ASCII_REAL
+    START_BYTE   = 594
+    BYTES        = 23
+    ITEMS        = 2
+    ITEM_BYTES   = 11
+    ITEM_OFFSET  = 12
+    DESCRIPTION  = "2-valued array. First, represents the ratio of
+                    the expected maximum DN in the image to the VALID_MAXIMUM
+                    (full well DN). Second, represents the ratio of
+                    the expected maximum DN in the image to the VALID_MAXIMUM
+                    (maxDN)."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = EXPECTED_PACKETS
+    DATA_TYPE    = INTEGER
+    START_BYTE   = 618
+    BYTES        = 11
+    FORMAT       = I11
+    DESCRIPTION  = "This keyword provides the total number of packets
+                    expected to be stored on the SSR for this image.
+                    To convert to volume in bits, multiply this value
+                    by 7616 bits/packet. (Comes from the EXPECTED_PACKETS
+                    keyword in the IOI file.)"
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = EXPOSURE_DURATION
+    DATA_TYPE    = ASCII_REAL
+    START_BYTE   = 630
+    BYTES        = 11
+    FORMAT       = "F11.1"
+    UNITS        = "MILLISECOND"
+    DESCRIPTION  = "Exposure duration for the image in milliseconds.
+                    63 distinct values from 0 to 1200000. (See table
+                    in AppendixA.) -999.0 if extended header is unavailable"
+  END_OBJECT     = COLUMN
+
+  ^STRUCTURE     = "cassini_iss_index_edited_structure_nested.fmt"
+
+END

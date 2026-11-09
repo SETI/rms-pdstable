@@ -1,0 +1,57 @@
+PDS_VERSION_ID         = PDS3
+RECORD_TYPE            = FIXED_LENGTH
+RECORD_BYTES           = 1181
+FILE_RECORDS           = 100
+^IMAGE_INDEX_TABLE     = "cassini_iss_index_edited.tab"
+
+OBJECT                   = IMAGE_INDEX_TABLE
+  INDEX_TYPE             = SINGLE
+  INTERCHANGE_FORMAT     = ASCII
+  ROWS                   = 100
+  ROW_BYTES              = 1181
+  COLUMNS                = 44
+
+  OBJECT         = COLUMN
+    NAME         = FILE_NAME
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 2
+    BYTES        = 22
+    FORMAT       = A22
+    DESCRIPTION  = "The name of the image file as stored on the archive
+                    media."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = FILE_SPECIFICATION_NAME
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 27
+    BYTES        = 48
+    FORMAT       = A48
+    DESCRIPTION  = "Path name locating images in DATA directory on
+                    data set volumes."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = VOLUME_ID
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 78
+    BYTES        = 11
+    FORMAT       = A11
+    DESCRIPTION  = "The volume on which the product is stored."
+  END_OBJECT     = COLUMN
+
+  OBJECT         = COLUMN
+    NAME         = ANTIBLOOMING_STATE_FLAG
+    DATA_TYPE    = CHARACTER
+    START_BYTE   = 92
+    BYTES        = 4
+    FORMAT       = A4
+    DESCRIPTION  = "Indicator of whether antiblooming was used for
+                    this image."
+  END_OBJECT     = COLUMN
+
+  ^STRUCTURE     = "cassini_iss_index_edited_structure_fmt_dir.fmt"
+
+END_OBJECT               = IMAGE_INDEX_TABLE
+
+END

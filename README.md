@@ -1,3 +1,6 @@
+<!-- pyml disable MD025 -->
+# rms-pdstable
+
 [![GitHub release; latest by date](https://img.shields.io/github/v/release/SETI/rms-pdstable)](https://github.com/SETI/rms-pdstable/releases)
 [![GitHub Release Date](https://img.shields.io/github/release-date/SETI/rms-pdstable)](https://github.com/SETI/rms-pdstable/releases)
 [![Test Status](https://img.shields.io/github/actions/workflow/status/SETI/rms-pdstable/run-tests.yml?branch=main)](https://github.com/SETI/rms-pdstable/actions)
@@ -21,6 +24,8 @@
 ![GitHub License](https://img.shields.io/github/license/SETI/rms-pdstable)
 [![Number of GitHub stars](https://img.shields.io/github/stars/SETI/rms-pdstable)](https://github.com/SETI/rms-pdstable/stargazers)
 ![GitHub forks](https://img.shields.io/github/forks/SETI/rms-pdstable)
+
+<!-- start-after-point -->
 
 # Introduction
 
@@ -59,11 +64,27 @@ col_vals = p3.get_column("FILE_SPEC")  # All values in the FILE_SPEC column
 col_mask = p3.get_column_mask("FILE_SPEC")  # The mask of invalid values
 ```
 
+The number of rows can also be read from the label alone, without reading the table:
+
+```python
+rows = PdsTable.rows_from_label('label_filename.lbl')
+```
+
 The entire table can be returned as a series of dictionaries, one per row. The
 dictionary keys are the names of the columns:
 
 ```python
 as_dicts = p3.dicts_by_row()
+```
+
+A large table can instead be streamed one row dictionary at a time, reading and parsing
+only a chunk of rows at once. Construct it with `defer_load=True` so that the whole table
+is not loaded first:
+
+```python
+big = PdsTable('big_index.lbl', defer_load=True)
+for row in big.iter_dicts(chunk_rows=5000):  # or simply: for row in big:
+    print(row['FILE_SPEC'])
 ```
 
 PDS3 labels can only point to a single table. However, PDS4 labels can point to
@@ -81,6 +102,7 @@ increase performance. These include:
 
 - Specifying a subset of columns to parse.
 - Reading only a subset of rows.
+- Streaming rows from a large table without loading all of it.
 - Using a faster but less rigorous label parser for PDS3 labels.
 - Searching for rows with a specific volume or bundle name and/or file specification.
 

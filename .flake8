@@ -1,9 +1,28 @@
+# Ruff is the linter of record for everything it implements; see [tool.ruff] in
+# pyproject.toml. Ruff has no rule in the E121-E133 range, so the
+# continuation-line indent checks come from flake8, and CI and
+# scripts/run-all-checks.sh read the per-file-ignores below when they run
+# `flake8 --select=E12,E13`. For every other code, this file is for anyone
+# running flake8 by hand and is not authoritative.
 [flake8]
 max-line-length: 90
 extend-ignore =
-    # E127 continuation line over-indented for visual indent
-    # E203 whitespace before ','
-    # E221 multiple spaces before operator
-    # E265 block comment should start with '# '
-    # E266 too many leading '#' for block comment
-    E127, E203, E221, E265, E266
+    # E201 Whitespace after '('
+    # E202 Whitespace before ')'
+    # E203 Whitespace before ':'
+    # E221 Multiple spaces before operator
+    # E222 Multiple spaces after operator
+    # E241 Multiple spaces after ','
+    # E265 Block comment should start with '# '
+    # E266 Too many leading '#' for block comment
+    E201, E202, E203, E221, E222, E241, E265, E266
+
+per-file-ignores =
+    # E127 Continuation line over-indented for visual indent
+    # The parameters after the first line of Pds3TableInfo.__init__ are aligned
+    # with the first parameter rather than with the opening parenthesis, which
+    # sets the keyword-only parameters apart.
+    pds3table.py: E127
+
+    # E501 Line too long
+    tests/*: E501
